@@ -108,6 +108,7 @@ var abuse_reports_model_1 = require("../../../database/common/abuse_reports.mode
 var blocked_users_model_1 = require("../../../database/common/blocked_users.model");
 var blockeduser_util_1 = require("../../../utils/blockeduser.util");
 var conversation_util_1 = require("../../../utils/conversation.util");
+var generator_util_1 = require("../../../utils/generator.util");
 var ProfileHandler = /** @class */ (function (_super) {
     __extends(ProfileHandler, _super);
     function ProfileHandler() {
@@ -115,7 +116,7 @@ var ProfileHandler = /** @class */ (function (_super) {
     }
     ProfileHandler.prototype.createProfile = function () {
         return __awaiter(this, void 0, void 0, function () {
-            var req, res, _a, location_1, backgroundCheckConsent, skill, website, experienceYear, about, email, phoneNumber, emergencyJobs, availability, profilePhoto, previousJobPhotos, previousJobVideos, contractorId, contractor_1, errors, payload, profile, _b, contractorResponse, data, err_1;
+            var req, res, _a, location_1, backgroundCheckConsent, skill, website, experienceYear, about, email, phoneNumber, emergencyJobs, availability, profilePhoto, previousJobPhotos, previousJobVideos, contractorId, contractor_1, errors, payload, profile, newReferralCode, _b, contractorResponse, data, err_1;
             return __generator(this, function (_c) {
                 switch (_c.label) {
                     case 0:
@@ -123,7 +124,7 @@ var ProfileHandler = /** @class */ (function (_super) {
                         res = this.res;
                         _c.label = 1;
                     case 1:
-                        _c.trys.push([1, 6, , 7]);
+                        _c.trys.push([1, 7, , 8]);
                         _a = req.body, location_1 = _a.location, backgroundCheckConsent = _a.backgroundCheckConsent, skill = _a.skill, website = _a.website, experienceYear = _a.experienceYear, about = _a.about, email = _a.email, phoneNumber = _a.phoneNumber, emergencyJobs = _a.emergencyJobs, availability = _a.availability, profilePhoto = _a.profilePhoto, previousJobPhotos = _a.previousJobPhotos, previousJobVideos = _a.previousJobVideos;
                         contractorId = req.contractor.id;
                         return [4 /*yield*/, contractor_model_1.ContractorModel.findById(contractorId)];
@@ -169,12 +170,16 @@ var ProfileHandler = /** @class */ (function (_super) {
                         profile = _c.sent();
                         // Update the ContractorModel with the profile ID
                         contractor_1.profile = profile._id;
-                        return [4 /*yield*/, contractor_1.save()];
+                        return [4 /*yield*/, generator_util_1.GeneratorUtil.generateReferralCode({ length: 6, userId: contractor_1.id, userType: 'contractors' })];
                     case 4:
+                        newReferralCode = _c.sent();
+                        contractor_1.referralCode = newReferralCode;
+                        return [4 /*yield*/, contractor_1.save()];
+                    case 5:
                         _c.sent();
                         _b = contractor_1;
                         return [4 /*yield*/, contractor_1.getOnboarding()];
-                    case 5:
+                    case 6:
                         _b.onboarding = _c.sent();
                         contractorResponse = __assign(__assign({}, contractor_1.toJSON()), { profile: profile });
                         if (contractor_1.accountType == contractor_interface_1.CONTRACTOR_TYPES.Individual) {
@@ -201,29 +206,16 @@ var ProfileHandler = /** @class */ (function (_super) {
                                 });
                             }
                         }
-                        // send email to contractor 
-                        // TODO: Emit event and handle email sending from there
-                        // const htmlCon = htmlContractorDocumentValidatinTemplate(contractor.firstName);
-                        // EmailService.send(contractor.email, 'New Profile', htmlCon)
-                        //   .then(() => console.log('Email sent successfully'))
-                        //   .catch(error => console.error('Error sending email:', error));
-                        // send email to admin
-                        // const html = htmlContractorDocumentValidatinToAdminTemplate(contractor.firstName)
-                        // const adminsWithEmails = await AdminRegModel.find().select('email');
-                        // const adminEmails: Array<string> = adminsWithEmails.map(admin => admin.email);
-                        // EmailService.send(adminEmails, 'New Profile Registered', html, adminEmails)
-                        //   .then(() => console.log('Emails sent successfully with CC'))
-                        //   .catch(error => console.error('Error sending emails:', error));
                         return [2 /*return*/, res.json({
                                 success: true,
                                 message: "Profile created successfully",
                                 data: contractorResponse
                             })];
-                    case 6:
+                    case 7:
                         err_1 = _c.sent();
                         console.log("error", err_1);
                         return [2 /*return*/, res.status(500).json({ success: false, message: err_1.message })];
-                    case 7: return [2 /*return*/];
+                    case 8: return [2 /*return*/];
                 }
             });
         });

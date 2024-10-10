@@ -53,12 +53,13 @@ var services_1 = require("../../../services");
 var config_1 = require("../../../config");
 var welcome_email_1 = require("../../../templates/customer/welcome_email");
 var i18n_1 = require("../../../i18n");
+var generator_util_1 = require("../../../utils/generator.util");
 var signUp = function (req, res) { return __awaiter(void 0, void 0, void 0, function () {
-    var _a, email, password, firstName, lastName, acceptTerms, phoneNumber, language, errors, userEmailExists, otp, createdTime, emailOtp, hashedPassword, customer, customerSaved, welcomeHtml, translatedWelcomeHtml, translatedWelcomeSubject, emailVerificationHtml, translatedVerificationHtml, translatedVerificationSubject, err_1;
+    var _a, email, password, firstName, lastName, acceptTerms, phoneNumber, language, errors, userEmailExists, otp, createdTime, emailOtp, hashedPassword, customer, newReferralCode, customerSaved, welcomeHtml, translatedWelcomeHtml, translatedWelcomeSubject, emailVerificationHtml, translatedVerificationHtml, translatedVerificationSubject, err_1;
     return __generator(this, function (_b) {
         switch (_b.label) {
             case 0:
-                _b.trys.push([0, 8, , 9]);
+                _b.trys.push([0, 9, , 10]);
                 _a = req.body, email = _a.email, password = _a.password, firstName = _a.firstName, lastName = _a.lastName, acceptTerms = _a.acceptTerms, phoneNumber = _a.phoneNumber, language = _a.language;
                 errors = (0, express_validator_1.validationResult)(req);
                 if (!errors.isEmpty()) {
@@ -91,23 +92,27 @@ var signUp = function (req, res) { return __awaiter(void 0, void 0, void 0, func
                     acceptTerms: acceptTerms,
                     language: language
                 });
-                return [4 /*yield*/, customer.save()];
+                return [4 /*yield*/, generator_util_1.GeneratorUtil.generateReferralCode({ length: 6, userId: customer.id, userType: 'customers' })];
             case 3:
+                newReferralCode = _b.sent();
+                customer.referralCode = newReferralCode;
+                return [4 /*yield*/, customer.save()];
+            case 4:
                 customerSaved = _b.sent();
                 welcomeHtml = (0, welcome_email_1.CustomerWelcomeEmailTemplate)(lastName);
                 return [4 /*yield*/, i18n_1.i18n.getTranslation({ phraseOrSlug: welcomeHtml, targetLang: customer.language, saveToFile: false, useGoogle: true, contentType: 'html' })];
-            case 4:
+            case 5:
                 translatedWelcomeHtml = (_b.sent()) || welcomeHtml;
                 return [4 /*yield*/, i18n_1.i18n.getTranslation({ phraseOrSlug: "Welcome to Repairfind", targetLang: customer.language })];
-            case 5:
+            case 6:
                 translatedWelcomeSubject = (_b.sent()) || 'Welcome to Repairfind';
                 services_1.EmailService.send(email, translatedWelcomeSubject, translatedWelcomeHtml);
                 emailVerificationHtml = (0, OtpEmailTemplate_1.OtpEmailTemplate)(otp, firstName, 'We have received a request to verify your email');
                 return [4 /*yield*/, i18n_1.i18n.getTranslation({ phraseOrSlug: emailVerificationHtml, targetLang: customer.language, saveToFile: false, useGoogle: true, contentType: 'html' })];
-            case 6:
+            case 7:
                 translatedVerificationHtml = (_b.sent()) || emailVerificationHtml;
                 return [4 /*yield*/, i18n_1.i18n.getTranslation({ phraseOrSlug: "'Email Verification", targetLang: customer.language })];
-            case 7:
+            case 8:
                 translatedVerificationSubject = (_b.sent()) || 'Welcome to Repairfind';
                 services_1.EmailService.send(email, translatedVerificationSubject, translatedVerificationHtml);
                 res.json({
@@ -121,12 +126,12 @@ var signUp = function (req, res) { return __awaiter(void 0, void 0, void 0, func
                         email: customerSaved.email,
                     },
                 });
-                return [3 /*break*/, 9];
-            case 8:
+                return [3 /*break*/, 10];
+            case 9:
                 err_1 = _b.sent();
                 res.status(500).json({ success: false, message: err_1.message });
-                return [3 /*break*/, 9];
-            case 9: return [2 /*return*/];
+                return [3 /*break*/, 10];
+            case 10: return [2 /*return*/];
         }
     });
 }); };
@@ -187,11 +192,11 @@ var verifyEmail = function (req, res) { return __awaiter(void 0, void 0, void 0,
 }); };
 exports.verifyEmail = verifyEmail;
 var signIn = function (req, res) { return __awaiter(void 0, void 0, void 0, function () {
-    var _a, email, password, currentTimezone, errors, customer, isPasswordMatch, profile, accessToken, err_3;
+    var _a, email, password, currentTimezone, errors, customer, isPasswordMatch, profile, accessToken, newReferralCode, err_3;
     return __generator(this, function (_b) {
         switch (_b.label) {
             case 0:
-                _b.trys.push([0, 5, , 6]);
+                _b.trys.push([0, 7, , 8]);
                 _a = req.body, email = _a.email, password = _a.password, currentTimezone = _a.currentTimezone;
                 errors = (0, express_validator_1.validationResult)(req);
                 if (!errors.isEmpty()) {
@@ -229,11 +234,18 @@ var signIn = function (req, res) { return __awaiter(void 0, void 0, void 0, func
                     email: customer.email,
                     userType: 'customers',
                 }, process.env.JWT_SECRET_KEY, { expiresIn: config_1.config.jwt.tokenLifetime });
+                if (!!customer.referralCode) return [3 /*break*/, 5];
+                return [4 /*yield*/, generator_util_1.GeneratorUtil.generateReferralCode({ length: 6, userId: customer.id, userType: 'customers' })];
+            case 4:
+                newReferralCode = _b.sent();
+                customer.referralCode = newReferralCode;
+                _b.label = 5;
+            case 5:
                 customer.currentTimezone = currentTimezone;
                 return [4 /*yield*/, customer.save()
                     // return access token
                 ];
-            case 4:
+            case 6:
                 _b.sent();
                 // return access token
                 res.json({
@@ -243,22 +255,22 @@ var signIn = function (req, res) { return __awaiter(void 0, void 0, void 0, func
                     expiresIn: config_1.config.jwt.tokenLifetime,
                     data: profile
                 });
-                return [3 /*break*/, 6];
-            case 5:
+                return [3 /*break*/, 8];
+            case 7:
                 err_3 = _b.sent();
                 res.status(500).json({ success: false, message: err_3.message });
-                return [3 /*break*/, 6];
-            case 6: return [2 /*return*/];
+                return [3 /*break*/, 8];
+            case 8: return [2 /*return*/];
         }
     });
 }); };
 exports.signIn = signIn;
 var signInWithPhone = function (req, res) { return __awaiter(void 0, void 0, void 0, function () {
-    var _a, number, code, password, currentTimezone, errors, customer, isPasswordMatch, profile, accessToken, err_4;
+    var _a, number, code, password, currentTimezone, errors, customer, isPasswordMatch, profile, accessToken, newReferralCode, err_4;
     return __generator(this, function (_b) {
         switch (_b.label) {
             case 0:
-                _b.trys.push([0, 5, , 6]);
+                _b.trys.push([0, 7, , 8]);
                 _a = req.body, number = _a.number, code = _a.code, password = _a.password, currentTimezone = _a.currentTimezone;
                 errors = (0, express_validator_1.validationResult)(req);
                 if (!errors.isEmpty()) {
@@ -295,11 +307,18 @@ var signInWithPhone = function (req, res) { return __awaiter(void 0, void 0, voi
                     email: customer.email,
                     userType: 'customers',
                 }, process.env.JWT_SECRET_KEY, { expiresIn: config_1.config.jwt.tokenLifetime });
+                if (!!customer.referralCode) return [3 /*break*/, 5];
+                return [4 /*yield*/, generator_util_1.GeneratorUtil.generateReferralCode({ length: 6, userId: customer.id, userType: 'customers' })];
+            case 4:
+                newReferralCode = _b.sent();
+                customer.referralCode = newReferralCode;
+                _b.label = 5;
+            case 5:
                 customer.currentTimezone = currentTimezone;
                 return [4 /*yield*/, customer.save()
                     // return access token
                 ];
-            case 4:
+            case 6:
                 _b.sent();
                 // return access token
                 res.json({
@@ -309,12 +328,12 @@ var signInWithPhone = function (req, res) { return __awaiter(void 0, void 0, voi
                     expiresIn: config_1.config.jwt.tokenLifetime,
                     data: profile
                 });
-                return [3 /*break*/, 6];
-            case 5:
+                return [3 /*break*/, 8];
+            case 7:
                 err_4 = _b.sent();
                 res.status(500).json({ success: false, message: err_4.message });
-                return [3 /*break*/, 6];
-            case 6: return [2 /*return*/];
+                return [3 /*break*/, 8];
+            case 8: return [2 /*return*/];
         }
     });
 }); };

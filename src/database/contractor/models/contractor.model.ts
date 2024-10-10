@@ -9,6 +9,7 @@ import QuestionModel, { IQuestion } from "../../admin/models/question.model";
 import MongooseDelete, { SoftDeleteModel } from 'mongoose-delete';
 import { JobQuotationModel } from "../../common/job_quotation.model";
 import { JOB_STATUS, JobModel } from "../../common/job.model";
+import { GeneratorUtil } from "../../../utils/generator.util";
 
 
 
@@ -214,7 +215,6 @@ const ContractorSchema = new Schema<IContractor>(
       jobsTotal: { type: Schema.Types.Mixed }
     },
 
-
     badge: {
       label: { type: String, default: CONTRACTOR_BADGE.PROSPECT },
       icon: { type: String, default: null },
@@ -237,6 +237,10 @@ const ContractorSchema = new Schema<IContractor>(
       type: String,
       default: 'en'
     },
+    referralCode: {
+      type: String,
+      unique: true,
+    },
 
   },
   {
@@ -249,8 +253,6 @@ ContractorSchema.virtual('stripeIdentityStatus').get(function (this: IContractor
   //@ts-ignore
   return this.stripeIdentity ? this.stripeIdentity.status : 'unverified';
 });
-
-
 
 
 ContractorSchema.virtual('stripeAccountStatus').get(function (this: IContractor) {

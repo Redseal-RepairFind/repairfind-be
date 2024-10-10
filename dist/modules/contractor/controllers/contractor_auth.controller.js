@@ -97,6 +97,7 @@ var services_1 = require("../../../services");
 var config_1 = require("../../../config");
 var twillio_1 = __importDefault(require("../../../services/twillio"));
 var i18n_1 = require("../../../i18n");
+var generator_util_1 = require("../../../utils/generator.util");
 var AuthHandler = /** @class */ (function (_super) {
     __extends(AuthHandler, _super);
     function AuthHandler() {
@@ -336,7 +337,7 @@ var AuthHandler = /** @class */ (function (_super) {
     AuthHandler.prototype.signin = function () {
         var _a;
         return __awaiter(this, void 0, void 0, function () {
-            var req, res, _b, email, password, currentTimezone, errors, contractor, isPasswordMatch, quiz, _c, contractorResponse, accessToken, err_5;
+            var req, res, _b, email, password, currentTimezone, errors, contractor, isPasswordMatch, quiz, _c, contractorResponse, accessToken, newReferralCode, err_5;
             return __generator(this, function (_d) {
                 switch (_d.label) {
                     case 0:
@@ -344,7 +345,7 @@ var AuthHandler = /** @class */ (function (_super) {
                         res = this.res;
                         _d.label = 1;
                     case 1:
-                        _d.trys.push([1, 7, , 8]);
+                        _d.trys.push([1, 9, , 10]);
                         _b = req.body, email = _b.email, password = _b.password, currentTimezone = _b.currentTimezone;
                         errors = (0, express_validator_1.validationResult)(req);
                         if (!errors.isEmpty()) {
@@ -374,9 +375,16 @@ var AuthHandler = /** @class */ (function (_super) {
                         _c.onboarding = _d.sent();
                         contractorResponse = __assign(__assign({}, contractor.toJSON()), { quiz: quiz });
                         accessToken = jsonwebtoken_1.default.sign({ id: contractor === null || contractor === void 0 ? void 0 : contractor._id, email: contractor.email, userType: 'contractors', }, process.env.JWT_SECRET_KEY, { expiresIn: config_1.config.jwt.tokenLifetime });
+                        if (!!contractor.referralCode) return [3 /*break*/, 7];
+                        return [4 /*yield*/, generator_util_1.GeneratorUtil.generateReferralCode({ length: 6, userId: contractor.id, userType: 'contractors' })];
+                    case 6:
+                        newReferralCode = _d.sent();
+                        contractor.referralCode = newReferralCode;
+                        _d.label = 7;
+                    case 7:
                         contractor.currentTimezone = currentTimezone;
                         return [4 /*yield*/, contractor.save()];
-                    case 6:
+                    case 8:
                         _d.sent();
                         return [2 /*return*/, res.json({
                                 success: true,
@@ -385,10 +393,10 @@ var AuthHandler = /** @class */ (function (_super) {
                                 expiresIn: config_1.config.jwt.tokenLifetime,
                                 user: contractorResponse
                             })];
-                    case 7:
+                    case 9:
                         err_5 = _d.sent();
                         return [2 /*return*/, res.status(500).json({ success: false, message: err_5.message })];
-                    case 8: return [2 /*return*/];
+                    case 10: return [2 /*return*/];
                 }
             });
         });
@@ -396,7 +404,7 @@ var AuthHandler = /** @class */ (function (_super) {
     AuthHandler.prototype.signinWithPhone = function () {
         var _a;
         return __awaiter(this, void 0, void 0, function () {
-            var req, res, _b, password, number, code, currentTimezone, errors, contractor, isPasswordMatch, quiz, _c, contractorResponse, accessToken, err_6;
+            var req, res, _b, password, number, code, currentTimezone, errors, contractor, isPasswordMatch, quiz, _c, contractorResponse, accessToken, newReferralCode, err_6;
             return __generator(this, function (_d) {
                 switch (_d.label) {
                     case 0:
@@ -404,7 +412,7 @@ var AuthHandler = /** @class */ (function (_super) {
                         res = this.res;
                         _d.label = 1;
                     case 1:
-                        _d.trys.push([1, 7, , 8]);
+                        _d.trys.push([1, 9, , 10]);
                         _b = req.body, password = _b.password, number = _b.number, code = _b.code, currentTimezone = _b.currentTimezone;
                         errors = (0, express_validator_1.validationResult)(req);
                         if (!errors.isEmpty()) {
@@ -436,11 +444,18 @@ var AuthHandler = /** @class */ (function (_super) {
                         _c.onboarding = _d.sent();
                         contractorResponse = __assign(__assign({}, contractor.toJSON()), { quiz: quiz });
                         accessToken = jsonwebtoken_1.default.sign({ id: contractor === null || contractor === void 0 ? void 0 : contractor._id, email: contractor.email, userType: 'contractors', }, process.env.JWT_SECRET_KEY, { expiresIn: config_1.config.jwt.tokenLifetime });
+                        if (!!contractor.referralCode) return [3 /*break*/, 7];
+                        return [4 /*yield*/, generator_util_1.GeneratorUtil.generateReferralCode({ length: 6, userId: contractor.id, userType: 'contractors' })];
+                    case 6:
+                        newReferralCode = _d.sent();
+                        contractor.referralCode = newReferralCode;
+                        _d.label = 7;
+                    case 7:
                         contractor.currentTimezone = currentTimezone;
                         return [4 /*yield*/, contractor.save()
                             // return access token
                         ];
-                    case 6:
+                    case 8:
                         _d.sent();
                         // return access token
                         return [2 /*return*/, res.json({
@@ -450,10 +465,10 @@ var AuthHandler = /** @class */ (function (_super) {
                                 expiresIn: config_1.config.jwt.tokenLifetime,
                                 user: contractorResponse
                             })];
-                    case 7:
+                    case 9:
                         err_6 = _d.sent();
                         return [2 /*return*/, res.status(500).json({ success: false, message: err_6.message })];
-                    case 8: return [2 /*return*/];
+                    case 10: return [2 /*return*/];
                 }
             });
         });

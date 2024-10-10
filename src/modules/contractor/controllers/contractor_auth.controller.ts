@@ -12,6 +12,7 @@ import { EmailService } from "../../../services";
 import { config } from "../../../config";
 import TwilioService from "../../../services/twillio";
 import { i18n } from "../../../i18n";
+import { GeneratorUtil } from "../../../utils/generator.util";
 
 class AuthHandler extends Base {
     @handleAsyncError()
@@ -49,7 +50,6 @@ class AuthHandler extends Base {
 
 
             const hashedPassword = await bcrypt.hash(password, 10);
-
             const contractor = await ContractorModel.create({
                 email,
                 firstName,
@@ -86,7 +86,6 @@ class AuthHandler extends Base {
             return res.status(500).json({ success: false, message: err.message });
         }
     }
-
 
     @handleAsyncError()
     public async verifyEmail(): Promise<Response> {
@@ -279,6 +278,10 @@ class AuthHandler extends Base {
             );
 
 
+            if(!contractor.referralCode){
+                const newReferralCode = await GeneratorUtil.generateReferralCode({length: 6, userId: contractor.id, userType: 'contractors'});
+                contractor.referralCode = newReferralCode;
+            }
             contractor.currentTimezone = currentTimezone
             await contractor.save()
 
@@ -348,6 +351,11 @@ class AuthHandler extends Base {
                 process.env.JWT_SECRET_KEY!,
                 { expiresIn: config.jwt.tokenLifetime }
             );
+
+            if(!contractor.referralCode){
+                const newReferralCode = await GeneratorUtil.generateReferralCode({length: 6, userId: contractor.id, userType: 'contractors'});
+                contractor.referralCode = newReferralCode;
+            }
 
             contractor.currentTimezone = currentTimezone
             await contractor.save()

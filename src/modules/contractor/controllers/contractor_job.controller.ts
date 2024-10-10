@@ -471,17 +471,17 @@ export const sendJobQuotation = async (
     const scheduleSiteVisitDate = siteVisit ? new Date(siteVisit) : null
 
 
-    let contractorDiscount = null
-    if (couponCode) {
-      const coupon = await UserCouponModel.findOne({ code: couponCode });
-      if (!coupon) return res.status(400).json({success: false, message: "Invalid coupon code" });
-      if (['pending', 'redeemed', 'expired'].includes(coupon.status)) {
-        return res.status(400).json({success: false, message: `Coupon is ${coupon.status}` });
-      }
-      contractorDiscount = { coupon: coupon.id, value: coupon.value, valueType: coupon.valueType };
-      coupon.status = 'pending';
-      await coupon.save();
-    }
+    // let contractorDiscount = null
+    // if (couponCode) {
+    //   const coupon = await UserCouponModel.findOne({ code: couponCode });
+    //   if (!coupon) return res.status(400).json({success: false, message: "Invalid coupon code" });
+    //   if (['pending', 'redeemed', 'expired'].includes(coupon.status)) {
+    //     return res.status(400).json({success: false, message: `Coupon is ${coupon.status}` });
+    //   }
+    //   contractorDiscount = { coupon: coupon.id, value: coupon.value, valueType: coupon.valueType };
+    //   coupon.status = 'pending';
+    //   await coupon.save();
+    // }
 
 
     // Create or update job quotation
@@ -501,9 +501,9 @@ export const sendJobQuotation = async (
       };
       jobQuotation.siteVisitEstimate = siteVisitEstimate as IExtraEstimate;
       jobQuotation.type = JOB_QUOTATION_TYPE.SITE_VISIT
-      if(contractorDiscount)jobQuotation.siteVisitEstimate.contractorDiscount = contractorDiscount
+      // if(contractorDiscount)jobQuotation.siteVisitEstimate.contractorDiscount = contractorDiscount
     }else{
-      if(contractorDiscount)jobQuotation.contractorDiscount = contractorDiscount
+      // if(contractorDiscount)jobQuotation.contractorDiscount = contractorDiscount
     }
 
 

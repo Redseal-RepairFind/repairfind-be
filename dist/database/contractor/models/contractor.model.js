@@ -247,6 +247,10 @@ var ContractorSchema = new mongoose_1.Schema({
         type: String,
         default: 'en'
     },
+    referralCode: {
+        type: String,
+        unique: true,
+    },
 }, {
     timestamps: true,
 });

@@ -26,6 +26,7 @@ import { ABUSE_REPORT_TYPE, AbuseReportModel } from "../../../database/common/ab
 import { BLOCK_USER_REASON, BlockedUserModel } from "../../../database/common/blocked_users.model";
 import { BlockedUserUtil } from "../../../utils/blockeduser.util";
 import { ConversationUtil } from "../../../utils/conversation.util";
+import { GeneratorUtil } from "../../../utils/generator.util";
 
 
 class ProfileHandler extends Base {
@@ -103,6 +104,10 @@ class ProfileHandler extends Base {
 
       // Update the ContractorModel with the profile ID
       contractor.profile = profile._id;
+      
+      const newReferralCode = await GeneratorUtil.generateReferralCode({length: 6, userId: contractor.id, userType: 'contractors'});
+      contractor.referralCode = newReferralCode;
+
       await contractor.save();
       contractor.onboarding = await contractor.getOnboarding()
 
@@ -143,26 +148,6 @@ class ProfileHandler extends Base {
         }
 
       }
-
-
-
-      // send email to contractor 
-      // TODO: Emit event and handle email sending from there
-      // const htmlCon = htmlContractorDocumentValidatinTemplate(contractor.firstName);
-      // EmailService.send(contractor.email, 'New Profile', htmlCon)
-      //   .then(() => console.log('Email sent successfully'))
-      //   .catch(error => console.error('Error sending email:', error));
-
-
-
-      // send email to admin
-      // const html = htmlContractorDocumentValidatinToAdminTemplate(contractor.firstName)
-      // const adminsWithEmails = await AdminRegModel.find().select('email');
-      // const adminEmails: Array<string> = adminsWithEmails.map(admin => admin.email);
-      // EmailService.send(adminEmails, 'New Profile Registered', html, adminEmails)
-      //   .then(() => console.log('Emails sent successfully with CC'))
-      //   .catch(error => console.error('Error sending emails:', error));
-
 
       return res.json({
         success: true,

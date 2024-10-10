@@ -13,6 +13,7 @@ import { config } from "../../../config";
 import { CustomerWelcomeEmailTemplate } from "../../../templates/customer/welcome_email";
 import { EmailVerificationTemplate } from "../../../templates/common/email_verification";
 import { i18n } from "../../../i18n";
+import { GeneratorUtil } from "../../../utils/generator.util";
 
 export const signUp = async (
   req: Request,
@@ -55,9 +56,6 @@ export const signUp = async (
       verified: false
     }
 
-
-  
-
     // Hash password
     const hashedPassword = await bcrypt.hash(password, 10);
 
@@ -72,8 +70,9 @@ export const signUp = async (
       language
     });
 
+    const newReferralCode =  await GeneratorUtil.generateReferralCode({length: 6, userId: customer.id, userType: 'customers'});
+    customer.referralCode = newReferralCode;
     let customerSaved = await customer.save();
-
 
     const welcomeHtml = CustomerWelcomeEmailTemplate(lastName)
     const translatedWelcomeHtml = await i18n.getTranslation({phraseOrSlug: welcomeHtml,targetLang: customer.language,saveToFile: false, useGoogle: true, contentType: 'html'}) || welcomeHtml;
@@ -238,6 +237,10 @@ export const signIn = async (
       { expiresIn: config.jwt.tokenLifetime }
     );
 
+    if(!customer.referralCode){
+      const newReferralCode = await GeneratorUtil.generateReferralCode({length: 6, userId: customer.id, userType: 'customers'});
+      customer.referralCode = newReferralCode;
+    }
     customer.currentTimezone = currentTimezone
     await customer.save()
 
@@ -317,6 +320,10 @@ export const signInWithPhone = async (
       { expiresIn: config.jwt.tokenLifetime }
     );
 
+    if(!customer.referralCode){
+      const newReferralCode = await GeneratorUtil.generateReferralCode({length: 6, userId: customer.id, userType: 'customers'});
+      customer.referralCode = newReferralCode;
+    }
     customer.currentTimezone = currentTimezone
     await customer.save()
 

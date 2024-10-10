@@ -10,6 +10,9 @@ import { APNNotification, sendAPN2Notification, sendAPNNotification, sendNotific
 import { AppVersionModel } from "../../../database/common/app_versions.model";
 import { GoogleServiceProvider } from "../../../services/google";
 import { i18n } from "../../../i18n";
+import { ContractorModel } from "../../../database/contractor/models/contractor.model";
+import CustomerModel from "../../../database/customer/models/customer.model";
+import { GeneratorUtil } from "../../../utils/generator.util";
 
 
 export const getBankList = async (
@@ -214,6 +217,32 @@ export const translateText = async (
 
 
 
+export const updateExistingUsersWithReferralCodes = async (
+  req: Request,
+  res: Response,
+  next: NextFunction,
+) => {
+  try {
+    // Find all users without a referralCode
+    const contractorsWithoutReferralCode = await ContractorModel.find({ referralCode: { $exists: false } });
+    const bulkContractorOps = contractorsWithoutReferralCode.map(user => ({updateOne: { filter: { _id: user._id }, update: { referralCode: GeneratorUtil.generateReferralCode({length: 6, userId: user.id, userType: 'contractors'}) }}}));
+
+    const customersWithoutReferralCode = await CustomerModel.find({ referralCode: { $exists: false } });
+    const bulkCustomerOps = customersWithoutReferralCode.map(user => ({updateOne: { filter: { _id: user._id }, update: { referralCode: GeneratorUtil.generateReferralCode({length: 6, userId: user.id, userType: 'customers'}) }}}));
+
+    await Promise.all([
+      ContractorModel.bulkWrite(bulkContractorOps),
+      CustomerModel.bulkWrite(bulkCustomerOps)
+    ])
+    return res.json({ success: true, message: "Referral codes generated" });
+  } catch (error: any) {
+    return next(new InternalServerError('Error generating referral codes', error))
+  }
+};
+
+
+
+
 export const CommonController = {
   getBankList,
   getSkills,
@@ -222,6 +251,7 @@ export const CommonController = {
   sendTestNotification,
   calculateCharges,
   getCurrentOrLatestAppVersions,
-  translateText
+  translateText,
+  updateExistingUsersWithReferralCodes
 }
 

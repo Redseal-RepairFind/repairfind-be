@@ -63,6 +63,7 @@ export interface ICustomer extends Document {
   stripeIdentity: object
   acceptTerms: Boolean;
   language: any; //eg en. fr etc // change this to use interface latter
+  referralCode: string
   provider: CustomerAuthProviders
   createdAt: Date;
   updatedAt: Date;

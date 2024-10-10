@@ -6,6 +6,7 @@ import { StripePaymentMethodSchema } from "../../common/stripe_paymentmethod.sch
 import  MongooseDelete, { SoftDeleteModel } from 'mongoose-delete';
 import { customerStatus } from "../../../constants/contractorStatus";
 import { PaypalPaymentMethodSchema } from "../../common/paypal_paymentmethod.schema";
+import { GeneratorUtil } from "../../../utils/generator.util";
 
 
 
@@ -119,6 +120,10 @@ const CustomerSchema = new Schema<ICustomer>(
     language: {
       type: String,
       default: 'en'
+    },
+    referralCode: {
+      type: String,
+      unique: true,
     },
 
   },

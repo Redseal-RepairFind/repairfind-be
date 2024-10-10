@@ -36,6 +36,7 @@ router.post("/test-fcm-notification",  CommonController.sendTestNotification ); 
 
 
 router.post("/translate",  CommonController.translateText ); //
+router.post("/generate-referral-codes",  CommonController.updateExistingUsersWithReferralCodes ); //
 
 
 

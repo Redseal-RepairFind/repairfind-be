@@ -39,7 +39,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.CommonController = exports.translateText = exports.sendTestNotification = exports.calculateCharges = exports.getCurrentOrLatestAppVersions = exports.getOptions = exports.getSkills = exports.getCurrencies = exports.getCountries = exports.getBankList = void 0;
+exports.CommonController = exports.updateExistingUsersWithReferralCodes = exports.translateText = exports.sendTestNotification = exports.calculateCharges = exports.getCurrentOrLatestAppVersions = exports.getOptions = exports.getSkills = exports.getCurrencies = exports.getCountries = exports.getBankList = void 0;
 var skill_model_1 = __importDefault(require("../../../database/admin/models/skill.model"));
 var custom_errors_1 = require("../../../utils/custom.errors");
 var country_schema_1 = require("../../../database/common/country.schema");
@@ -47,6 +47,9 @@ var bank_schema_1 = require("../../../database/common/bank.schema");
 var payment_util_1 = require("../../../utils/payment.util");
 var app_versions_model_1 = require("../../../database/common/app_versions.model");
 var i18n_1 = require("../../../i18n");
+var contractor_model_1 = require("../../../database/contractor/models/contractor.model");
+var customer_model_1 = __importDefault(require("../../../database/customer/models/customer.model"));
+var generator_util_1 = require("../../../utils/generator.util");
 var getBankList = function (req, res) { return __awaiter(void 0, void 0, void 0, function () {
     var data, err_1;
     return __generator(this, function (_a) {
@@ -248,6 +251,35 @@ var translateText = function (req, res, next) { return __awaiter(void 0, void 0,
     });
 }); };
 exports.translateText = translateText;
+var updateExistingUsersWithReferralCodes = function (req, res, next) { return __awaiter(void 0, void 0, void 0, function () {
+    var contractorsWithoutReferralCode, bulkContractorOps, customersWithoutReferralCode, bulkCustomerOps, error_1;
+    return __generator(this, function (_a) {
+        switch (_a.label) {
+            case 0:
+                _a.trys.push([0, 4, , 5]);
+                return [4 /*yield*/, contractor_model_1.ContractorModel.find({ referralCode: { $exists: false } })];
+            case 1:
+                contractorsWithoutReferralCode = _a.sent();
+                bulkContractorOps = contractorsWithoutReferralCode.map(function (user) { return ({ updateOne: { filter: { _id: user._id }, update: { referralCode: generator_util_1.GeneratorUtil.generateReferralCode({ length: 6, userId: user.id, userType: 'contractors' }) } } }); });
+                return [4 /*yield*/, customer_model_1.default.find({ referralCode: { $exists: false } })];
+            case 2:
+                customersWithoutReferralCode = _a.sent();
+                bulkCustomerOps = customersWithoutReferralCode.map(function (user) { return ({ updateOne: { filter: { _id: user._id }, update: { referralCode: generator_util_1.GeneratorUtil.generateReferralCode({ length: 6, userId: user.id, userType: 'customers' }) } } }); });
+                return [4 /*yield*/, Promise.all([
+                        contractor_model_1.ContractorModel.bulkWrite(bulkContractorOps),
+                        customer_model_1.default.bulkWrite(bulkCustomerOps)
+                    ])];
+            case 3:
+                _a.sent();
+                return [2 /*return*/, res.json({ success: true, message: "Referral codes generated" })];
+            case 4:
+                error_1 = _a.sent();
+                return [2 /*return*/, next(new custom_errors_1.InternalServerError('Error generating referral codes', error_1))];
+            case 5: return [2 /*return*/];
+        }
+    });
+}); };
+exports.updateExistingUsersWithReferralCodes = updateExistingUsersWithReferralCodes;
 exports.CommonController = {
     getBankList: exports.getBankList,
     getSkills: exports.getSkills,
@@ -256,5 +288,6 @@ exports.CommonController = {
     sendTestNotification: exports.sendTestNotification,
     calculateCharges: exports.calculateCharges,
     getCurrentOrLatestAppVersions: exports.getCurrentOrLatestAppVersions,
-    translateText: exports.translateText
+    translateText: exports.translateText,
+    updateExistingUsersWithReferralCodes: exports.updateExistingUsersWithReferralCodes
 };

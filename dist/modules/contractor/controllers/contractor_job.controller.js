@@ -68,7 +68,6 @@ var contractor_saved_job_model_1 = __importDefault(require("../../../database/co
 var conversation_util_1 = require("../../../utils/conversation.util");
 var job_util_1 = require("../../../utils/job.util");
 var payment_schema_1 = require("../../../database/common/payment.schema");
-var user_coupon_schema_1 = require("../../../database/common/user_coupon.schema");
 var getJobRequests = function (req, res) { return __awaiter(void 0, void 0, void 0, function () {
     var errors, _a, customerId, status_1, startDate, endDate, date, contractorId, contractorProfile_1, filter, start, end, selectedDate, startOfDay, endOfDay, jobRequests, _b, data, error, error_1;
     return __generator(this, function (_c) {
@@ -499,11 +498,11 @@ var hideJobListing = function (req, res, next) { return __awaiter(void 0, void 0
 }); };
 exports.hideJobListing = hideJobListing;
 var sendJobQuotation = function (req, res, next) { return __awaiter(void 0, void 0, void 0, function () {
-    var jobId, contractorId, _a, startDate, endDate, siteVisit, estimatedDuration, couponCode, _b, estimates, errors, _c, contractor, job, customer, previousQuotation, appliedQuotationsCount, quotation, scheduleStartDate, scheduleEndDate, scheduleSiteVisitDate, contractorDiscount, coupon, jobQuotation_1, siteVisitEstimate, jobCreationTime, quotationTime, responseTimeJob, conversation, message, err_1;
+    var jobId, contractorId, _a, startDate, endDate, siteVisit, estimatedDuration, couponCode, _b, estimates, errors, _c, contractor, job, customer, previousQuotation, appliedQuotationsCount, quotation, scheduleStartDate, scheduleEndDate, scheduleSiteVisitDate, jobQuotation_1, siteVisitEstimate, jobCreationTime, quotationTime, responseTimeJob, conversation, message, err_1;
     return __generator(this, function (_d) {
         switch (_d.label) {
             case 0:
-                _d.trys.push([0, 15, , 16]);
+                _d.trys.push([0, 12, , 13]);
                 jobId = req.params.jobId;
                 contractorId = req.contractor.id;
                 _a = req.body, startDate = _a.startDate, endDate = _a.endDate, siteVisit = _a.siteVisit, estimatedDuration = _a.estimatedDuration, couponCode = _a.couponCode, _b = _a.estimates, estimates = _b === void 0 ? [] : _b;
@@ -552,24 +551,8 @@ var sendJobQuotation = function (req, res, next) { return __awaiter(void 0, void
                 scheduleStartDate = startDate ? new Date(startDate) : new Date();
                 scheduleEndDate = endDate ? new Date(startDate) : null;
                 scheduleSiteVisitDate = siteVisit ? new Date(siteVisit) : null;
-                contractorDiscount = null;
-                if (!couponCode) return [3 /*break*/, 8];
-                return [4 /*yield*/, user_coupon_schema_1.UserCouponModel.findOne({ code: couponCode })];
+                return [4 /*yield*/, job_quotation_model_1.JobQuotationModel.findOneAndUpdate({ job: jobId, contractor: contractorId }, { startDate: scheduleStartDate, endDate: scheduleEndDate, siteVisit: scheduleSiteVisitDate, estimates: estimates, jobId: jobId, contractorId: contractorId, estimatedDuration: estimatedDuration }, { new: true, upsert: true })];
             case 6:
-                coupon = _d.sent();
-                if (!coupon)
-                    return [2 /*return*/, res.status(400).json({ success: false, message: "Invalid coupon code" })];
-                if (['pending', 'redeemed', 'expired'].includes(coupon.status)) {
-                    return [2 /*return*/, res.status(400).json({ success: false, message: "Coupon is ".concat(coupon.status) })];
-                }
-                contractorDiscount = { coupon: coupon.id, value: coupon.value, valueType: coupon.valueType };
-                coupon.status = 'pending';
-                return [4 /*yield*/, coupon.save()];
-            case 7:
-                _d.sent();
-                _d.label = 8;
-            case 8: return [4 /*yield*/, job_quotation_model_1.JobQuotationModel.findOneAndUpdate({ job: jobId, contractor: contractorId }, { startDate: scheduleStartDate, endDate: scheduleEndDate, siteVisit: scheduleSiteVisitDate, estimates: estimates, jobId: jobId, contractorId: contractorId, estimatedDuration: estimatedDuration }, { new: true, upsert: true })];
-            case 9:
                 jobQuotation_1 = _d.sent();
                 // Prepare site visit estimates
                 if (siteVisit) {
@@ -580,12 +563,10 @@ var sendJobQuotation = function (req, res, next) { return __awaiter(void 0, void
                     };
                     jobQuotation_1.siteVisitEstimate = siteVisitEstimate;
                     jobQuotation_1.type = job_quotation_model_1.JOB_QUOTATION_TYPE.SITE_VISIT;
-                    if (contractorDiscount)
-                        jobQuotation_1.siteVisitEstimate.contractorDiscount = contractorDiscount;
+                    // if(contractorDiscount)jobQuotation.siteVisitEstimate.contractorDiscount = contractorDiscount
                 }
                 else {
-                    if (contractorDiscount)
-                        jobQuotation_1.contractorDiscount = contractorDiscount;
+                    // if(contractorDiscount)jobQuotation.contractorDiscount = contractorDiscount
                 }
                 // Add job quotation to job's list of quotations
                 if (!job.quotations.some(function (quotation) { return quotation.id === jobQuotation_1.id; })) {
@@ -604,18 +585,18 @@ var sendJobQuotation = function (req, res, next) { return __awaiter(void 0, void
                 jobQuotation_1.responseTime = responseTimeJob;
                 // Save changes to the job
                 return [4 /*yield*/, job.save()];
-            case 10:
+            case 7:
                 // Save changes to the job
                 _d.sent();
                 return [4 /*yield*/, jobQuotation_1.save()
                     // Create or update conversation
                 ];
-            case 11:
+            case 8:
                 _d.sent();
                 return [4 /*yield*/, conversation_util_1.ConversationUtil.updateOrCreateConversation(customer.id, 'customers', contractorId, 'contractors')
                     // Send a message to the customer
                 ];
-            case 12:
+            case 9:
                 conversation = _d.sent();
                 message = new messages_schema_1.MessageModel({
                     conversation: conversation === null || conversation === void 0 ? void 0 : conversation._id,
@@ -634,14 +615,14 @@ var sendJobQuotation = function (req, res, next) { return __awaiter(void 0, void
                     }
                 });
                 return [4 /*yield*/, message.save()];
-            case 13:
+            case 10:
                 _d.sent();
                 conversation.lastMessage = "Job estimate submitted";
                 conversation.lastMessageAt = new Date();
                 conversation.entityType = conversations_schema_1.ConversationEntityType.QUOTATION;
                 conversation.entity = jobQuotation_1.id;
                 return [4 /*yield*/, conversation.save()];
-            case 14:
+            case 11:
                 _d.sent();
                 events_1.JobEvent.emit('NEW_JOB_QUOTATION', { job: job, quotation: jobQuotation_1 });
                 events_1.ConversationEvent.emit('NEW_MESSAGE', { message: message });
@@ -650,11 +631,11 @@ var sendJobQuotation = function (req, res, next) { return __awaiter(void 0, void
                     message: "Job quotation successfully sent",
                     data: jobQuotation_1
                 });
-                return [3 /*break*/, 16];
-            case 15:
+                return [3 /*break*/, 13];
+            case 12:
                 err_1 = _d.sent();
                 return [2 /*return*/, next(new custom_errors_1.InternalServerError('Error sending job quotation', err_1))];
-            case 16: return [2 /*return*/];
+            case 13: return [2 /*return*/];
         }
     });
 }); };

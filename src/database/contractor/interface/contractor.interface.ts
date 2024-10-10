@@ -186,6 +186,7 @@ export interface IContractor extends Document {
   stats: {formattedResponseTime?: any, responseTime?: any, jobsCompleted?: any, jobsCanceled?: any,  jobsPending?: any, jobsTotal?: any};
   currentTimezone: string;
   language: any;
+  referralCode: string;
   createdAt: Date;
   updatedAt: Date;
   deletedAt: Date;
