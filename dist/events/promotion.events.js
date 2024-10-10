@@ -101,7 +101,7 @@ exports.PromotionEvent.on('NEW_REFERRAL', function (payload) {
                     emailSubject = 'Congratulations! You’ve Earned a Referral Bonus!';
                     bonusActivation = (referral.userType === 'customers')
                         ? 'when the referred customer books their first job.'
-                        : 'when the referred contractor completes their first job.';
+                        : 'when the referred contractor completes their first job';
                     emailContent = "\n                <h2>".concat(emailSubject, "</h2>\n                <p>Hello ").concat(referrer.firstName, ",</p>\n                <p style=\"color: #333333;\">Great news! You have successfully referred a user to Repairfind!</p>\n                <p style=\"color: #333333;\">Your referral coupon code is <strong>").concat(couponCode, "</strong>.</p>\n                <p style=\"color: #333333;\">This bonus of <strong>$").concat(referralPromotion.value, "</strong> will be activated ").concat(bonusActivation, "</p>\n                <p style=\"color: #333333;\">Thank you for sharing the word and helping us grow our community!</p>\n                <p style=\"color: #333333;\">Best regards,<br>Your Repairfind Team</p>\n            ");
                     html = (0, generic_email_1.GenericEmailTemplate)({ name: referrer.firstName, subject: emailSubject, content: emailContent });
                     return [4 /*yield*/, i18n_1.i18n.getTranslation({ phraseOrSlug: html, targetLang: referrer.language, saveToFile: false, useGoogle: true, contentType: 'html' })];

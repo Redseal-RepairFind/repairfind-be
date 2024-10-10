@@ -47,7 +47,7 @@ PromotionEvent.on('NEW_REFERRAL', async function (payload: { referral: IReferral
             const emailSubject = 'Congratulations! You’ve Earned a Referral Bonus!';
             const bonusActivation = (referral.userType === 'customers') 
                 ? 'when the referred customer books their first job.'
-                : 'when the referred contractor completes their first job.';
+                : 'when the referred contractor completes their first job';
 
             const emailContent = `
                 <h2>${emailSubject}</h2>
