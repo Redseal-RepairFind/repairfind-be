@@ -12,7 +12,7 @@ export const PermissionSeeder = async (options: Object) => {
             }, { upsert: true });
         });
     } catch (error) {
-        console.log("Error seeding banks", error)
+        console.log("Error seeding permissions", error)
     }
 };
 

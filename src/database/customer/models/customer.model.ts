@@ -125,6 +125,10 @@ const CustomerSchema = new Schema<ICustomer>(
       type: String,
       unique: true,
     },
+    referral: {
+      type: Schema.ObjectId,
+      ref: 'referrals',
+    },
 
   },
   {

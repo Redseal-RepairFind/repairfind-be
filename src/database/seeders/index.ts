@@ -4,6 +4,7 @@ import { AdminSeeder } from "./admin.seeder";
 import { CountrySeeder } from "./country.seeder";
 import { BankSeeder } from "./bank.seeder";
 import { PermissionSeeder } from "./permissions.seeder";
+import { PromotionSeeder } from "./promotions.seeder";
 
 
 export const RunSeeders = async () =>{
@@ -13,4 +14,5 @@ export const RunSeeders = async () =>{
     CountrySeeder({ordered:false})
     BankSeeder({ordered:false})
     PermissionSeeder({ordered:false})
+    PromotionSeeder({ordered:false})
 }

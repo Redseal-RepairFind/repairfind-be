@@ -241,6 +241,10 @@ const ContractorSchema = new Schema<IContractor>(
       type: String,
       unique: true,
     },
+    referral: {
+      type: Schema.ObjectId,
+      ref: 'referrals',
+    },
 
   },
   {

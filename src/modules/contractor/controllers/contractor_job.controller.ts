@@ -16,7 +16,7 @@ import ContractorSavedJobModel from "../../../database/contractor/models/contrac
 import { ConversationUtil } from "../../../utils/conversation.util";
 import { JobUtil } from "../../../utils/job.util";
 import { PAYMENT_TYPE } from "../../../database/common/payment.schema";
-import { UserCouponModel } from "../../../database/common/user_coupon.schema";
+import { CouponModel } from "../../../database/common/coupon.schema";
 
 
 export const getJobRequests = async (req: any, res: Response) => {
@@ -473,7 +473,7 @@ export const sendJobQuotation = async (
 
     // let contractorDiscount = null
     // if (couponCode) {
-    //   const coupon = await UserCouponModel.findOne({ code: couponCode });
+    //   const coupon = await CouponModel.findOne({ code: couponCode });
     //   if (!coupon) return res.status(400).json({success: false, message: "Invalid coupon code" });
     //   if (['pending', 'redeemed', 'expired'].includes(coupon.status)) {
     //     return res.status(400).json({success: false, message: `Coupon is ${coupon.status}` });

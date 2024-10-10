@@ -17,7 +17,7 @@ import { PayPalService } from "../../../services/paypal";
 import { ConversationUtil } from "../../../utils/conversation.util";
 import { PaypalPaymentLog } from "../../../database/common/paypal_payment_log.model";
 import { Logger } from "../../../services/logger";
-import { UserCouponModel } from "../../../database/common/user_coupon.schema";
+import { CouponModel } from "../../../database/common/coupon.schema";
 
 const findCustomer = async (customerId: string) => {
     const customer = await CustomerModel.findOne({ _id: customerId });

@@ -1,6 +1,7 @@
 import { Document, ObjectId, Schema, model } from "mongoose";
 import { PAYMENT_TYPE } from "./payment.schema";
 import { PaymentUtil } from "../../utils/payment.util";
+import { COUPON_VALUE_TYPE } from "./coupon.schema";
 
 export enum JOB_QUOTATION_STATUS {
     PENDING = 'PENDING',
@@ -26,7 +27,7 @@ export interface IJobQuotationEstimate {
 export interface IQuotationDiscount {
     coupon: ObjectId;
     value: number;
-    valueType: 'fixed' | 'percentage'
+    valueType: COUPON_VALUE_TYPE
 }
 
 
@@ -86,7 +87,7 @@ const JobQuotationEstimateSchema = new Schema<IJobQuotationEstimate>({
 });
 
 const QuotationDiscountSchema = new Schema<IQuotationDiscount>({
-    coupon: {type: Schema.Types.ObjectId, ref: 'user_coupons'}, 
+    coupon: {type: Schema.Types.ObjectId, ref: 'coupons'}, 
     value: {type: Number}, 
     valueType: { type: String, enum: ['fixed', 'percentage']},
 });

@@ -18,7 +18,7 @@ import { JobEnquiryModel } from "../../../database/common/job_enquiry.model";
 import { ConversationUtil } from "../../../utils/conversation.util";
 import { PAYMENT_TYPE } from "../../../database/common/payment.schema";
 import { JobUtil } from "../../../utils/job.util";
-import { UserCouponModel } from "../../../database/common/user_coupon.schema";
+import { COUPON_STATUS, CouponModel } from "../../../database/common/coupon.schema";
 
 
 
@@ -651,7 +651,7 @@ export const applyCouponToJobQuotation = async (req: any, res: Response, next: N
             return res.status(404).json({ success: false, message: 'Qoutation not found' });
         }
 
-        const coupon = await UserCouponModel.findOne({ code: couponCode })
+        const coupon = await CouponModel.findOne({ code: couponCode })
         if (!coupon) return res.json({ success: false, message: 'Coupon is invalid' });
         if (['pending', 'redeemed', 'expired'].includes(coupon.status)) {
             return res.status(400).json({ message: `Coupon is ${coupon.status}` });
@@ -677,7 +677,7 @@ export const applyCouponToJobQuotation = async (req: any, res: Response, next: N
             }
         }
 
-        coupon.status = 'pending'
+        coupon.status = COUPON_STATUS.PENDING
         await Promise.all([
             coupon.save(),
             quotation.save()

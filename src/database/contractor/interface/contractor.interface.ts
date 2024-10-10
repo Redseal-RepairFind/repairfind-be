@@ -187,6 +187,7 @@ export interface IContractor extends Document {
   currentTimezone: string;
   language: any;
   referralCode: string;
+  referral: ObjectId; // Id of referral object from referrals model
   createdAt: Date;
   updatedAt: Date;
   deletedAt: Date;

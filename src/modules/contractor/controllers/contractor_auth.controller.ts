@@ -13,6 +13,10 @@ import { config } from "../../../config";
 import TwilioService from "../../../services/twillio";
 import { i18n } from "../../../i18n";
 import { GeneratorUtil } from "../../../utils/generator.util";
+import { CouponModel } from "../../../database/common/coupon.schema";
+import { ReferralCodeModel } from "../../../database/common/referral_code.schema";
+import { ReferralModel } from "../../../database/common/referral.schema";
+import { PromotionEvent } from "../../../events/promotion.events";
 
 class AuthHandler extends Base {
     @handleAsyncError()
@@ -20,7 +24,7 @@ class AuthHandler extends Base {
         let req = this.req
         let res = this.res
         try {
-            const { email, password, firstName, dateOfBirth, lastName, phoneNumber, acceptTerms, accountType, companyName, language } = req.body;
+            const { email, password, firstName, dateOfBirth, lastName, phoneNumber, acceptTerms, accountType, companyName, language, referralCode } = req.body;
             const errors = validationResult(req);
 
             if (!errors.isEmpty()) {
@@ -47,8 +51,6 @@ class AuthHandler extends Base {
                 verified: false
             };
 
-
-
             const hashedPassword = await bcrypt.hash(password, 10);
             const contractor = await ContractorModel.create({
                 email,
@@ -65,15 +67,40 @@ class AuthHandler extends Base {
             });
 
 
+            if (referralCode) {
+
+                const userReferral = await ReferralCodeModel.findOne({ code: referralCode });
+                if (userReferral) {
+                    
+                    // create referral 
+                    const referral = new ReferralModel({
+                        referralCode: userReferral.id,
+                        user: contractor._id,
+                        userType: 'contractors',
+                        referrer: userReferral.user, 
+                        referrerType: userReferral.userType, 
+                        metadata: {},
+                        date: new Date(),
+                    })
+
+                    contractor.referral = referral._id;
+                    await contractor.save()
+                    PromotionEvent.emit('NEW_REFERRAL', {referral})
+                }
+
+
+            }
+
+
 
             const html = OtpEmailTemplate(otp, firstName ?? companyName, "We have received a request to verify your email");
-            let translatedHtml = await i18n.getTranslation({phraseOrSlug: html,targetLang: contractor.language,saveToFile: false,useGoogle: true, contentType: 'html'}) || html ;            
-            let translatedSubject = await i18n.getTranslation({phraseOrSlug: "Email Verification",targetLang: contractor.language}) || 'Email Verification';
+            let translatedHtml = await i18n.getTranslation({ phraseOrSlug: html, targetLang: contractor.language, saveToFile: false, useGoogle: true, contentType: 'html' }) || html;
+            let translatedSubject = await i18n.getTranslation({ phraseOrSlug: "Email Verification", targetLang: contractor.language }) || 'Email Verification';
             await EmailService.send(email, translatedSubject, translatedHtml);
 
             const welcomeHtml = ContractorWelcomeTemplate(firstName ?? companyName);
-            translatedHtml = await i18n.getTranslation({phraseOrSlug: welcomeHtml,targetLang: contractor.language,saveToFile: false,useGoogle: true, contentType: 'html'}) || welcomeHtml;            
-            translatedSubject = await i18n.getTranslation({phraseOrSlug: "Welcome to Repairfind",targetLang: contractor.language}) || 'Welcome to Repairfind';
+            translatedHtml = await i18n.getTranslation({ phraseOrSlug: welcomeHtml, targetLang: contractor.language, saveToFile: false, useGoogle: true, contentType: 'html' }) || welcomeHtml;
+            translatedSubject = await i18n.getTranslation({ phraseOrSlug: "Welcome to Repairfind", targetLang: contractor.language }) || 'Welcome to Repairfind';
             await EmailService.send(email, translatedSubject!, translatedHtml!);
 
             return res.json({
@@ -128,7 +155,8 @@ class AuthHandler extends Base {
             await contractor.save();
 
             const accessToken = jwt.sign(
-                {id: contractor?._id, email: contractor.email, userType: 'contractors',
+                {
+                    id: contractor?._id, email: contractor.email, userType: 'contractors',
                 },
                 process.env.JWT_SECRET_KEY!,
                 { expiresIn: config.jwt.tokenLifetime }
@@ -136,7 +164,7 @@ class AuthHandler extends Base {
 
             const quiz = await contractor?.quiz ?? null
             const contractorResponse = {
-                ...contractor.toJSON(), 
+                ...contractor.toJSON(),
                 quiz,
             };
 
@@ -260,26 +288,25 @@ class AuthHandler extends Base {
                 return res.status(401).json({ success: false, message: "Email not verified." });
             }
 
-
             const quiz = await contractor?.quiz ?? null
             contractor.onboarding = await contractor.getOnboarding()
             const contractorResponse = {
-                ...contractor.toJSON(), 
+                ...contractor.toJSON(),
                 quiz,
             };
 
-
             // generate access token
             const accessToken = jwt.sign(
-                {id: contractor?._id, email: contractor.email, userType: 'contractors',
+                {
+                    id: contractor?._id, email: contractor.email, userType: 'contractors',
                 },
                 process.env.JWT_SECRET_KEY!,
                 { expiresIn: config.jwt.tokenLifetime }
             );
 
 
-            if(!contractor.referralCode){
-                const newReferralCode = await GeneratorUtil.generateReferralCode({length: 6, userId: contractor.id, userType: 'contractors'});
+            if (!contractor.referralCode) {
+                const newReferralCode = await GeneratorUtil.generateReferralCode({ length: 6, userId: contractor.id, userType: 'contractors' });
                 contractor.referralCode = newReferralCode;
             }
             contractor.currentTimezone = currentTimezone
@@ -339,21 +366,22 @@ class AuthHandler extends Base {
             const quiz = await contractor?.quiz ?? null
             contractor.onboarding = await contractor.getOnboarding()
             const contractorResponse = {
-                ...contractor.toJSON(), 
+                ...contractor.toJSON(),
                 quiz,
             };
 
 
             // generate access token
             const accessToken = jwt.sign(
-                { id: contractor?._id, email: contractor.email, userType: 'contractors',
+                {
+                    id: contractor?._id, email: contractor.email, userType: 'contractors',
                 },
                 process.env.JWT_SECRET_KEY!,
                 { expiresIn: config.jwt.tokenLifetime }
             );
 
-            if(!contractor.referralCode){
-                const newReferralCode = await GeneratorUtil.generateReferralCode({length: 6, userId: contractor.id, userType: 'contractors'});
+            if (!contractor.referralCode) {
+                const newReferralCode = await GeneratorUtil.generateReferralCode({ length: 6, userId: contractor.id, userType: 'contractors' });
                 contractor.referralCode = newReferralCode;
             }
 
@@ -380,8 +408,8 @@ class AuthHandler extends Base {
         let req = this.req
         let res = this.res
         try {
-            const {email} = req.body;
-            
+            const { email } = req.body;
+
             const errors = validationResult(req);
             if (!errors.isEmpty()) {
                 return res.status(400).json({ success: false, message: 'Invalid inputs', errors: errors.array() });
@@ -399,14 +427,14 @@ class AuthHandler extends Base {
             const otp = generateOTP()
             const createdTime = new Date();
 
-            contractor!.emailOtp = {otp, createdTime, verified: false}
+            contractor!.emailOtp = { otp, createdTime, verified: false }
 
             await contractor?.save();
 
             const html = OtpEmailTemplate(otp, contractor.firstName, "We have received a request to verify your email")
-            const translatedHtml = await i18n.getTranslation({phraseOrSlug: html, targetLang: contractor.language, saveToFile: false, useGoogle: true, contentType: 'html'}) || html;            
-            const translatedSubject = await i18n.getTranslation({ phraseOrSlug: "Email Verification", targetLang: contractor.language}) || 'Email Verification';
-            
+            const translatedHtml = await i18n.getTranslation({ phraseOrSlug: html, targetLang: contractor.language, saveToFile: false, useGoogle: true, contentType: 'html' }) || html;
+            const translatedSubject = await i18n.getTranslation({ phraseOrSlug: "Email Verification", targetLang: contractor.language }) || 'Email Verification';
+
             EmailService.send(email, translatedSubject, translatedHtml)
             return res.status(200).json({ success: true, message: "OTP sent successfully to your email." });
 
@@ -448,9 +476,9 @@ class AuthHandler extends Base {
 
             await contractor?.save();
             const html = OtpEmailTemplate(otp, contractor.firstName, "We have received a request to change your password")
-            
-            const translatedHtml = await i18n.getTranslation({phraseOrSlug: html,targetLang: contractor.language,saveToFile: false,useGoogle: true, contentType: 'html'});            
-            const translatedSubject = await i18n.getTranslation({phraseOrSlug: 'Password Change',targetLang: contractor.language});
+
+            const translatedHtml = await i18n.getTranslation({ phraseOrSlug: html, targetLang: contractor.language, saveToFile: false, useGoogle: true, contentType: 'html' });
+            const translatedSubject = await i18n.getTranslation({ phraseOrSlug: 'Password Change', targetLang: contractor.language });
 
             EmailService.send(contractor.email, translatedSubject!, translatedHtml!)
             return res.status(200).json({ success: true, message: "OTP sent successfully to your email." });
@@ -487,7 +515,7 @@ class AuthHandler extends Base {
 
 
             if (!verified || timeDiff > OTP_EXPIRY_TIME || otp !== contractor.passwordOtp.otp) {
-                return res.status(401).json({success: false, message: "Unable to reset password" });
+                return res.status(401).json({ success: false, message: "Unable to reset password" });
             }
 
             // Hash password

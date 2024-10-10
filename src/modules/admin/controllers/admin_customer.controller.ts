@@ -5,8 +5,8 @@ import CustomerRegModel from "../../../database/customer/models/customer.model";
 import { JobModel } from "../../../database/common/job.model";
 import CustomerRatingModel from "../../../database/customer/models/customerRating.model";
 import { InvoiceModel } from "../../../database/common/invoices.shema";
-import { PromotionModel } from "../../../database/common/promotion.schema";
-import { UserCouponModel } from "../../../database/common/user_coupon.schema";
+import { PROMOTION_STATUS, PromotionModel } from "../../../database/common/promotion.schema";
+import { CouponModel } from "../../../database/common/coupon.schema";
 import { generateCouponCode } from "../../../utils/couponCodeGenerator";
 import { InternalServerError } from "../../../utils/custom.errors";
 
@@ -281,12 +281,12 @@ export const issueCoupon = async (
     }
 
     // Check if the promotion is active
-    if (promotion.status !== 'active') {
+    if (promotion.status !== PROMOTION_STATUS.ACTIVE) {
       return res.status(400).json({ success: false, message: 'Promotion is not active' });
     }
 
     // Create a new user coupon with promotion details
-    const newUserCoupon = new UserCouponModel({
+    const newUserCoupon = new CouponModel({
       promotion: promotion._id, // Attach promotion ID
       name: promotion.name, 
       code: generateCouponCode(7), // generate coupon code here

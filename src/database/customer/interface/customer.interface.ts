@@ -64,6 +64,7 @@ export interface ICustomer extends Document {
   acceptTerms: Boolean;
   language: any; //eg en. fr etc // change this to use interface latter
   referralCode: string
+  referral: ObjectId
   provider: CustomerAuthProviders
   createdAt: Date;
   updatedAt: Date;

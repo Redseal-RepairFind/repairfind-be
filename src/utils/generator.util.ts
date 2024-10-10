@@ -1,5 +1,5 @@
 import { ObjectId } from "mongoose";
-import { ReferralModel } from "../database/common/referral_code.schema";
+import { ReferralCodeModel } from "../database/common/referral_code.schema";
 
 export const generateCouponCode = (length: number) => {
     const characters = '0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz';
@@ -13,25 +13,25 @@ export const generateCouponCode = (length: number) => {
 
   export const generateReferralCode = async ({length, userId, userType}: {length: number, userId: ObjectId, userType: string }) => {
     const characters = '0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz';
-    let result = 'RRC'; // Prefix
+    let generatedCode = 'RRC'; // Prefix
     let isUnique = false;
   
     // Keep regenerating until a unique code is found
     while (!isUnique) {
-      result = 'RRC'; // Reset prefix
+      generatedCode = 'RRC'; // Reset prefix
       for (let i = 0; i < length; i++) {
-        result += characters.charAt(Math.floor(Math.random() * characters.length));
+        generatedCode += characters.charAt(Math.floor(Math.random() * characters.length));
       }
   
-      const codeExists = await ReferralModel.exists({ code: result });
+      const codeExists = await ReferralCodeModel.exists({ code: generatedCode });
       if (!codeExists) {
         isUnique = true; // Exit the loop if no matching code is found
       }
     }
   
     // Create the referral document with the unique code
-    await ReferralModel.create({ code: result, user: userId, userType });
-    return result;
+    await ReferralCodeModel.create({ code: generatedCode, user: userId, userType });
+    return generatedCode;
   };
 
   
