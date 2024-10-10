@@ -90,5 +90,8 @@
   "welcome_to_repairfind": {
     "es": "Bienvenido a Repairfind",
     "en": "Welcome to Repairfind"
+  },
+  "congratulations_you_ve_earned_a_referral_bonus": {
+    "en": "Congratulations! You’ve Earned a Referral Bonus!"
   }
 }

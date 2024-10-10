@@ -14,6 +14,9 @@ import { CustomerWelcomeEmailTemplate } from "../../../templates/customer/welcom
 import { EmailVerificationTemplate } from "../../../templates/common/email_verification";
 import { i18n } from "../../../i18n";
 import { GeneratorUtil } from "../../../utils/generator.util";
+import { ReferralCodeModel } from "../../../database/common/referral_code.schema";
+import { PromotionEvent } from "../../../events/promotion.events";
+import { ReferralModel } from "../../../database/common/referral.schema";
 
 export const signUp = async (
   req: Request,
@@ -28,7 +31,8 @@ export const signUp = async (
       lastName,
       acceptTerms,
       phoneNumber,
-      language
+      language,
+      referralCode
     } = req.body;
 
 
@@ -67,12 +71,35 @@ export const signUp = async (
       password: hashedPassword,
       emailOtp,
       acceptTerms,
-      language
+      language,
     });
 
     const newReferralCode =  await GeneratorUtil.generateReferralCode({length: 6, userId: customer.id, userType: 'customers'});
     customer.referralCode = newReferralCode;
     let customerSaved = await customer.save();
+
+
+    if (referralCode) {
+      const userReferral = await ReferralCodeModel.findOne({ code: referralCode });
+      if (userReferral) {
+          
+          const referral = new ReferralModel({
+              referralCode: userReferral.id,
+              user: customer._id,
+              userType: 'customers',
+              referrer: userReferral.user, 
+              referrerType: userReferral.userType, 
+              metadata: {},
+              date: new Date(),
+          })
+
+          customer.referral = referral._id;
+          await Promise.all([
+              referral.save()
+          ])  
+          PromotionEvent.emit('NEW_REFERRAL', {referral})
+      }
+  }
 
     const welcomeHtml = CustomerWelcomeEmailTemplate(lastName)
     const translatedWelcomeHtml = await i18n.getTranslation({phraseOrSlug: welcomeHtml,targetLang: customer.language,saveToFile: false, useGoogle: true, contentType: 'html'}) || welcomeHtml;

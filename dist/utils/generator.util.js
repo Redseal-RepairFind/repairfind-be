@@ -50,21 +50,21 @@ exports.generateCouponCode = generateCouponCode;
 var generateReferralCode = function (_a) {
     var length = _a.length, userId = _a.userId, userType = _a.userType;
     return __awaiter(void 0, void 0, void 0, function () {
-        var characters, result, isUnique, i, codeExists;
+        var characters, generatedCode, isUnique, i, codeExists;
         return __generator(this, function (_b) {
             switch (_b.label) {
                 case 0:
                     characters = '0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz';
-                    result = 'RRC';
+                    generatedCode = 'RRC';
                     isUnique = false;
                     _b.label = 1;
                 case 1:
                     if (!!isUnique) return [3 /*break*/, 3];
-                    result = 'RRC'; // Reset prefix
+                    generatedCode = 'RRC'; // Reset prefix
                     for (i = 0; i < length; i++) {
-                        result += characters.charAt(Math.floor(Math.random() * characters.length));
+                        generatedCode += characters.charAt(Math.floor(Math.random() * characters.length));
                     }
-                    return [4 /*yield*/, referral_code_schema_1.ReferralModel.exists({ code: result })];
+                    return [4 /*yield*/, referral_code_schema_1.ReferralCodeModel.exists({ code: generatedCode })];
                 case 2:
                     codeExists = _b.sent();
                     if (!codeExists) {
@@ -73,11 +73,11 @@ var generateReferralCode = function (_a) {
                     return [3 /*break*/, 1];
                 case 3: 
                 // Create the referral document with the unique code
-                return [4 /*yield*/, referral_code_schema_1.ReferralModel.create({ code: result, user: userId, userType: userType })];
+                return [4 /*yield*/, referral_code_schema_1.ReferralCodeModel.create({ code: generatedCode, user: userId, userType: userType })];
                 case 4:
                     // Create the referral document with the unique code
                     _b.sent();
-                    return [2 /*return*/, result];
+                    return [2 /*return*/, generatedCode];
             }
         });
     });

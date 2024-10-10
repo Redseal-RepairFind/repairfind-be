@@ -105,9 +105,6 @@ class ProfileHandler extends Base {
       // Update the ContractorModel with the profile ID
       contractor.profile = profile._id;
       
-      const newReferralCode = await GeneratorUtil.generateReferralCode({length: 6, userId: contractor.id, userType: 'contractors'});
-      contractor.referralCode = newReferralCode;
-
       await contractor.save();
       contractor.onboarding = await contractor.getOnboarding()
 

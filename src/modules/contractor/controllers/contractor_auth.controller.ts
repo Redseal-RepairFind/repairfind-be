@@ -68,11 +68,9 @@ class AuthHandler extends Base {
 
 
             if (referralCode) {
-
                 const userReferral = await ReferralCodeModel.findOne({ code: referralCode });
                 if (userReferral) {
                     
-                    // create referral 
                     const referral = new ReferralModel({
                         referralCode: userReferral.id,
                         user: contractor._id,
@@ -84,14 +82,17 @@ class AuthHandler extends Base {
                     })
 
                     contractor.referral = referral._id;
-                    await contractor.save()
+                    await Promise.all([
+                        referral.save(),
+                        contractor.save()
+                    ])  
                     PromotionEvent.emit('NEW_REFERRAL', {referral})
                 }
-
-
             }
 
-
+            const newReferralCode = await GeneratorUtil.generateReferralCode({length: 6, userId: contractor.id, userType: 'contractors'});
+            contractor.referralCode = newReferralCode;
+            await contractor.save()
 
             const html = OtpEmailTemplate(otp, firstName ?? companyName, "We have received a request to verify your email");
             let translatedHtml = await i18n.getTranslation({ phraseOrSlug: html, targetLang: contractor.language, saveToFile: false, useGoogle: true, contentType: 'html' }) || html;
@@ -290,11 +291,7 @@ class AuthHandler extends Base {
 
             const quiz = await contractor?.quiz ?? null
             contractor.onboarding = await contractor.getOnboarding()
-            const contractorResponse = {
-                ...contractor.toJSON(),
-                quiz,
-            };
-
+            
             // generate access token
             const accessToken = jwt.sign(
                 {
@@ -311,6 +308,12 @@ class AuthHandler extends Base {
             }
             contractor.currentTimezone = currentTimezone
             await contractor.save()
+
+            const contractorResponse = {
+                ...contractor.toJSON(),
+                quiz,
+            };
+
 
             return res.json({
                 success: true,

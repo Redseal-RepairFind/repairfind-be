@@ -46,7 +46,7 @@ var customer_model_1 = __importDefault(require("../../../database/customer/model
 var job_model_1 = require("../../../database/common/job.model");
 var invoices_shema_1 = require("../../../database/common/invoices.shema");
 var promotion_schema_1 = require("../../../database/common/promotion.schema");
-var user_coupon_schema_1 = require("../../../database/common/user_coupon.schema");
+var coupon_schema_1 = require("../../../database/common/coupon.schema");
 var couponCodeGenerator_1 = require("../../../utils/couponCodeGenerator");
 var custom_errors_1 = require("../../../utils/custom.errors");
 //get customer detail /////////////
@@ -288,10 +288,10 @@ var issueCoupon = function (req, res, next) { return __awaiter(void 0, void 0, v
                     return [2 /*return*/, res.status(404).json({ success: false, message: 'Promotion not found' })];
                 }
                 // Check if the promotion is active
-                if (promotion.status !== 'active') {
+                if (promotion.status !== promotion_schema_1.PROMOTION_STATUS.ACTIVE) {
                     return [2 /*return*/, res.status(400).json({ success: false, message: 'Promotion is not active' })];
                 }
-                newUserCoupon = new user_coupon_schema_1.UserCouponModel({
+                newUserCoupon = new coupon_schema_1.CouponModel({
                     promotion: promotion._id, // Attach promotion ID
                     name: promotion.name,
                     code: (0, couponCodeGenerator_1.generateCouponCode)(7), // generate coupon code here

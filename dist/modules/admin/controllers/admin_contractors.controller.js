@@ -77,7 +77,7 @@ var contractor_stripe_account_pipeline_1 = require("../../../database/contractor
 var generic_email_1 = require("../../../templates/common/generic_email");
 var services_1 = require("../../../services");
 var promotion_schema_1 = require("../../../database/common/promotion.schema");
-var user_coupon_schema_1 = require("../../../database/common/user_coupon.schema");
+var coupon_schema_1 = require("../../../database/common/coupon.schema");
 var couponCodeGenerator_1 = require("../../../utils/couponCodeGenerator");
 var exploreContractors = function (req, res) { return __awaiter(void 0, void 0, void 0, function () {
     var errors, _a, searchName, listing, minDistance, maxDistance, radius, latitude, longitude, emergencyJobs, category, location_1, city, country, address, accountType, date, isOffDuty, availability, experienceYear, gstNumber, _b, page, _c, limit, sort, minResponseTime, maxResponseTime, sortByResponseTime, hasPassedQuiz, gstStatus, stripeAccountStatus, availableDaysArray, skip, toRadians, mergedPipelines, pipeline, _d, sortField, sortOrder, sortStage, result, contractors, metadata, err_1;
@@ -753,10 +753,10 @@ var issueCoupon = function (req, res, next) { return __awaiter(void 0, void 0, v
                     return [2 /*return*/, res.status(404).json({ success: false, message: 'Promotion not found' })];
                 }
                 // Check if the promotion is active
-                if (promotion.status !== 'active') {
+                if (promotion.status !== promotion_schema_1.PROMOTION_STATUS.ACTIVE) {
                     return [2 /*return*/, res.status(400).json({ success: false, message: 'Promotion is not active' })];
                 }
-                newUserCoupon = new user_coupon_schema_1.UserCouponModel({
+                newUserCoupon = new coupon_schema_1.CouponModel({
                     promotion: promotion._id, // Attach promotion ID
                     name: promotion.name,
                     code: (0, couponCodeGenerator_1.generateCouponCode)(7), // generate coupon code here

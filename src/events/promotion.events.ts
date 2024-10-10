@@ -5,10 +5,10 @@ import { EmailService } from '../services';
 import CustomerModel from '../database/customer/models/customer.model';
 import { ContractorModel } from '../database/contractor/models/contractor.model';
 import { i18n } from '../i18n';
-import { PromotionModel } from '../database/common/promotion.schema';
+import { PROMOTION_STATUS, PromotionModel } from '../database/common/promotion.schema';
 import { GeneratorUtil } from '../utils/generator.util';
 import { IReferral } from '../database/common/referral.schema';
-import { CouponModel } from '../database/common/coupon.schema';
+import { COUPON_STATUS, COUPON_TYPE, COUPON_VALUE_TYPE, CouponModel } from '../database/common/coupon.schema';
 
 export const PromotionEvent: EventEmitter = new EventEmitter();
 
@@ -21,28 +21,31 @@ PromotionEvent.on('NEW_REFERRAL', async function (payload: { referral: IReferral
             ? await CustomerModel.findById(referral.referrer) 
             : await ContractorModel.findById(referral.referrer);
         
-        const referralPromotion = await PromotionModel.findOne({ code: 'REFERRAL', status: 'active' });
+        const referralPromotion = await PromotionModel.findOne({ code: 'REFERRAL', status: PROMOTION_STATUS.ACTIVE });
+
         if (!referralPromotion) return;
 
         // If Referral promotion is ongoing, create user coupon for the referral bonus
         const couponCode = await GeneratorUtil.generateCouponCode(6);
         const coupon = await CouponModel.create({
+            promotion: referralPromotion.id,
             name: 'Referral Bonus',
             code: couponCode,
             user: referral.referrer,
             userType: referral.referrerType,
-            type: 'referral',
-            valueType: 'fixed',
+            type: COUPON_TYPE.REFERRAL_BONUS,
+            valueType: COUPON_VALUE_TYPE.FIXED,
             value: referralPromotion.value,
             applicableAtCheckout: true,
-            status: 'pending',
+            status: COUPON_STATUS.PENDING,
         });
+
         referral.coupon = coupon.id;
         await referral.save();
 
         if (referrer) {
             const emailSubject = 'Congratulations! You’ve Earned a Referral Bonus!';
-            const bonusActivation = (referral.referrerType === 'customers') 
+            const bonusActivation = (referral.userType === 'customers') 
                 ? 'when the referred customer books their first job.'
                 : 'when the referred contractor completes their first job.';
 

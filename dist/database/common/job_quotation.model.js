@@ -69,7 +69,7 @@ var JobQuotationEstimateSchema = new mongoose_1.Schema({
     amount: { type: Number }
 });
 var QuotationDiscountSchema = new mongoose_1.Schema({
-    coupon: { type: mongoose_1.Schema.Types.ObjectId, ref: 'user_coupons' },
+    coupon: { type: mongoose_1.Schema.Types.ObjectId, ref: 'coupons' },
     value: { type: Number },
     valueType: { type: String, enum: ['fixed', 'percentage'] },
 });

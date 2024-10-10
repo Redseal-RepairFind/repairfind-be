@@ -29,4 +29,4 @@ const ReferralCodeSchema: Schema<IReferralCode> = new Schema({
 });
 
 // Create and export the ReferralCode model
-export const ReferralCodeModel = mongoose.model<IReferralCode>('ReferralCode', ReferralCodeSchema);
+export const ReferralCodeModel = mongoose.model<IReferralCode>('referral_codes', ReferralCodeSchema);

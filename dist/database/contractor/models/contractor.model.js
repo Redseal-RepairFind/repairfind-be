@@ -251,6 +251,10 @@ var ContractorSchema = new mongoose_1.Schema({
         type: String,
         unique: true,
     },
+    referral: {
+        type: mongoose_1.Schema.ObjectId,
+        ref: 'referrals',
+    },
 }, {
     timestamps: true,
 });

@@ -36,24 +36,56 @@ var __generator = (this && this.__generator) || function (thisArg, body) {
     }
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.RunSeeders = void 0;
-var contractor_seeder_1 = require("./contractor.seeder");
-var customer_seeder_1 = require("./customer.seeder");
-var admin_seeder_1 = require("./admin.seeder");
-var country_seeder_1 = require("./country.seeder");
-var bank_seeder_1 = require("./bank.seeder");
-var permissions_seeder_1 = require("./permissions.seeder");
-var promotions_seeder_1 = require("./promotions.seeder");
-var RunSeeders = function () { return __awaiter(void 0, void 0, void 0, function () {
+exports.PromotionSeeder = void 0;
+var promotion_schema_1 = require("../common/promotion.schema");
+var PromotionSeeder = function (options) { return __awaiter(void 0, void 0, void 0, function () {
     return __generator(this, function (_a) {
-        (0, customer_seeder_1.CustomerSeeder)({ ordered: true });
-        (0, contractor_seeder_1.ContractorSeeder)({ ordered: false });
-        (0, admin_seeder_1.AdminSeeder)({ ordered: false });
-        (0, country_seeder_1.CountrySeeder)({ ordered: false });
-        (0, bank_seeder_1.BankSeeder)({ ordered: false });
-        (0, permissions_seeder_1.PermissionSeeder)({ ordered: false });
-        (0, promotions_seeder_1.PromotionSeeder)({ ordered: false });
+        try {
+            promotions.forEach(function (promotion) { return __awaiter(void 0, void 0, void 0, function () {
+                var existingPromotion;
+                return __generator(this, function (_a) {
+                    switch (_a.label) {
+                        case 0: return [4 /*yield*/, promotion_schema_1.PromotionModel.findOne({ code: promotion.code })];
+                        case 1:
+                            existingPromotion = _a.sent();
+                            if (existingPromotion)
+                                return [2 /*return*/];
+                            return [4 /*yield*/, promotion_schema_1.PromotionModel.findOneAndUpdate({ name: promotion.name }, promotion, { upsert: true })];
+                        case 2:
+                            _a.sent();
+                            return [2 /*return*/];
+                    }
+                });
+            }); });
+        }
+        catch (error) {
+            console.log("Error seeding promotions", error);
+        }
         return [2 /*return*/];
     });
 }); };
-exports.RunSeeders = RunSeeders;
+exports.PromotionSeeder = PromotionSeeder;
+var promotions = [
+    {
+        "name": "Referral Bonus",
+        "code": "REFERRAL",
+        "startDate": "2024-06-01",
+        "target": promotion_schema_1.PROMOTION_TARGET.BOTH,
+        "criteria": "Referral bonus of $25",
+        "value": 25,
+        "valueType": promotion_schema_1.PROMOTION_VALUE_TYPE.FIXED,
+        "description": "Get $25 cash bonus off when you refer",
+        "status": promotion_schema_1.PROMOTION_STATUS.ACTIVE
+    },
+    {
+        "name": "Early Bird Contractor",
+        "code": "EARLYBIRDCONTRACTOR",
+        "startDate": "2024-10-01",
+        "target": promotion_schema_1.PROMOTION_TARGET.CONTRACTORS,
+        "criteria": "First 200 contractors",
+        "value": 50,
+        "valueType": promotion_schema_1.PROMOTION_VALUE_TYPE.PERCENTAGE,
+        "description": "Get 50% off on Repairfind service fee on your quotations",
+        "status": promotion_schema_1.PROMOTION_STATUS.ACTIVE
+    }
+];

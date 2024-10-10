@@ -23,8 +23,25 @@ var __importStar = (this && this.__importStar) || function (mod) {
     return result;
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.PromotionModel = void 0;
+exports.PromotionModel = exports.PROMOTION_TARGET = exports.PROMOTION_VALUE_TYPE = exports.PROMOTION_STATUS = void 0;
 var mongoose_1 = __importStar(require("mongoose"));
+// Define exportable enums
+var PROMOTION_STATUS;
+(function (PROMOTION_STATUS) {
+    PROMOTION_STATUS["ACTIVE"] = "ACTIVE";
+    PROMOTION_STATUS["INACTIVE"] = "INACTIVE";
+})(PROMOTION_STATUS || (exports.PROMOTION_STATUS = PROMOTION_STATUS = {}));
+var PROMOTION_VALUE_TYPE;
+(function (PROMOTION_VALUE_TYPE) {
+    PROMOTION_VALUE_TYPE["FIXED"] = "FIXED";
+    PROMOTION_VALUE_TYPE["PERCENTAGE"] = "PERCENTAGE";
+})(PROMOTION_VALUE_TYPE || (exports.PROMOTION_VALUE_TYPE = PROMOTION_VALUE_TYPE = {}));
+var PROMOTION_TARGET;
+(function (PROMOTION_TARGET) {
+    PROMOTION_TARGET["CONTRACTORS"] = "CONTRACTORS";
+    PROMOTION_TARGET["CUSTOMERS"] = "CUSTOMERS";
+    PROMOTION_TARGET["BOTH"] = "BOTH";
+})(PROMOTION_TARGET || (exports.PROMOTION_TARGET = PROMOTION_TARGET = {}));
 // Define the Promotion schema
 var PromotionSchema = new mongoose_1.Schema({
     name: { type: String, required: true },
@@ -33,19 +50,23 @@ var PromotionSchema = new mongoose_1.Schema({
     endDate: { type: Date },
     target: {
         type: String,
-        enum: ['contractors', 'customers', 'both'],
-        default: 'both'
+        enum: Object.values(PROMOTION_TARGET), // Reference the enum
+        default: PROMOTION_TARGET.BOTH, // Default value from enum
     },
     criteria: { type: String },
     value: { type: Number },
-    valueType: { type: String, enum: ['fixed', 'percentage'], required: true },
+    valueType: {
+        type: String,
+        enum: Object.values(PROMOTION_VALUE_TYPE), // Reference the enum
+        required: true
+    },
     description: { type: String },
     status: {
         type: String,
-        enum: ['active', 'inactive'],
-        default: 'inactive'
-    }
+        enum: Object.values(PROMOTION_STATUS), // Reference the enum
+        default: PROMOTION_STATUS.INACTIVE, // Default value from enum
+    },
 }, {
-    timestamps: true
+    timestamps: true,
 });
 exports.PromotionModel = mongoose_1.default.model('promotions', PromotionSchema);

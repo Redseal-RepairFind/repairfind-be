@@ -66,7 +66,7 @@ var PermissionSeeder = function (options) { return __awaiter(void 0, void 0, voi
             }); });
         }
         catch (error) {
-            console.log("Error seeding banks", error);
+            console.log("Error seeding permissions", error);
         }
         return [2 /*return*/];
     });

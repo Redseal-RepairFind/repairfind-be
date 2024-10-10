@@ -54,13 +54,16 @@ var config_1 = require("../../../config");
 var welcome_email_1 = require("../../../templates/customer/welcome_email");
 var i18n_1 = require("../../../i18n");
 var generator_util_1 = require("../../../utils/generator.util");
+var referral_code_schema_1 = require("../../../database/common/referral_code.schema");
+var promotion_events_1 = require("../../../events/promotion.events");
+var referral_schema_1 = require("../../../database/common/referral.schema");
 var signUp = function (req, res) { return __awaiter(void 0, void 0, void 0, function () {
-    var _a, email, password, firstName, lastName, acceptTerms, phoneNumber, language, errors, userEmailExists, otp, createdTime, emailOtp, hashedPassword, customer, newReferralCode, customerSaved, welcomeHtml, translatedWelcomeHtml, translatedWelcomeSubject, emailVerificationHtml, translatedVerificationHtml, translatedVerificationSubject, err_1;
+    var _a, email, password, firstName, lastName, acceptTerms, phoneNumber, language, referralCode, errors, userEmailExists, otp, createdTime, emailOtp, hashedPassword, customer, newReferralCode, customerSaved, userReferral, referral, welcomeHtml, translatedWelcomeHtml, translatedWelcomeSubject, emailVerificationHtml, translatedVerificationHtml, translatedVerificationSubject, err_1;
     return __generator(this, function (_b) {
         switch (_b.label) {
             case 0:
-                _b.trys.push([0, 9, , 10]);
-                _a = req.body, email = _a.email, password = _a.password, firstName = _a.firstName, lastName = _a.lastName, acceptTerms = _a.acceptTerms, phoneNumber = _a.phoneNumber, language = _a.language;
+                _b.trys.push([0, 12, , 13]);
+                _a = req.body, email = _a.email, password = _a.password, firstName = _a.firstName, lastName = _a.lastName, acceptTerms = _a.acceptTerms, phoneNumber = _a.phoneNumber, language = _a.language, referralCode = _a.referralCode;
                 errors = (0, express_validator_1.validationResult)(req);
                 if (!errors.isEmpty()) {
                     return [2 /*return*/, res.status(400).json({ success: false, message: "Validation error occurred", errors: errors.array() })];
@@ -90,7 +93,7 @@ var signUp = function (req, res) { return __awaiter(void 0, void 0, void 0, func
                     password: hashedPassword,
                     emailOtp: emailOtp,
                     acceptTerms: acceptTerms,
-                    language: language
+                    language: language,
                 });
                 return [4 /*yield*/, generator_util_1.GeneratorUtil.generateReferralCode({ length: 6, userId: customer.id, userType: 'customers' })];
             case 3:
@@ -99,20 +102,43 @@ var signUp = function (req, res) { return __awaiter(void 0, void 0, void 0, func
                 return [4 /*yield*/, customer.save()];
             case 4:
                 customerSaved = _b.sent();
+                if (!referralCode) return [3 /*break*/, 7];
+                return [4 /*yield*/, referral_code_schema_1.ReferralCodeModel.findOne({ code: referralCode })];
+            case 5:
+                userReferral = _b.sent();
+                if (!userReferral) return [3 /*break*/, 7];
+                referral = new referral_schema_1.ReferralModel({
+                    referralCode: userReferral.id,
+                    user: customer._id,
+                    userType: 'customers',
+                    referrer: userReferral.user,
+                    referrerType: userReferral.userType,
+                    metadata: {},
+                    date: new Date(),
+                });
+                customer.referral = referral._id;
+                return [4 /*yield*/, Promise.all([
+                        referral.save()
+                    ])];
+            case 6:
+                _b.sent();
+                promotion_events_1.PromotionEvent.emit('NEW_REFERRAL', { referral: referral });
+                _b.label = 7;
+            case 7:
                 welcomeHtml = (0, welcome_email_1.CustomerWelcomeEmailTemplate)(lastName);
                 return [4 /*yield*/, i18n_1.i18n.getTranslation({ phraseOrSlug: welcomeHtml, targetLang: customer.language, saveToFile: false, useGoogle: true, contentType: 'html' })];
-            case 5:
+            case 8:
                 translatedWelcomeHtml = (_b.sent()) || welcomeHtml;
                 return [4 /*yield*/, i18n_1.i18n.getTranslation({ phraseOrSlug: "Welcome to Repairfind", targetLang: customer.language })];
-            case 6:
+            case 9:
                 translatedWelcomeSubject = (_b.sent()) || 'Welcome to Repairfind';
                 services_1.EmailService.send(email, translatedWelcomeSubject, translatedWelcomeHtml);
                 emailVerificationHtml = (0, OtpEmailTemplate_1.OtpEmailTemplate)(otp, firstName, 'We have received a request to verify your email');
                 return [4 /*yield*/, i18n_1.i18n.getTranslation({ phraseOrSlug: emailVerificationHtml, targetLang: customer.language, saveToFile: false, useGoogle: true, contentType: 'html' })];
-            case 7:
+            case 10:
                 translatedVerificationHtml = (_b.sent()) || emailVerificationHtml;
                 return [4 /*yield*/, i18n_1.i18n.getTranslation({ phraseOrSlug: "'Email Verification", targetLang: customer.language })];
-            case 8:
+            case 11:
                 translatedVerificationSubject = (_b.sent()) || 'Welcome to Repairfind';
                 services_1.EmailService.send(email, translatedVerificationSubject, translatedVerificationHtml);
                 res.json({
@@ -126,12 +152,12 @@ var signUp = function (req, res) { return __awaiter(void 0, void 0, void 0, func
                         email: customerSaved.email,
                     },
                 });
-                return [3 /*break*/, 10];
-            case 9:
+                return [3 /*break*/, 13];
+            case 12:
                 err_1 = _b.sent();
                 res.status(500).json({ success: false, message: err_1.message });
-                return [3 /*break*/, 10];
-            case 10: return [2 /*return*/];
+                return [3 /*break*/, 13];
+            case 13: return [2 /*return*/];
         }
     });
 }); };

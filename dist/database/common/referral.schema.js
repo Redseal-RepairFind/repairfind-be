@@ -23,27 +23,46 @@ var __importStar = (this && this.__importStar) || function (mod) {
     return result;
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.ReferralCodeModel = void 0;
+exports.ReferralModel = void 0;
 var mongoose_1 = __importStar(require("mongoose"));
-// Define the Referral Code schema
-var ReferralCodeSchema = new mongoose_1.Schema({
+var ReferralSchema = new mongoose_1.Schema({
     user: {
         type: mongoose_1.Schema.Types.ObjectId,
-        refPath: 'userType',
         required: true,
+        refPath: 'userType',
     },
     userType: {
         type: String,
         required: true,
-        enum: ['customers', 'contractors'], // Define allowed values for user type
+        enum: ['customers', 'contractors'],
     },
-    code: {
-        type: String,
-        unique: true,
+    referrer: {
+        type: mongoose_1.Schema.Types.ObjectId,
         required: true,
+        refPath: 'userType',
+    },
+    referrerType: {
+        type: String,
+        required: true,
+        enum: ['customers', 'contractors'],
+    },
+    referralCode: {
+        type: String,
+        required: true,
+    },
+    date: {
+        type: Date,
+        default: Date.now,
+    },
+    coupon: {
+        type: mongoose_1.Schema.Types.ObjectId,
+        ref: 'coupons'
+    },
+    metadata: {
+        type: mongoose_1.Schema.Types.Mixed,
     }
 }, {
     timestamps: true
 });
-// Create and export the ReferralCode model
-exports.ReferralCodeModel = mongoose_1.default.model('referral_codes', ReferralCodeSchema);
+// Create and export the Referral model
+exports.ReferralModel = mongoose_1.default.model('Referral', ReferralSchema);

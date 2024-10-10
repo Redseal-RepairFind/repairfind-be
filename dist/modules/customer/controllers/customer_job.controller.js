@@ -57,7 +57,7 @@ var job_enquiry_model_1 = require("../../../database/common/job_enquiry.model");
 var conversation_util_1 = require("../../../utils/conversation.util");
 var payment_schema_1 = require("../../../database/common/payment.schema");
 var job_util_1 = require("../../../utils/job.util");
-var user_coupon_schema_1 = require("../../../database/common/user_coupon.schema");
+var coupon_schema_1 = require("../../../database/common/coupon.schema");
 var createJobRequest = function (req, res, next) { return __awaiter(void 0, void 0, void 0, function () {
     var errors, _a, contractorId, category, language, description, location_1, date, _b, expiresIn, emergency, media, voiceDescription, time, customerId, customer, contractor, contractorProfile, currentDate, expiryDate, newJob, conversationMembers, conversation, newMessage, error_1;
     return __generator(this, function (_c) {
@@ -754,7 +754,7 @@ var applyCouponToJobQuotation = function (req, res, next) { return __awaiter(voi
                 if (!quotation) {
                     return [2 /*return*/, res.status(404).json({ success: false, message: 'Qoutation not found' })];
                 }
-                return [4 /*yield*/, user_coupon_schema_1.UserCouponModel.findOne({ code: couponCode })];
+                return [4 /*yield*/, coupon_schema_1.CouponModel.findOne({ code: couponCode })];
             case 2:
                 coupon = _b.sent();
                 if (!coupon)
@@ -784,7 +784,7 @@ var applyCouponToJobQuotation = function (req, res, next) { return __awaiter(voi
                         valueType: coupon.valueType,
                     };
                 }
-                coupon.status = 'pending';
+                coupon.status = coupon_schema_1.COUPON_STATUS.PENDING;
                 return [4 /*yield*/, Promise.all([
                         coupon.save(),
                         quotation.save()

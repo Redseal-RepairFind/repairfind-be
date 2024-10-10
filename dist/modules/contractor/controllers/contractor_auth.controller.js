@@ -98,6 +98,9 @@ var config_1 = require("../../../config");
 var twillio_1 = __importDefault(require("../../../services/twillio"));
 var i18n_1 = require("../../../i18n");
 var generator_util_1 = require("../../../utils/generator.util");
+var referral_code_schema_1 = require("../../../database/common/referral_code.schema");
+var referral_schema_1 = require("../../../database/common/referral.schema");
+var promotion_events_1 = require("../../../events/promotion.events");
 var AuthHandler = /** @class */ (function (_super) {
     __extends(AuthHandler, _super);
     function AuthHandler() {
@@ -105,7 +108,7 @@ var AuthHandler = /** @class */ (function (_super) {
     }
     AuthHandler.prototype.signUp = function () {
         return __awaiter(this, void 0, void 0, function () {
-            var req, res, _a, email, password, firstName, dateOfBirth, lastName, phoneNumber, acceptTerms, accountType, companyName, language, errors, userEmailExists, userPhoneExists, otp, createdTime, emailOtp, hashedPassword, contractor, html, translatedHtml, translatedSubject, welcomeHtml, err_1;
+            var req, res, _a, email, password, firstName, dateOfBirth, lastName, phoneNumber, acceptTerms, accountType, companyName, language, referralCode, errors, userEmailExists, userPhoneExists, otp, createdTime, emailOtp, hashedPassword, contractor, userReferral, referral, newReferralCode, html, translatedHtml, translatedSubject, welcomeHtml, err_1;
             return __generator(this, function (_b) {
                 switch (_b.label) {
                     case 0:
@@ -113,8 +116,8 @@ var AuthHandler = /** @class */ (function (_super) {
                         res = this.res;
                         _b.label = 1;
                     case 1:
-                        _b.trys.push([1, 12, , 13]);
-                        _a = req.body, email = _a.email, password = _a.password, firstName = _a.firstName, dateOfBirth = _a.dateOfBirth, lastName = _a.lastName, phoneNumber = _a.phoneNumber, acceptTerms = _a.acceptTerms, accountType = _a.accountType, companyName = _a.companyName, language = _a.language;
+                        _b.trys.push([1, 17, , 18]);
+                        _a = req.body, email = _a.email, password = _a.password, firstName = _a.firstName, dateOfBirth = _a.dateOfBirth, lastName = _a.lastName, phoneNumber = _a.phoneNumber, acceptTerms = _a.acceptTerms, accountType = _a.accountType, companyName = _a.companyName, language = _a.language, referralCode = _a.referralCode;
                         errors = (0, express_validator_1.validationResult)(req);
                         if (!errors.isEmpty()) {
                             return [2 /*return*/, res.status(400).json({ success: false, message: "Validation errors", errors: errors.array() })];
@@ -156,35 +159,65 @@ var AuthHandler = /** @class */ (function (_super) {
                             })];
                     case 5:
                         contractor = _b.sent();
+                        if (!referralCode) return [3 /*break*/, 8];
+                        return [4 /*yield*/, referral_code_schema_1.ReferralCodeModel.findOne({ code: referralCode })];
+                    case 6:
+                        userReferral = _b.sent();
+                        if (!userReferral) return [3 /*break*/, 8];
+                        referral = new referral_schema_1.ReferralModel({
+                            referralCode: userReferral.id,
+                            user: contractor._id,
+                            userType: 'contractors',
+                            referrer: userReferral.user,
+                            referrerType: userReferral.userType,
+                            metadata: {},
+                            date: new Date(),
+                        });
+                        contractor.referral = referral._id;
+                        return [4 /*yield*/, Promise.all([
+                                referral.save(),
+                                contractor.save()
+                            ])];
+                    case 7:
+                        _b.sent();
+                        promotion_events_1.PromotionEvent.emit('NEW_REFERRAL', { referral: referral });
+                        _b.label = 8;
+                    case 8: return [4 /*yield*/, generator_util_1.GeneratorUtil.generateReferralCode({ length: 6, userId: contractor.id, userType: 'contractors' })];
+                    case 9:
+                        newReferralCode = _b.sent();
+                        contractor.referralCode = newReferralCode;
+                        return [4 /*yield*/, contractor.save()];
+                    case 10:
+                        _b.sent();
                         html = (0, OtpEmailTemplate_1.OtpEmailTemplate)(otp, firstName !== null && firstName !== void 0 ? firstName : companyName, "We have received a request to verify your email");
                         return [4 /*yield*/, i18n_1.i18n.getTranslation({ phraseOrSlug: html, targetLang: contractor.language, saveToFile: false, useGoogle: true, contentType: 'html' })];
-                    case 6:
+                    case 11:
                         translatedHtml = (_b.sent()) || html;
                         return [4 /*yield*/, i18n_1.i18n.getTranslation({ phraseOrSlug: "Email Verification", targetLang: contractor.language })];
-                    case 7:
+                    case 12:
                         translatedSubject = (_b.sent()) || 'Email Verification';
                         return [4 /*yield*/, services_1.EmailService.send(email, translatedSubject, translatedHtml)];
-                    case 8:
+                    case 13:
                         _b.sent();
                         welcomeHtml = (0, welcome_email_1.ContractorWelcomeTemplate)(firstName !== null && firstName !== void 0 ? firstName : companyName);
                         return [4 /*yield*/, i18n_1.i18n.getTranslation({ phraseOrSlug: welcomeHtml, targetLang: contractor.language, saveToFile: false, useGoogle: true, contentType: 'html' })];
-                    case 9:
+                    case 14:
                         translatedHtml = (_b.sent()) || welcomeHtml;
                         return [4 /*yield*/, i18n_1.i18n.getTranslation({ phraseOrSlug: "Welcome to Repairfind", targetLang: contractor.language })];
-                    case 10:
+                    case 15:
                         translatedSubject = (_b.sent()) || 'Welcome to Repairfind';
                         return [4 /*yield*/, services_1.EmailService.send(email, translatedSubject, translatedHtml)];
-                    case 11:
+                    case 16:
                         _b.sent();
                         return [2 /*return*/, res.json({
                                 success: true,
                                 message: "Signup successful",
                                 data: contractor,
                             })];
-                    case 12:
+                    case 17:
                         err_1 = _b.sent();
                         return [2 /*return*/, res.status(500).json({ success: false, message: err_1.message })];
-                    case 13: return [2 /*return*/];
+                    case 18: return [2 /*return*/];
                 }
             });
         });
@@ -227,7 +260,9 @@ var AuthHandler = /** @class */ (function (_super) {
                         return [4 /*yield*/, contractor.save()];
                     case 3:
                         _c.sent();
-                        accessToken = jsonwebtoken_1.default.sign({ id: contractor === null || contractor === void 0 ? void 0 : contractor._id, email: contractor.email, userType: 'contractors', }, process.env.JWT_SECRET_KEY, { expiresIn: config_1.config.jwt.tokenLifetime });
+                        accessToken = jsonwebtoken_1.default.sign({
+                            id: contractor === null || contractor === void 0 ? void 0 : contractor._id, email: contractor.email, userType: 'contractors',
+                        }, process.env.JWT_SECRET_KEY, { expiresIn: config_1.config.jwt.tokenLifetime });
                         return [4 /*yield*/, (contractor === null || contractor === void 0 ? void 0 : contractor.quiz)];
                     case 4:
                         quiz = (_a = _c.sent()) !== null && _a !== void 0 ? _a : null;
@@ -337,7 +372,7 @@ var AuthHandler = /** @class */ (function (_super) {
     AuthHandler.prototype.signin = function () {
         var _a;
         return __awaiter(this, void 0, void 0, function () {
-            var req, res, _b, email, password, currentTimezone, errors, contractor, isPasswordMatch, quiz, _c, contractorResponse, accessToken, newReferralCode, err_5;
+            var req, res, _b, email, password, currentTimezone, errors, contractor, isPasswordMatch, quiz, _c, accessToken, newReferralCode, contractorResponse, err_5;
             return __generator(this, function (_d) {
                 switch (_d.label) {
                     case 0:
@@ -370,11 +405,14 @@ var AuthHandler = /** @class */ (function (_super) {
                     case 4:
                         quiz = (_a = _d.sent()) !== null && _a !== void 0 ? _a : null;
                         _c = contractor;
-                        return [4 /*yield*/, contractor.getOnboarding()];
+                        return [4 /*yield*/, contractor.getOnboarding()
+                            // generate access token
+                        ];
                     case 5:
                         _c.onboarding = _d.sent();
-                        contractorResponse = __assign(__assign({}, contractor.toJSON()), { quiz: quiz });
-                        accessToken = jsonwebtoken_1.default.sign({ id: contractor === null || contractor === void 0 ? void 0 : contractor._id, email: contractor.email, userType: 'contractors', }, process.env.JWT_SECRET_KEY, { expiresIn: config_1.config.jwt.tokenLifetime });
+                        accessToken = jsonwebtoken_1.default.sign({
+                            id: contractor === null || contractor === void 0 ? void 0 : contractor._id, email: contractor.email, userType: 'contractors',
+                        }, process.env.JWT_SECRET_KEY, { expiresIn: config_1.config.jwt.tokenLifetime });
                         if (!!contractor.referralCode) return [3 /*break*/, 7];
                         return [4 /*yield*/, generator_util_1.GeneratorUtil.generateReferralCode({ length: 6, userId: contractor.id, userType: 'contractors' })];
                     case 6:
@@ -386,6 +424,7 @@ var AuthHandler = /** @class */ (function (_super) {
                         return [4 /*yield*/, contractor.save()];
                     case 8:
                         _d.sent();
+                        contractorResponse = __assign(__assign({}, contractor.toJSON()), { quiz: quiz });
                         return [2 /*return*/, res.json({
                                 success: true,
                                 message: "Login successful",
@@ -443,7 +482,9 @@ var AuthHandler = /** @class */ (function (_super) {
                     case 5:
                         _c.onboarding = _d.sent();
                         contractorResponse = __assign(__assign({}, contractor.toJSON()), { quiz: quiz });
-                        accessToken = jsonwebtoken_1.default.sign({ id: contractor === null || contractor === void 0 ? void 0 : contractor._id, email: contractor.email, userType: 'contractors', }, process.env.JWT_SECRET_KEY, { expiresIn: config_1.config.jwt.tokenLifetime });
+                        accessToken = jsonwebtoken_1.default.sign({
+                            id: contractor === null || contractor === void 0 ? void 0 : contractor._id, email: contractor.email, userType: 'contractors',
+                        }, process.env.JWT_SECRET_KEY, { expiresIn: config_1.config.jwt.tokenLifetime });
                         if (!!contractor.referralCode) return [3 /*break*/, 7];
                         return [4 /*yield*/, generator_util_1.GeneratorUtil.generateReferralCode({ length: 6, userId: contractor.id, userType: 'contractors' })];
                     case 6:
