@@ -65,7 +65,7 @@ export const handleEscrowTransfer = async () => {
                 await transaction.save();
 
                 // Handle other stuffs like payout accumulated bonus from event
-                TransactionEvent.emit('ESCROW_TRANSFER_SUCCESSFUL', transaction);
+                // TransactionEvent.emit('ESCROW_TRANSFER_SUCCESSFUL', transaction);
 
                 // Send notification email to the contractor
                 await sendEscrowTransferEmail(toUser, transaction, payment, transferDetails);

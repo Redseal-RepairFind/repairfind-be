@@ -74,7 +74,6 @@ exports.handleEscrowTransfer = void 0;
 var payment_schema_1 = require("../../../database/common/payment.schema");
 var transaction_model_1 = __importStar(require("../../../database/common/transaction.model"));
 var contractor_model_1 = require("../../../database/contractor/models/contractor.model");
-var transaction_events_1 = require("../../../events/transaction.events");
 var logger_1 = require("../../logger");
 var paypal_1 = require("../../paypal");
 var stripe_1 = require("../../stripe");
@@ -152,10 +151,12 @@ var handleEscrowTransfer = function () { return __awaiter(void 0, void 0, void 0
                 // Save transaction updates
                 _c.sent();
                 // Handle other stuffs like payout accumulated bonus from event
-                transaction_events_1.TransactionEvent.emit('ESCROW_TRANSFER_SUCCESSFUL', transaction);
+                // TransactionEvent.emit('ESCROW_TRANSFER_SUCCESSFUL', transaction);
                 // Send notification email to the contractor
                 return [4 /*yield*/, sendEscrowTransferEmail(toUser, transaction, payment, transferDetails)];
             case 11:
+                // Handle other stuffs like payout accumulated bonus from event
+                // TransactionEvent.emit('ESCROW_TRANSFER_SUCCESSFUL', transaction);
                 // Send notification email to the contractor
                 _c.sent();
                 return [3 /*break*/, 13];
