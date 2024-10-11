@@ -239,7 +239,6 @@ const ContractorSchema = new Schema<IContractor>(
     },
     referralCode: {
       type: String,
-      unique: true,
     },
     referral: {
       type: Schema.ObjectId,
@@ -251,6 +250,13 @@ const ContractorSchema = new Schema<IContractor>(
     timestamps: true,
   }
 );
+
+
+ContractorSchema.index(
+  { referralCode: 1 },
+  { unique: true, partialFilterExpression: { referralCode: { $ne: null } } }
+);
+
 
 
 ContractorSchema.virtual('stripeIdentityStatus').get(function (this: IContractor) {
@@ -610,3 +616,4 @@ ContractorSchema.set('toObject', { virtuals: true });
 
 
 export const ContractorModel = model<IContractor, SoftDeleteModel<IContractor>>("contractors", ContractorSchema);
+

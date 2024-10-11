@@ -123,7 +123,6 @@ const CustomerSchema = new Schema<ICustomer>(
     },
     referralCode: {
       type: String,
-      unique: true,
     },
     referral: {
       type: Schema.ObjectId,
@@ -135,6 +134,7 @@ const CustomerSchema = new Schema<ICustomer>(
     timestamps: true,
   }
 );
+
 
 
 // Virtual fields

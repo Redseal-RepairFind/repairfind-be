@@ -119,7 +119,6 @@ var CustomerSchema = new mongoose_1.Schema({
     },
     referralCode: {
         type: String,
-        unique: true,
     },
     referral: {
         type: mongoose_1.Schema.ObjectId,

@@ -249,7 +249,6 @@ var ContractorSchema = new mongoose_1.Schema({
     },
     referralCode: {
         type: String,
-        unique: true,
     },
     referral: {
         type: mongoose_1.Schema.ObjectId,
@@ -258,6 +257,7 @@ var ContractorSchema = new mongoose_1.Schema({
 }, {
     timestamps: true,
 });
+ContractorSchema.index({ referralCode: 1 }, { unique: true, partialFilterExpression: { referralCode: { $ne: null } } });
 ContractorSchema.virtual('stripeIdentityStatus').get(function () {
     //@ts-ignore
     return this.stripeIdentity ? this.stripeIdentity.status : 'unverified';

@@ -25,6 +25,11 @@ class AuthHandler extends Base {
         let req = this.req
         let res = this.res
         try {
+
+            
+            // ContractorModel.syncIndexes();
+
+
             const { email, password, firstName, dateOfBirth, lastName, phoneNumber, acceptTerms, accountType, companyName, language, referralCode } = req.body;
             const errors = validationResult(req);
 
