@@ -754,7 +754,7 @@ var applyCouponToJobQuotation = function (req, res, next) { return __awaiter(voi
                 if (!quotation) {
                     return [2 /*return*/, res.status(404).json({ success: false, message: 'Qoutation not found' })];
                 }
-                return [4 /*yield*/, coupon_schema_1.CouponModel.findOne({ code: couponCode })];
+                return [4 /*yield*/, coupon_schema_1.CouponModel.findOne({ code: couponCode, user: customerId, userType: 'customers' })];
             case 2:
                 coupon = _b.sent();
                 if (!coupon)
