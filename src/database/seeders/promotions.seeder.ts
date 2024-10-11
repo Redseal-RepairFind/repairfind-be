@@ -25,7 +25,8 @@ const promotions = [
         "valueType": PROMOTION_VALUE_TYPE.FIXED,
         "description": "Get $25 cash bonus off when you refer",
         "status": PROMOTION_STATUS.ACTIVE,
-        "contractorLimit": 150
+        "contractorLimit": 150,
+        "customerLimit": 100
     },
     {
         "name": "Early Bird Contractor",
@@ -37,7 +38,8 @@ const promotions = [
         "valueType": PROMOTION_VALUE_TYPE.PERCENTAGE,
         "description": "Get 50% off on Repairfind service fee on your quotations",
         "status": PROMOTION_STATUS.ACTIVE,
-        "customerLimit": 100
+        "customerLimit": 100,
+        "contractorLimit": 100,
     }
     
 ]

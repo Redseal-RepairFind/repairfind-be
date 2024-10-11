@@ -47,6 +47,9 @@ var services_1 = require("../services");
 var customer_model_1 = __importDefault(require("../database/customer/models/customer.model"));
 var contractor_model_1 = require("../database/contractor/models/contractor.model");
 var i18n_1 = require("../i18n");
+var promotion_schema_1 = require("../database/common/promotion.schema");
+var generator_util_1 = require("../utils/generator.util");
+var coupon_schema_1 = require("../database/common/coupon.schema");
 exports.AccountEvent = new events_1.EventEmitter();
 exports.AccountEvent.on('ACCOUNT_DELETED', function (payload) {
     return __awaiter(this, void 0, void 0, function () {
@@ -112,22 +115,58 @@ exports.AccountEvent.on('ACCOUNT_UPDATED', function (payload) {
 });
 exports.AccountEvent.on('NEW_CONTRACTOR', function (payload) {
     return __awaiter(this, void 0, void 0, function () {
-        var user;
+        var contractor, referralPromotion, couponCode, coupon, error_2;
         return __generator(this, function (_a) {
-            try {
-                logger_1.Logger.info("handling ACCOUNT_UPDATED event");
-                user = payload.contractor;
+            switch (_a.label) {
+                case 0:
+                    _a.trys.push([0, 6, , 7]);
+                    logger_1.Logger.info("handling NEW_CONTRACTOR event");
+                    contractor = payload.contractor;
+                    return [4 /*yield*/, promotion_schema_1.PromotionModel.findOne({ code: 'EARLYBIRDCONTRACTOR', status: promotion_schema_1.PROMOTION_STATUS.ACTIVE })];
+                case 1:
+                    referralPromotion = _a.sent();
+                    if (!referralPromotion)
+                        return [2 /*return*/];
+                    if (referralPromotion.contractorLimit <= 0)
+                        return [2 /*return*/];
+                    return [4 /*yield*/, generator_util_1.GeneratorUtil.generateCouponCode(6)];
+                case 2:
+                    couponCode = _a.sent();
+                    return [4 /*yield*/, coupon_schema_1.CouponModel.create({
+                            promotion: referralPromotion.id,
+                            name: '50% Discount on Service Fee',
+                            code: couponCode,
+                            user: contractor.id,
+                            userType: 'contractors',
+                            type: coupon_schema_1.COUPON_TYPE.SERVICE_FEE_DISCOUNT,
+                            valueType: coupon_schema_1.COUPON_VALUE_TYPE.PERCENTAGE,
+                            value: referralPromotion.value,
+                            applicableAtCheckout: true,
+                            status: coupon_schema_1.COUPON_STATUS.ACTIVE,
+                        })];
+                case 3:
+                    coupon = _a.sent();
+                    // Decrease promotion limit
+                    referralPromotion.contractorLimit -= 1;
+                    return [4 /*yield*/, referralPromotion.save()];
+                case 4:
+                    _a.sent();
+                    return [4 /*yield*/, sendEarlyBirdCouponEmail(contractor, referralPromotion)];
+                case 5:
+                    _a.sent();
+                    return [3 /*break*/, 7];
+                case 6:
+                    error_2 = _a.sent();
+                    logger_1.Logger.error("Error handling NEW_CONTRACTOR event: ".concat(error_2));
+                    return [3 /*break*/, 7];
+                case 7: return [2 /*return*/];
             }
-            catch (error) {
-                logger_1.Logger.error("Error handling ACCOUNT_UPDATED event: ".concat(error));
-            }
-            return [2 /*return*/];
         });
     });
 });
 exports.AccountEvent.on('ACCOUNT_REPORTED', function (payload) {
     return __awaiter(this, void 0, void 0, function () {
-        var report, reportedUser, _a, emailSubject, emailContent, html, translatedHtml, translatedSubject, error_2;
+        var report, reportedUser, _a, emailSubject, emailContent, html, translatedHtml, translatedSubject, error_3;
         return __generator(this, function (_b) {
             switch (_b.label) {
                 case 0:
@@ -159,11 +198,32 @@ exports.AccountEvent.on('ACCOUNT_REPORTED', function (payload) {
                     _b.label = 7;
                 case 7: return [3 /*break*/, 9];
                 case 8:
-                    error_2 = _b.sent();
-                    logger_1.Logger.error("Error handling ACCOUNT_REPORTED event: ".concat(error_2));
+                    error_3 = _b.sent();
+                    logger_1.Logger.error("Error handling ACCOUNT_REPORTED event: ".concat(error_3));
                     return [3 /*break*/, 9];
                 case 9: return [2 /*return*/];
             }
         });
     });
 });
+var sendEarlyBirdCouponEmail = function (contractor, referralPromotion) { return __awaiter(void 0, void 0, void 0, function () {
+    var emailSubject, emailContent, html, translatedHtml, translatedSubject;
+    return __generator(this, function (_a) {
+        switch (_a.label) {
+            case 0:
+                emailSubject = 'Welcome to Repairfind! You’ve Earned an Early Bird Discount!';
+                emailContent = "\n        <h2>".concat(emailSubject, "</h2>\n        <p>Hello ").concat(contractor.firstName, ",</p>\n        <p style=\"color: #333333;\">We're excited to have you as one of the Early Bird Contractors on Repairfind!</p>\n        <p style=\"color: #333333;\">As a token of appreciation for joining early, you\u2019ve earned an exclusive <strong>").concat(referralPromotion.value, "% discount</strong> on our service fee.</p>\n        <p style=\"color: #333333;\">This discount will automatically apply on your first Job.</p>\n        <p style=\"color: #333333;\">We\u2019re thrilled to have you on board and look forward to working with you. Enjoy the perks of being an Early Bird Contractor!</p>\n        <p style=\"color: #333333;\">Best regards,<br>Your Repairfind Team</p>\n    ");
+                html = (0, generic_email_1.GenericEmailTemplate)({ name: contractor.firstName, subject: emailSubject, content: emailContent });
+                return [4 /*yield*/, i18n_1.i18n.getTranslation({ phraseOrSlug: html, targetLang: contractor.language, saveToFile: false, useGoogle: true, contentType: 'html' })];
+            case 1:
+                translatedHtml = (_a.sent()) || html;
+                return [4 /*yield*/, i18n_1.i18n.getTranslation({ phraseOrSlug: emailSubject, targetLang: contractor.language })];
+            case 2:
+                translatedSubject = (_a.sent()) || emailSubject;
+                return [4 /*yield*/, services_1.EmailService.send(contractor.email, translatedSubject, translatedHtml)];
+            case 3:
+                _a.sent();
+                return [2 /*return*/];
+        }
+    });
+}); };
