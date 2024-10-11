@@ -670,7 +670,7 @@ export const applyCouponToJobQuotation = async (req: any, res: Response, next: N
         if (quotation.type == JOB_QUOTATION_TYPE.JOB_DAY) {
             if (quotation.hasOwnProperty('customerDiscount')) return res.status(400).json({ success: false, message: 'Quotation already has a coupon applied' });
             if (quotation.isPaid) return res.status(400).json({ success: false, message: 'Job Estimate visit is already paid' });
-            quotation.siteVisitEstimate.customerDiscount = {
+            quotation.customerDiscount = {
                 coupon: coupon.id,
                 value: coupon.value,
                 valueType: coupon.valueType,

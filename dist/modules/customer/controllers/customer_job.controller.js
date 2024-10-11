@@ -778,7 +778,7 @@ var applyCouponToJobQuotation = function (req, res, next) { return __awaiter(voi
                         return [2 /*return*/, res.status(400).json({ success: false, message: 'Quotation already has a coupon applied' })];
                     if (quotation.isPaid)
                         return [2 /*return*/, res.status(400).json({ success: false, message: 'Job Estimate visit is already paid' })];
-                    quotation.siteVisitEstimate.customerDiscount = {
+                    quotation.customerDiscount = {
                         coupon: coupon.id,
                         value: coupon.value,
                         valueType: coupon.valueType,

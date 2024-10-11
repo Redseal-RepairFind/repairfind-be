@@ -72,6 +72,20 @@ AccountEvent.on('ACCOUNT_UPDATED', async function (payload: { user: ICustomer|IC
 });
 
 
+AccountEvent.on('NEW_CONTRACTOR', async function (payload: { contractor: IContractor}) {
+    try {
+
+        Logger.info(`handling ACCOUNT_UPDATED event`);
+        const user = payload.contractor
+
+      
+        
+    } catch (error) {
+        Logger.error(`Error handling ACCOUNT_UPDATED event: ${error}`);
+    }
+});
+
+
 AccountEvent.on('ACCOUNT_REPORTED', async function (payload: { report: IAbuseReport }) {
     try {
 

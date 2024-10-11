@@ -105,7 +105,7 @@ class AuthHandler extends Base {
             translatedSubject = await i18n.getTranslation({ phraseOrSlug: "Welcome to Repairfind", targetLang: contractor.language }) || 'Welcome to Repairfind';
             await EmailService.send(email, translatedSubject!, translatedHtml!);
 
-            AccountEvent.emit('NEW_CONTRACTOR')
+            AccountEvent.emit('NEW_CONTRACTOR', {contractor})
             return res.json({
                 success: true,
                 message: "Signup successful",

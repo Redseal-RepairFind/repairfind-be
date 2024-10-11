@@ -110,6 +110,21 @@ exports.AccountEvent.on('ACCOUNT_UPDATED', function (payload) {
         });
     });
 });
+exports.AccountEvent.on('NEW_CONTRACTOR', function (payload) {
+    return __awaiter(this, void 0, void 0, function () {
+        var user;
+        return __generator(this, function (_a) {
+            try {
+                logger_1.Logger.info("handling ACCOUNT_UPDATED event");
+                user = payload.contractor;
+            }
+            catch (error) {
+                logger_1.Logger.error("Error handling ACCOUNT_UPDATED event: ".concat(error));
+            }
+            return [2 /*return*/];
+        });
+    });
+});
 exports.AccountEvent.on('ACCOUNT_REPORTED', function (payload) {
     return __awaiter(this, void 0, void 0, function () {
         var report, reportedUser, _a, emailSubject, emailContent, html, translatedHtml, translatedSubject, error_2;

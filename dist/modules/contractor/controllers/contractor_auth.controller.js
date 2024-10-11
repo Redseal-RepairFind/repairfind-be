@@ -210,7 +210,7 @@ var AuthHandler = /** @class */ (function (_super) {
                         return [4 /*yield*/, services_1.EmailService.send(email, translatedSubject, translatedHtml)];
                     case 16:
                         _b.sent();
-                        events_1.AccountEvent.emit('NEW_CONTRACTOR');
+                        events_1.AccountEvent.emit('NEW_CONTRACTOR', { contractor: contractor });
                         return [2 /*return*/, res.json({
                                 success: true,
                                 message: "Signup successful",
