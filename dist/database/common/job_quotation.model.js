@@ -49,6 +49,7 @@ exports.JobQuotationModel = exports.ExtraEstimateSchema = exports.JOB_QUOTATION_
 var mongoose_1 = require("mongoose");
 var payment_schema_1 = require("./payment.schema");
 var payment_util_1 = require("../../utils/payment.util");
+var coupon_schema_1 = require("./coupon.schema");
 var JOB_QUOTATION_STATUS;
 (function (JOB_QUOTATION_STATUS) {
     JOB_QUOTATION_STATUS["PENDING"] = "PENDING";
@@ -71,7 +72,7 @@ var JobQuotationEstimateSchema = new mongoose_1.Schema({
 var QuotationDiscountSchema = new mongoose_1.Schema({
     coupon: { type: mongoose_1.Schema.Types.ObjectId, ref: 'coupons' },
     value: { type: Number },
-    valueType: { type: String, enum: ['fixed', 'percentage'] },
+    valueType: { type: String, enum: Object.values(coupon_schema_1.COUPON_VALUE_TYPE) },
 });
 // Define schema for extra estimates
 exports.ExtraEstimateSchema = new mongoose_1.Schema({
