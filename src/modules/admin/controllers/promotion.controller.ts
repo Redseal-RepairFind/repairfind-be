@@ -40,7 +40,7 @@ export const getSinglePromotion = async (req: Request, res: Response, next: Next
 // Add a new promotion
 export const addPromotion = async (req: Request, res: Response, next: NextFunction) => {
     try {
-        const { name, code, startDate, endDate, target, criteria, value, valueType, description, status } = req.body;
+        const { name, code, startDate, endDate, target, criteria, value, valueType, description, status, contractorLimit, customerLimit } = req.body;
 
         const errors = validationResult(req);
         if (!errors.isEmpty()) {
@@ -58,6 +58,8 @@ export const addPromotion = async (req: Request, res: Response, next: NextFuncti
             valueType,
             description,
             status,
+            contractorLimit,
+            customerLimit
         });
 
         await newPromotion.save();
@@ -74,7 +76,7 @@ export const addPromotion = async (req: Request, res: Response, next: NextFuncti
 export const updatePromotion = async (req: Request, res: Response, next: NextFunction) => {
     try {
         const { id } = req.params;
-        const { name, code, startDate, endDate, target, criteria, value, description, status } = req.body;
+        const { name, code, startDate, endDate, target, criteria, value, description, status, customerLimit, contractorLimit } = req.body;
 
         const errors = validationResult(req);
         if (!errors.isEmpty()) {
@@ -83,7 +85,7 @@ export const updatePromotion = async (req: Request, res: Response, next: NextFun
 
         const updatedPromotion = await PromotionModel.findByIdAndUpdate(
             id,
-            { name, code, startDate, endDate, target, criteria, value, description, status },
+            { name, code, startDate, endDate, target, criteria, value, description, status, customerLimit, contractorLimit },
             { new: true }
         );
 

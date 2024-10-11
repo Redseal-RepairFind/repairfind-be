@@ -31,22 +31,7 @@ TransactionEvent.on('ESCROW_TRANSFER_SUCCESSFUL', async function (transaction) {
                 }
             }, { push: true, socket: true })
 
-          
-                let emailSubject = 'Fund Transfer'
-                let emailContent = `
-                <p style="color: #333333;">Funds have been transferred to your connect account</p>
-                <p><strong>Amount:</strong> ${transaction.amount}</p>
-                <p><strong>Currency:</strong> ${transaction.currency}</p>
-                <p><strong>Description:</strong> ${transaction.description}</p>
-
-                <p><span>Kindly login to your connect account dashboard to view balances </span>
-                    <a href="sds.com">Login</a>
-                </p>
-                `
-                let html = GenericEmailTemplate({ name: toUser.name, subject: emailSubject, content: emailContent })
-                EmailService.send(toUser.email, emailSubject, html)
-
-            
+        
             
         }
 

@@ -86,12 +86,12 @@ var getSinglePromotion = function (req, res, next) { return __awaiter(void 0, vo
 exports.getSinglePromotion = getSinglePromotion;
 // Add a new promotion
 var addPromotion = function (req, res, next) { return __awaiter(void 0, void 0, void 0, function () {
-    var _a, name_1, code, startDate, endDate, target, criteria, value, valueType, description, status_1, errors, newPromotion, err_3;
+    var _a, name_1, code, startDate, endDate, target, criteria, value, valueType, description, status_1, contractorLimit, customerLimit, errors, newPromotion, err_3;
     return __generator(this, function (_b) {
         switch (_b.label) {
             case 0:
                 _b.trys.push([0, 2, , 3]);
-                _a = req.body, name_1 = _a.name, code = _a.code, startDate = _a.startDate, endDate = _a.endDate, target = _a.target, criteria = _a.criteria, value = _a.value, valueType = _a.valueType, description = _a.description, status_1 = _a.status;
+                _a = req.body, name_1 = _a.name, code = _a.code, startDate = _a.startDate, endDate = _a.endDate, target = _a.target, criteria = _a.criteria, value = _a.value, valueType = _a.valueType, description = _a.description, status_1 = _a.status, contractorLimit = _a.contractorLimit, customerLimit = _a.customerLimit;
                 errors = (0, express_validator_1.validationResult)(req);
                 if (!errors.isEmpty()) {
                     return [2 /*return*/, res.status(400).json({ success: false, message: 'Validation error occurred', errors: errors.array() })];
@@ -107,6 +107,8 @@ var addPromotion = function (req, res, next) { return __awaiter(void 0, void 0, 
                     valueType: valueType,
                     description: description,
                     status: status_1,
+                    contractorLimit: contractorLimit,
+                    customerLimit: customerLimit
                 });
                 return [4 /*yield*/, newPromotion.save()];
             case 1:
@@ -122,18 +124,18 @@ var addPromotion = function (req, res, next) { return __awaiter(void 0, void 0, 
 exports.addPromotion = addPromotion;
 // Update an existing promotion
 var updatePromotion = function (req, res, next) { return __awaiter(void 0, void 0, void 0, function () {
-    var id, _a, name_2, code, startDate, endDate, target, criteria, value, description, status_2, errors, updatedPromotion, err_4;
+    var id, _a, name_2, code, startDate, endDate, target, criteria, value, description, status_2, customerLimit, contractorLimit, errors, updatedPromotion, err_4;
     return __generator(this, function (_b) {
         switch (_b.label) {
             case 0:
                 _b.trys.push([0, 2, , 3]);
                 id = req.params.id;
-                _a = req.body, name_2 = _a.name, code = _a.code, startDate = _a.startDate, endDate = _a.endDate, target = _a.target, criteria = _a.criteria, value = _a.value, description = _a.description, status_2 = _a.status;
+                _a = req.body, name_2 = _a.name, code = _a.code, startDate = _a.startDate, endDate = _a.endDate, target = _a.target, criteria = _a.criteria, value = _a.value, description = _a.description, status_2 = _a.status, customerLimit = _a.customerLimit, contractorLimit = _a.contractorLimit;
                 errors = (0, express_validator_1.validationResult)(req);
                 if (!errors.isEmpty()) {
                     return [2 /*return*/, res.status(400).json({ success: false, message: 'Validation error occurred', errors: errors.array() })];
                 }
-                return [4 /*yield*/, promotion_schema_1.PromotionModel.findByIdAndUpdate(id, { name: name_2, code: code, startDate: startDate, endDate: endDate, target: target, criteria: criteria, value: value, description: description, status: status_2 }, { new: true })];
+                return [4 /*yield*/, promotion_schema_1.PromotionModel.findByIdAndUpdate(id, { name: name_2, code: code, startDate: startDate, endDate: endDate, target: target, criteria: criteria, value: value, description: description, status: status_2, customerLimit: customerLimit, contractorLimit: contractorLimit }, { new: true })];
             case 1:
                 updatedPromotion = _b.sent();
                 if (!updatedPromotion) {

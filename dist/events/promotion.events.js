@@ -53,7 +53,7 @@ var coupon_schema_1 = require("../database/common/coupon.schema");
 exports.PromotionEvent = new events_1.EventEmitter();
 exports.PromotionEvent.on('NEW_REFERRAL', function (payload) {
     return __awaiter(this, void 0, void 0, function () {
-        var referral, referrer, _a, referralPromotion, couponCode, coupon, emailSubject, bonusActivation, emailContent, html, translatedHtml, translatedSubject, error_1;
+        var referral, referrer, _a, referralPromotion, couponCode, coupon, bonusActivation, error_1;
         return __generator(this, function (_b) {
             switch (_b.label) {
                 case 0:
@@ -76,6 +76,11 @@ exports.PromotionEvent.on('NEW_REFERRAL', function (payload) {
                     referralPromotion = _b.sent();
                     if (!referralPromotion)
                         return [2 /*return*/];
+                    // Check for limits
+                    if (referral.referrerType === 'contractors' && referralPromotion.contractorLimit <= 0)
+                        return [2 /*return*/];
+                    if (referral.referrerType === 'customers' && referralPromotion.customerLimit <= 0)
+                        return [2 /*return*/];
                     return [4 /*yield*/, generator_util_1.GeneratorUtil.generateCouponCode(6)];
                 case 6:
                     couponCode = _b.sent();
@@ -97,20 +102,23 @@ exports.PromotionEvent.on('NEW_REFERRAL', function (payload) {
                     return [4 /*yield*/, referral.save()];
                 case 8:
                     _b.sent();
+                    // Decrease promotion limit
+                    if (referral.referrerType === 'contractors') {
+                        referralPromotion.contractorLimit -= 1;
+                    }
+                    else if (referral.referrerType === 'customers') {
+                        referralPromotion.customerLimit -= 1;
+                    }
+                    return [4 /*yield*/, referralPromotion.save()];
+                case 9:
+                    _b.sent();
                     if (!referrer) return [3 /*break*/, 11];
-                    emailSubject = 'Congratulations! You’ve Earned a Referral Bonus!';
-                    bonusActivation = (referral.userType === 'customers')
+                    bonusActivation = (referral.referrerType === 'customers')
                         ? 'when the referred customer books their first job.'
                         : 'when the referred contractor completes their first job';
-                    emailContent = "\n                <h2>".concat(emailSubject, "</h2>\n                <p>Hello ").concat(referrer.firstName, ",</p>\n                <p style=\"color: #333333;\">Great news! You have successfully referred a user to Repairfind!</p>\n                <p style=\"color: #333333;\">Your referral coupon code is <strong>").concat(couponCode, "</strong>.</p>\n                <p style=\"color: #333333;\">This bonus of <strong>$").concat(referralPromotion.value, "</strong> will be activated ").concat(bonusActivation, "</p>\n                <p style=\"color: #333333;\">Thank you for sharing the word and helping us grow our community!</p>\n                <p style=\"color: #333333;\">Best regards,<br>Your Repairfind Team</p>\n            ");
-                    html = (0, generic_email_1.GenericEmailTemplate)({ name: referrer.firstName, subject: emailSubject, content: emailContent });
-                    return [4 /*yield*/, i18n_1.i18n.getTranslation({ phraseOrSlug: html, targetLang: referrer.language, saveToFile: false, useGoogle: true, contentType: 'html' })];
-                case 9:
-                    translatedHtml = (_b.sent()) || html;
-                    return [4 /*yield*/, i18n_1.i18n.getTranslation({ phraseOrSlug: emailSubject, targetLang: referrer.language })];
+                    return [4 /*yield*/, sendReferralEmail(referrer, couponCode, referralPromotion, bonusActivation)];
                 case 10:
-                    translatedSubject = (_b.sent()) || emailSubject;
-                    services_1.EmailService.send(referrer.email, translatedSubject, translatedHtml);
+                    _b.sent();
                     _b.label = 11;
                 case 11: return [3 /*break*/, 13];
                 case 12:
@@ -122,3 +130,24 @@ exports.PromotionEvent.on('NEW_REFERRAL', function (payload) {
         });
     });
 });
+var sendReferralEmail = function (referrer, couponCode, referralPromotion, bonusActivation) { return __awaiter(void 0, void 0, void 0, function () {
+    var emailSubject, emailContent, html, translatedHtml, translatedSubject;
+    return __generator(this, function (_a) {
+        switch (_a.label) {
+            case 0:
+                emailSubject = 'Congratulations! You’ve Earned a Referral Bonus!';
+                emailContent = "\n        <h2>".concat(emailSubject, "</h2>\n        <p>Hello ").concat(referrer.firstName, ",</p>\n        <p style=\"color: #333333;\">Great news! You have successfully referred a user to Repairfind!</p>\n        <p style=\"color: #333333;\">Your referral coupon code is <strong>").concat(couponCode, "</strong>.</p>\n        <p style=\"color: #333333;\">This bonus of <strong>$").concat(referralPromotion.value, "</strong> will be activated ").concat(bonusActivation, "</p>\n        <p style=\"color: #333333;\">Thank you for sharing the word and helping us grow our community!</p>\n        <p style=\"color: #333333;\">Best regards,<br>Your Repairfind Team</p>\n    ");
+                html = (0, generic_email_1.GenericEmailTemplate)({ name: referrer.firstName, subject: emailSubject, content: emailContent });
+                return [4 /*yield*/, i18n_1.i18n.getTranslation({ phraseOrSlug: html, targetLang: referrer.language, saveToFile: false, useGoogle: true, contentType: 'html' })];
+            case 1:
+                translatedHtml = (_a.sent()) || html;
+                return [4 /*yield*/, i18n_1.i18n.getTranslation({ phraseOrSlug: emailSubject, targetLang: referrer.language })];
+            case 2:
+                translatedSubject = (_a.sent()) || emailSubject;
+                return [4 /*yield*/, services_1.EmailService.send(referrer.email, translatedSubject, translatedHtml)];
+            case 3:
+                _a.sent();
+                return [2 /*return*/];
+        }
+    });
+}); };

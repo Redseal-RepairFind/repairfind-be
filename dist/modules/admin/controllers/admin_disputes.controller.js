@@ -338,7 +338,7 @@ var createDisputeRefund = function (req, res, next) { return __awaiter(void 0, v
                     fee: 0,
                     contractorAmount: 0,
                     companyAmount: 0,
-                    intiatedBy: 'admin',
+                    initiatedBy: 'admin',
                     policyApplied: 'dispute_refund',
                 };
                 //create refund transaction - 

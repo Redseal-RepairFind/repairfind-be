@@ -621,6 +621,11 @@ export const cancelBooking = async (req: any, res: Response, next: NextFunction)
             return res.status(400).json({ success: false, message: 'The booking is already marked as complete' });
         }
 
+        if (!job?.schedule?.startDate) {
+            return res.status(400).json({ success: false, message: 'Booking has no associated schedule' });
+        }
+
+
         // Update the job status to canceled
         job.status = JOB_STATUS.CANCELED;
 
@@ -637,22 +642,16 @@ export const cancelBooking = async (req: any, res: Response, next: NextFunction)
 
 
         // reduce contractor rating
-        // Create a new review object
         const newReview = new ReviewModel({
             averageRating: 1,
-            // ratings,
             job: job.id,
             customer: job.customer,
             contractor: job.contractor,
-            // comment: review,
             type: REVIEW_TYPE.JOB_CANCELATION,
             createdAt: new Date(),
         });
 
         await newReview.save()
-
-        // intitiate a refund
-
 
         const foundIndex = contractor.reviews.findIndex((review) => review.review == job.id);
         if (foundIndex !== -1) {
@@ -666,10 +665,7 @@ export const cancelBooking = async (req: any, res: Response, next: NextFunction)
         await contractor.save()
 
 
-        if (!job?.schedule?.startDate) {
-            return res.status(400).json({ success: false, message: 'Booking has no associated schedule' });
-        }
-
+      
         const jobDate = job.schedule.startDate.getTime();
         const charges = await contract.calculateCharges()
 
@@ -682,7 +678,7 @@ export const cancelBooking = async (req: any, res: Response, next: NextFunction)
 
         let refundPolicy = {
             name: 'free_refund',
-            fee: 0, //
+            fee: 0, // If contractor cancels a booking , full amount is refunded to customer
         }
 
         for (const payment of payments.payments) {
@@ -693,7 +689,7 @@ export const cancelBooking = async (req: any, res: Response, next: NextFunction)
                 fee: refundPolicy.fee,
                 contractorAmount: refundPolicy.fee * 0.8,
                 companyAmount: refundPolicy.fee * 0.2,
-                intiatedBy: 'contractor',
+                initiatedBy: 'contractor',
                 policyApplied: refundPolicy.name,
             };
 

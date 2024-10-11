@@ -101,6 +101,7 @@ var generator_util_1 = require("../../../utils/generator.util");
 var referral_code_schema_1 = require("../../../database/common/referral_code.schema");
 var referral_schema_1 = require("../../../database/common/referral.schema");
 var promotion_events_1 = require("../../../events/promotion.events");
+var events_1 = require("../../../events");
 var AuthHandler = /** @class */ (function (_super) {
     __extends(AuthHandler, _super);
     function AuthHandler() {
@@ -209,6 +210,7 @@ var AuthHandler = /** @class */ (function (_super) {
                         return [4 /*yield*/, services_1.EmailService.send(email, translatedSubject, translatedHtml)];
                     case 16:
                         _b.sent();
+                        events_1.AccountEvent.emit('NEW_CONTRACTOR');
                         return [2 /*return*/, res.json({
                                 success: true,
                                 message: "Signup successful",

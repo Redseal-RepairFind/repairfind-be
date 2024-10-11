@@ -44,12 +44,11 @@ var events_1 = require("events");
 var customer_model_1 = __importDefault(require("../database/customer/models/customer.model"));
 var contractor_model_1 = require("../database/contractor/models/contractor.model");
 var services_1 = require("../services");
-var generic_email_1 = require("../templates/common/generic_email");
 exports.TransactionEvent = new events_1.EventEmitter();
 exports.TransactionEvent.on('ESCROW_TRANSFER_SUCCESSFUL', function (transaction) {
     var _a;
     return __awaiter(this, void 0, void 0, function () {
-        var fromUser, _b, toUser, _c, emailSubject, emailContent, html, error_1;
+        var fromUser, _b, toUser, _c, error_1;
         return __generator(this, function (_d) {
             switch (_d.label) {
                 case 0:
@@ -94,10 +93,6 @@ exports.TransactionEvent.on('ESCROW_TRANSFER_SUCCESSFUL', function (transaction)
                                 transactionId: transaction.id,
                             }
                         }, { push: true, socket: true });
-                        emailSubject = 'Fund Transfer';
-                        emailContent = "\n                <p style=\"color: #333333;\">Funds have been transferred to your connect account</p>\n                <p><strong>Amount:</strong> ".concat(transaction.amount, "</p>\n                <p><strong>Currency:</strong> ").concat(transaction.currency, "</p>\n                <p><strong>Description:</strong> ").concat(transaction.description, "</p>\n\n                <p><span>Kindly login to your connect account dashboard to view balances </span>\n                    <a href=\"sds.com\">Login</a>\n                </p>\n                ");
-                        html = (0, generic_email_1.GenericEmailTemplate)({ name: toUser.name, subject: emailSubject, content: emailContent });
-                        services_1.EmailService.send(toUser.email, emailSubject, html);
                     }
                     return [3 /*break*/, 10];
                 case 9:

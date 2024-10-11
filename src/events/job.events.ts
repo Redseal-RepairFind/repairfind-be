@@ -26,6 +26,8 @@ import { MessageModel, MessageType } from '../database/common/messages.schema';
 import { BlockedUserUtil } from '../utils/blockeduser.util';
 import { i18n } from '../i18n';
 import { PAYMENT_TYPE } from '../database/common/payment.schema';
+import { ReferralModel } from '../database/common/referral.schema';
+import { COUPON_STATUS, CouponModel } from '../database/common/coupon.schema';
 
 export const JobEvent: EventEmitter = new EventEmitter();
 
@@ -1261,17 +1263,9 @@ JobEvent.on('JOB_BOOKED', async function (payload: { jobId: ObjectId, contractor
             }
 
 
-
-
             const customerLang = customer.language;
-            let nTitle = await i18n.getTranslation({
-                phraseOrSlug: 'Job Booked',
-                targetLang: customerLang
-            });
-            let nMessage = await i18n.getTranslation({
-                phraseOrSlug: 'You have booked a job on Repairfind',
-                targetLang: customerLang
-            });
+            let nTitle = await i18n.getTranslation({phraseOrSlug: 'Job Booked', targetLang: customerLang });
+            let nMessage = await i18n.getTranslation({ phraseOrSlug: 'You have booked a job on Repairfind', targetLang: customerLang });
             
             NotificationService.sendNotification({
                 user: customer.id,
@@ -1291,18 +1285,10 @@ JobEvent.on('JOB_BOOKED', async function (payload: { jobId: ObjectId, contractor
             }, { push: true, socket: true, database: true });
 
 
-
             const contractorLang = contractor.language;
-            nTitle = await i18n.getTranslation({
-                phraseOrSlug: 'Job Booked',
-                targetLang: contractorLang
-            });
-            nMessage = await i18n.getTranslation({
-                phraseOrSlug: 'You have a booked job on Repairfind',
-                targetLang: contractorLang
-            });
+            nTitle = await i18n.getTranslation({ phraseOrSlug: 'Job Booked', targetLang: contractorLang });
+            nMessage = await i18n.getTranslation({ phraseOrSlug: 'You have a booked job on Repairfind', targetLang: contractorLang });
             
-
             NotificationService.sendNotification({
                 user: contractor.id,
                 userType: 'contractors',
@@ -1319,6 +1305,7 @@ JobEvent.on('JOB_BOOKED', async function (payload: { jobId: ObjectId, contractor
                     event: 'JOB_BOOKED',
                 }
             }, { push: true, socket: true, database: true });
+
 
 
         }
@@ -1538,11 +1525,8 @@ JobEvent.on('JOB_COMPLETED', async function (payload: { job: IJob }) {
 
         const job = await JobModel.findById(payload.job.id)
 
-        if (!job) {
-            return
-        }
-
-
+        if (!job) return
+        
         const customer = await CustomerModel.findById(job.customer)
         const contractor = await ContractorModel.findById(job.contractor)
         const event = (job.schedule.type == JOB_SCHEDULE_TYPE.SITE_VISIT) ? 'COMPLETED_SITE_VISIT' : 'JOB_COMPLETED'
@@ -1550,14 +1534,8 @@ JobEvent.on('JOB_COMPLETED', async function (payload: { job: IJob }) {
         if (!customer || !contractor) return
 
         const contractorLang = contractor.language;
-        let nTitle = await i18n.getTranslation({
-            phraseOrSlug: 'Job Completed',
-            targetLang: contractorLang
-        });
-        let nMessage = await i18n.getTranslation({
-            phraseOrSlug: 'Job completion confirmed by customer',
-            targetLang: contractorLang
-        });
+        let nTitle = await i18n.getTranslation({ phraseOrSlug: 'Job Completed', targetLang: contractorLang });
+        let nMessage = await i18n.getTranslation({ phraseOrSlug: 'Job completion confirmed by customer', targetLang: contractorLang });
         
         NotificationService.sendNotification({
             user: contractor.id,
@@ -1603,6 +1581,26 @@ JobEvent.on('JOB_COMPLETED', async function (payload: { job: IJob }) {
             transaction.metadata = { ...metadata, event }
             transaction.save()
         }
+
+        // Enable pending referral bonuses here
+        if(customer.referral){
+            const referral  = await ReferralModel.findById(customer.referral)
+            if(!referral || !referral.coupon) return 
+            const coupon = await CouponModel.findOne({id: referral.coupon, status: COUPON_STATUS.PENDING})
+            if(!coupon) return 
+            coupon.status = COUPON_STATUS.ACTIVE
+            await coupon.save();
+        }
+
+        if(contractor.referral){
+            const referral  = await ReferralModel.findById(contractor.referral)
+            if(!referral || !referral.coupon) return 
+            const coupon = await CouponModel.findOne({id: referral.coupon, status: COUPON_STATUS.PENDING})
+            if(!coupon) return 
+            coupon.status = COUPON_STATUS.ACTIVE
+            await coupon.save();
+        }
+
 
     } catch (error) {
         Logger.error(`Error handling JOB_COMPLETED event: ${error}`);

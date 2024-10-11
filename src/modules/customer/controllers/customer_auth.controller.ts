@@ -222,7 +222,7 @@ export const signIn = async (
     }
 
     // try find user with the same email
-    const customer = await CustomerModel.findOne({ email });
+    let customer = await CustomerModel.findOne({ email });
 
     // check if user exists
     if (!customer) {
@@ -277,7 +277,7 @@ export const signIn = async (
       message: "Signin successful",
       accessToken,
       expiresIn: config.jwt.tokenLifetime,
-      data: profile
+      data: customer
     });
 
 
@@ -586,7 +586,6 @@ export const googleSignon = async (
     const providerUser = await GoogleServiceProvider.getUserInfo(accessToken)
 
     const { email, name, picture, sub } = providerUser;
-
     const firstName = name.split(' ')[0]
     const lastName = name.split(' ')[1]
 

@@ -633,6 +633,9 @@ var cancelBooking = function (req, res, next) { return __awaiter(void 0, void 0,
                 if (job_1.status === job_model_1.JOB_STATUS.COMPLETED) {
                     return [2 /*return*/, res.status(400).json({ success: false, message: 'The booking is already marked as complete' })];
                 }
+                if (!((_c = job_1 === null || job_1 === void 0 ? void 0 : job_1.schedule) === null || _c === void 0 ? void 0 : _c.startDate)) {
+                    return [2 /*return*/, res.status(400).json({ success: false, message: 'Booking has no associated schedule' })];
+                }
                 // Update the job status to canceled
                 job_1.status = job_model_1.JOB_STATUS.CANCELED;
                 job_1.jobHistory.push({
@@ -645,17 +648,13 @@ var cancelBooking = function (req, res, next) { return __awaiter(void 0, void 0,
                 events_1.JobEvent.emit('JOB_CANCELED', { job: job_1, canceledBy: 'contractor' });
                 newReview = new review_model_1.ReviewModel({
                     averageRating: 1,
-                    // ratings,
                     job: job_1.id,
                     customer: job_1.customer,
                     contractor: job_1.contractor,
-                    // comment: review,
                     type: review_model_1.REVIEW_TYPE.JOB_CANCELATION,
                     createdAt: new Date(),
                 });
-                return [4 /*yield*/, newReview.save()
-                    // intitiate a refund
-                ];
+                return [4 /*yield*/, newReview.save()];
             case 3:
                 _d.sent();
                 foundIndex = contractor.reviews.findIndex(function (review) { return review.review == job_1.id; });
@@ -671,9 +670,6 @@ var cancelBooking = function (req, res, next) { return __awaiter(void 0, void 0,
                 return [4 /*yield*/, contractor.save()];
             case 5:
                 _d.sent();
-                if (!((_c = job_1 === null || job_1 === void 0 ? void 0 : job_1.schedule) === null || _c === void 0 ? void 0 : _c.startDate)) {
-                    return [2 /*return*/, res.status(400).json({ success: false, message: 'Booking has no associated schedule' })];
-                }
                 jobDate = job_1.schedule.startDate.getTime();
                 return [4 /*yield*/, contract.calculateCharges()
                     // choose which payment to refund ? SITE_VISIT_PAYMENT, JOB_DAY_PAYMENT, CHANGE_ORDER_PAYMENT
@@ -688,7 +684,7 @@ var cancelBooking = function (req, res, next) { return __awaiter(void 0, void 0,
                 timeDifferenceInHours = Math.abs(jobDate - currentTime) / (1000 * 60 * 60);
                 refundPolicy = {
                     name: 'free_refund',
-                    fee: 0, //
+                    fee: 0, // If contractor cancels a booking , full amount is refunded to customer
                 };
                 _i = 0, _b = payments.payments;
                 _d.label = 8;
@@ -703,7 +699,7 @@ var cancelBooking = function (req, res, next) { return __awaiter(void 0, void 0,
                     fee: refundPolicy.fee,
                     contractorAmount: refundPolicy.fee * 0.8,
                     companyAmount: refundPolicy.fee * 0.2,
-                    intiatedBy: 'contractor',
+                    initiatedBy: 'contractor',
                     policyApplied: refundPolicy.name,
                 };
                 //create refund transaction - 

@@ -539,7 +539,7 @@ var toggleChangeOrder = function (req, res, next) { return __awaiter(void 0, voi
 }); };
 exports.toggleChangeOrder = toggleChangeOrder;
 var getRefundable = function (req, res, next) { return __awaiter(void 0, void 0, void 0, function () {
-    var customerId, bookingId, reason, job, customer, contract, startDate, jobDate, charges, paymentType, payments, currentTime, timeDifferenceInHours, refund, canceletionFee, contractorShare, companyShare, refundAmount, error_8;
+    var customerId, bookingId, reason, job, customer, contract, startDate, jobDate, charges, paymentType, payments, currentTime, timeDifferenceInHours, refund, cancelationFee, contractorShare, companyShare, refundAmount, error_8;
     return __generator(this, function (_a) {
         switch (_a.label) {
             case 0:
@@ -598,40 +598,38 @@ var getRefundable = function (req, res, next) { return __awaiter(void 0, void 0,
                 timeDifferenceInHours = Math.abs(jobDate - currentTime) / (1000 * 60 * 60);
                 refund = {
                     refundAmount: payments.totalAmount,
-                    canceletionFee: 0,
+                    cancelationFee: 0,
                     contractorShare: 0,
                     companyShare: 0,
-                    intiatedBy: 'customer',
+                    initiatedBy: 'customer',
                     policyApplied: 'free_cancelation',
                     contractTerms: charges,
                     payments: payments
                 };
-                if (timeDifferenceInHours >= 48) {
-                    // Free cancellation up to 48 hours before the scheduled job time.
-                }
-                else if (timeDifferenceInHours < 24) {
-                    canceletionFee = 1 //50;
+                // For cancellations made within 24 hours, apply cancellation fees.
+                if (timeDifferenceInHours < 24) {
+                    cancelationFee = 1 //50;
                     ;
-                    contractorShare = 0.8 * canceletionFee;
-                    companyShare = 0.2 * canceletionFee;
-                    refundAmount = payments.totalAmount - canceletionFee;
+                    contractorShare = 0.8 * cancelationFee;
+                    companyShare = 0.2 * cancelationFee;
+                    refundAmount = payments.totalAmount - cancelationFee;
                     refund = {
                         refundAmount: refundAmount,
-                        canceletionFee: canceletionFee,
+                        cancelationFee: cancelationFee,
                         contractorShare: contractorShare,
                         companyShare: companyShare,
-                        intiatedBy: 'customer',
+                        initiatedBy: 'customer',
                         policyApplied: '50_dollar_policy',
                         contractTerms: charges,
                         payments: payments
                     };
                 }
-                // Update job status and store cancellation data
-                //job.cancelation = refund // dont need to save this
+                else {
+                    // Free cancellation up to 48 hours before the scheduled job time.
+                    // timeDifferenceInHours >= 48
+                }
                 return [4 /*yield*/, job.save()];
             case 6:
-                // Update job status and store cancellation data
-                //job.cancelation = refund // dont need to save this
                 _a.sent();
                 res.json({ success: true, message: 'Booking cancelation initiated successfully', data: refund });
                 return [3 /*break*/, 8];
@@ -702,19 +700,14 @@ var cancelBooking = function (req, res, next) { return __awaiter(void 0, void 0,
                 payments = _d.sent();
                 currentTime = new Date().getTime();
                 timeDifferenceInHours = Math.abs(jobDate - currentTime) / (1000 * 60 * 60);
-                refundPolicy = {
-                    name: 'free_refund',
-                    fee: 0, //
-                };
-                if (timeDifferenceInHours >= 48) {
-                    // Free cancellation up to 48 hours before the scheduled job time.
+                refundPolicy = { name: 'free_refund', fee: 0 };
+                // For cancellations made within 24 hours, apply cancellation fees.
+                if (timeDifferenceInHours < 24) {
+                    refundPolicy = { name: '50_dollar_policy', fee: 50 };
                 }
-                else if (timeDifferenceInHours < 24) {
-                    // For cancellations made within 24 hours, apply cancellation fees.
-                    refundPolicy = {
-                        name: '50_dollar_policy',
-                        fee: 1 //50, //
-                    };
+                else {
+                    // Free cancellation up to 48 hours before the scheduled job time.
+                    //  timeDifferenceInHours >= 48
                 }
                 _i = 0, _b = payments.payments;
                 _d.label = 5;
@@ -727,15 +720,15 @@ var cancelBooking = function (req, res, next) { return __awaiter(void 0, void 0,
                     refundAmount: payment.amount - refundPolicy.fee,
                     totalAmount: payment.amount,
                     fee: refundPolicy.fee,
-                    contractorAmount: refundPolicy.fee * 0.8,
-                    companyAmount: refundPolicy.fee * 0.2,
-                    intiatedBy: 'customer',
+                    contractorAmount: refundPolicy.fee * 0.8, // contractor takes 80% of the cautionary fee
+                    companyAmount: refundPolicy.fee * 0.2, // company takes 20% of the cautionary fee
+                    initiatedBy: 'customer',
                     policyApplied: refundPolicy.name,
                 };
-                //create refund transaction - 
+                //create refund transaction for each payment
                 return [4 /*yield*/, transaction_model_1.default.create({
                         type: transaction_model_1.TRANSACTION_TYPE.REFUND,
-                        amount: payments.totalAmount,
+                        amount: refund.refundAmount,
                         initiatorUser: customerId,
                         initiatorUserType: 'customers',
                         fromUser: job.contractor,
@@ -753,14 +746,12 @@ var cancelBooking = function (req, res, next) { return __awaiter(void 0, void 0,
                         job: job.id,
                         payment: payment.id,
                     })
-                    // console.log(payment)
-                    //emit event here
+                    // emit event here
                 ];
             case 6:
-                //create refund transaction - 
+                //create refund transaction for each payment
                 _d.sent();
-                // console.log(payment)
-                //emit event here
+                // emit event here
                 events_1.JobEvent.emit('JOB_REFUND_REQUESTED', { job: job, payment: payment, refund: refund });
                 _d.label = 7;
             case 7:
@@ -774,11 +765,10 @@ var cancelBooking = function (req, res, next) { return __awaiter(void 0, void 0,
                     timestamp: new Date(),
                     payload: { reason: reason, canceledBy: 'customer' }
                 });
-                // emit job cancelled event 
-                events_1.JobEvent.emit('JOB_CANCELED', { job: job, canceledBy: 'customer' });
                 return [4 /*yield*/, job.save()];
             case 9:
                 _d.sent();
+                events_1.JobEvent.emit('JOB_CANCELED', { job: job, canceledBy: 'customer' });
                 return [4 /*yield*/, conversation_util_1.ConversationUtil.updateOrCreateConversation(customerId, 'customers', contractor.id, 'contractors')];
             case 10:
                 conversation = _d.sent();
@@ -806,17 +796,17 @@ var cancelBooking = function (req, res, next) { return __awaiter(void 0, void 0,
 }); };
 exports.cancelBooking = cancelBooking;
 var requestBookingRefund = function (req, res, next) { return __awaiter(void 0, void 0, void 0, function () {
-    var customerId, bookingId, reason, job, _a, customer, contractor, contract, charges, payments, refundPolicy, _i, _b, payment, refund, error_10;
-    return __generator(this, function (_c) {
-        switch (_c.label) {
+    var customerId, bookingId, _a, reason, job, _b, customer, contractor, contract, charges, payments, refundPolicy, _i, _c, payment, refund, error_10;
+    return __generator(this, function (_d) {
+        switch (_d.label) {
             case 0:
-                _c.trys.push([0, 10, , 11]);
+                _d.trys.push([0, 10, , 11]);
                 customerId = req.customer.id;
                 bookingId = req.params.bookingId;
-                reason = req.body.reason;
+                _a = req.body.reason, reason = _a === void 0 ? "Job not started by contractor" : _a;
                 return [4 /*yield*/, job_model_1.JobModel.findById(bookingId).populate('payments')];
             case 1:
-                job = _c.sent();
+                job = _d.sent();
                 if (!job) {
                     return [2 /*return*/, res.status(404).json({ success: false, message: 'Job not found' })];
                 }
@@ -826,7 +816,7 @@ var requestBookingRefund = function (req, res, next) { return __awaiter(void 0, 
                         job_quotation_model_1.JobQuotationModel.findById(job === null || job === void 0 ? void 0 : job.contract)
                     ])];
             case 2:
-                _a = _c.sent(), customer = _a[0], contractor = _a[1], contract = _a[2];
+                _b = _d.sent(), customer = _b[0], contractor = _b[1], contract = _b[2];
                 if (!contractor) {
                     return [2 /*return*/, res.status(404).json({ success: false, message: 'Contractor not found' })];
                 }
@@ -844,28 +834,25 @@ var requestBookingRefund = function (req, res, next) { return __awaiter(void 0, 
                 }
                 return [4 /*yield*/, contract.calculateCharges()];
             case 3:
-                charges = _c.sent();
+                charges = _d.sent();
                 return [4 /*yield*/, job.getPayments()];
             case 4:
-                payments = _c.sent();
-                refundPolicy = {
-                    name: 'free_refund',
-                    fee: 0, //
-                };
-                _i = 0, _b = payments.payments;
-                _c.label = 5;
+                payments = _d.sent();
+                refundPolicy = { name: 'free_refund', fee: 0 };
+                _i = 0, _c = payments.payments;
+                _d.label = 5;
             case 5:
-                if (!(_i < _b.length)) return [3 /*break*/, 8];
-                payment = _b[_i];
+                if (!(_i < _c.length)) return [3 /*break*/, 8];
+                payment = _c[_i];
                 if (payment.refunded)
                     return [3 /*break*/, 7];
                 refund = {
                     refundAmount: payment.amount - refundPolicy.fee,
                     totalAmount: payment.amount,
                     fee: refundPolicy.fee,
-                    contractorAmount: refundPolicy.fee * 0.8,
-                    companyAmount: refundPolicy.fee * 0.2,
-                    intiatedBy: 'customer',
+                    contractorAmount: 0,
+                    companyAmount: 0,
+                    initiatedBy: 'customer',
                     policyApplied: refundPolicy.name,
                 };
                 //create refund transaction - 
@@ -891,29 +878,29 @@ var requestBookingRefund = function (req, res, next) { return __awaiter(void 0, 
                     })];
             case 6:
                 //create refund transaction - 
-                _c.sent();
-                _c.label = 7;
+                _d.sent();
+                _d.label = 7;
             case 7:
                 _i++;
                 return [3 /*break*/, 5];
             case 8:
                 // Update the job status to canceled
-                job.status = job_model_1.JOB_STATUS.CANCELED;
+                job.status = job_model_1.JOB_STATUS.REFUNDED;
                 job.jobHistory.push({
                     eventType: 'JOB_PAYMENT_REFUNDED',
                     timestamp: new Date(),
-                    payload: { reason: reason, canceledBy: 'customer' }
+                    payload: { reason: reason, initiatedBy: 'customer' }
                 });
                 // emit job cancelled event 
                 // inside the event take actions such as refund etc
                 events_1.JobEvent.emit('JOB_PAYMENT_REFUNDED', { job: job });
                 return [4 /*yield*/, job.save()];
             case 9:
-                _c.sent();
+                _d.sent();
                 res.json({ success: true, message: 'Booking refunded successfully', data: { job: job, payments: payments } });
                 return [3 /*break*/, 11];
             case 10:
-                error_10 = _c.sent();
+                error_10 = _d.sent();
                 return [2 /*return*/, next(new custom_errors_1.BadRequestError('An error occurred', error_10))];
             case 11: return [2 /*return*/];
         }

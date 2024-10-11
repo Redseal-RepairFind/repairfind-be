@@ -29,6 +29,9 @@ export interface IPromotion extends Document {
   valueType: PROMOTION_VALUE_TYPE; // Use enum here
   description: string;
   status: PROMOTION_STATUS; // Use enum here
+  contractorLimit: number; // eg 100
+  customerLimit: number; // eg 100
+
 }
 
 // Define the Promotion schema
@@ -55,6 +58,8 @@ const PromotionSchema: Schema<IPromotion> = new Schema({
     enum: Object.values(PROMOTION_STATUS), // Reference the enum
     default: PROMOTION_STATUS.INACTIVE, // Default value from enum
   },
+  contractorLimit: { type: Number },
+  customerLimit: { type: Number },
 }, {
   timestamps: true,
 });

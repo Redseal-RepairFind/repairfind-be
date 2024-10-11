@@ -294,7 +294,7 @@ export const createDisputeRefund = async (
         fee: 0,
         contractorAmount: 0,
         companyAmount: 0,
-        intiatedBy: 'admin',
+        initiatedBy: 'admin',
         policyApplied: 'dispute_refund',
       };
 

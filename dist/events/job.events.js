@@ -97,6 +97,8 @@ var messages_schema_1 = require("../database/common/messages.schema");
 var blockeduser_util_1 = require("../utils/blockeduser.util");
 var i18n_1 = require("../i18n");
 var payment_schema_1 = require("../database/common/payment.schema");
+var referral_schema_1 = require("../database/common/referral.schema");
+var coupon_schema_1 = require("../database/common/coupon.schema");
 exports.JobEvent = new events_1.EventEmitter();
 exports.JobEvent.on('NEW_JOB_REQUEST', function (payload) {
     var _a, _b;
@@ -1330,16 +1332,10 @@ exports.JobEvent.on('JOB_BOOKED', function (payload) {
                     _k.label = 16;
                 case 16:
                     customerLang = customer.language;
-                    return [4 /*yield*/, i18n_1.i18n.getTranslation({
-                            phraseOrSlug: 'Job Booked',
-                            targetLang: customerLang
-                        })];
+                    return [4 /*yield*/, i18n_1.i18n.getTranslation({ phraseOrSlug: 'Job Booked', targetLang: customerLang })];
                 case 17:
                     nTitle = _k.sent();
-                    return [4 /*yield*/, i18n_1.i18n.getTranslation({
-                            phraseOrSlug: 'You have booked a job on Repairfind',
-                            targetLang: customerLang
-                        })];
+                    return [4 /*yield*/, i18n_1.i18n.getTranslation({ phraseOrSlug: 'You have booked a job on Repairfind', targetLang: customerLang })];
                 case 18:
                     nMessage = _k.sent();
                     services_1.NotificationService.sendNotification({
@@ -1359,16 +1355,10 @@ exports.JobEvent.on('JOB_BOOKED', function (payload) {
                         }
                     }, { push: true, socket: true, database: true });
                     contractorLang = contractor.language;
-                    return [4 /*yield*/, i18n_1.i18n.getTranslation({
-                            phraseOrSlug: 'Job Booked',
-                            targetLang: contractorLang
-                        })];
+                    return [4 /*yield*/, i18n_1.i18n.getTranslation({ phraseOrSlug: 'Job Booked', targetLang: contractorLang })];
                 case 19:
                     nTitle = _k.sent();
-                    return [4 /*yield*/, i18n_1.i18n.getTranslation({
-                            phraseOrSlug: 'You have a booked job on Repairfind',
-                            targetLang: contractorLang
-                        })];
+                    return [4 /*yield*/, i18n_1.i18n.getTranslation({ phraseOrSlug: 'You have a booked job on Repairfind', targetLang: contractorLang })];
                 case 20:
                     nMessage = _k.sent();
                     services_1.NotificationService.sendNotification({
@@ -1619,18 +1609,17 @@ exports.JobEvent.on('JOB_MARKED_COMPLETE_BY_CONTRACTOR', function (payload) {
 exports.JobEvent.on('JOB_COMPLETED', function (payload) {
     var _a, _b;
     return __awaiter(this, void 0, void 0, function () {
-        var job, customer, contractor, event_3, contractorLang, nTitle, nMessage, transaction, metadata, error_16;
+        var job, customer, contractor, event_3, contractorLang, nTitle, nMessage, transaction, metadata, referral, coupon, referral, coupon, error_16;
         return __generator(this, function (_c) {
             switch (_c.label) {
                 case 0:
-                    _c.trys.push([0, 7, , 8]);
+                    _c.trys.push([0, 15, , 16]);
                     logger_1.Logger.info('handling alert JOB_COMPLETED event', payload.job.id);
                     return [4 /*yield*/, job_model_1.JobModel.findById(payload.job.id)];
                 case 1:
                     job = _c.sent();
-                    if (!job) {
+                    if (!job)
                         return [2 /*return*/];
-                    }
                     return [4 /*yield*/, customer_model_1.default.findById(job.customer)];
                 case 2:
                     customer = _c.sent();
@@ -1641,16 +1630,10 @@ exports.JobEvent.on('JOB_COMPLETED', function (payload) {
                     if (!customer || !contractor)
                         return [2 /*return*/];
                     contractorLang = contractor.language;
-                    return [4 /*yield*/, i18n_1.i18n.getTranslation({
-                            phraseOrSlug: 'Job Completed',
-                            targetLang: contractorLang
-                        })];
+                    return [4 /*yield*/, i18n_1.i18n.getTranslation({ phraseOrSlug: 'Job Completed', targetLang: contractorLang })];
                 case 4:
                     nTitle = _c.sent();
-                    return [4 /*yield*/, i18n_1.i18n.getTranslation({
-                            phraseOrSlug: 'Job completion confirmed by customer',
-                            targetLang: contractorLang
-                        })];
+                    return [4 /*yield*/, i18n_1.i18n.getTranslation({ phraseOrSlug: 'Job completion confirmed by customer', targetLang: contractorLang })];
                 case 5:
                     nMessage = _c.sent();
                     services_1.NotificationService.sendNotification({
@@ -1677,12 +1660,45 @@ exports.JobEvent.on('JOB_COMPLETED', function (payload) {
                         transaction.metadata = __assign(__assign({}, metadata), { event: event_3 });
                         transaction.save();
                     }
-                    return [3 /*break*/, 8];
+                    if (!customer.referral) return [3 /*break*/, 10];
+                    return [4 /*yield*/, referral_schema_1.ReferralModel.findById(customer.referral)];
                 case 7:
+                    referral = _c.sent();
+                    if (!referral || !referral.coupon)
+                        return [2 /*return*/];
+                    return [4 /*yield*/, coupon_schema_1.CouponModel.findOne({ id: referral.coupon, status: coupon_schema_1.COUPON_STATUS.PENDING })];
+                case 8:
+                    coupon = _c.sent();
+                    if (!coupon)
+                        return [2 /*return*/];
+                    coupon.status = coupon_schema_1.COUPON_STATUS.ACTIVE;
+                    return [4 /*yield*/, coupon.save()];
+                case 9:
+                    _c.sent();
+                    _c.label = 10;
+                case 10:
+                    if (!contractor.referral) return [3 /*break*/, 14];
+                    return [4 /*yield*/, referral_schema_1.ReferralModel.findById(contractor.referral)];
+                case 11:
+                    referral = _c.sent();
+                    if (!referral || !referral.coupon)
+                        return [2 /*return*/];
+                    return [4 /*yield*/, coupon_schema_1.CouponModel.findOne({ id: referral.coupon, status: coupon_schema_1.COUPON_STATUS.PENDING })];
+                case 12:
+                    coupon = _c.sent();
+                    if (!coupon)
+                        return [2 /*return*/];
+                    coupon.status = coupon_schema_1.COUPON_STATUS.ACTIVE;
+                    return [4 /*yield*/, coupon.save()];
+                case 13:
+                    _c.sent();
+                    _c.label = 14;
+                case 14: return [3 /*break*/, 16];
+                case 15:
                     error_16 = _c.sent();
                     logger_1.Logger.error("Error handling JOB_COMPLETED event: ".concat(error_16));
-                    return [3 /*break*/, 8];
-                case 8: return [2 /*return*/];
+                    return [3 /*break*/, 16];
+                case 16: return [2 /*return*/];
             }
         });
     });

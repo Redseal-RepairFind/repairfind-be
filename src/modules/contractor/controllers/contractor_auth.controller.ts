@@ -17,6 +17,7 @@ import { CouponModel } from "../../../database/common/coupon.schema";
 import { ReferralCodeModel } from "../../../database/common/referral_code.schema";
 import { ReferralModel } from "../../../database/common/referral.schema";
 import { PromotionEvent } from "../../../events/promotion.events";
+import { AccountEvent } from "../../../events";
 
 class AuthHandler extends Base {
     @handleAsyncError()
@@ -104,6 +105,7 @@ class AuthHandler extends Base {
             translatedSubject = await i18n.getTranslation({ phraseOrSlug: "Welcome to Repairfind", targetLang: contractor.language }) || 'Welcome to Repairfind';
             await EmailService.send(email, translatedSubject!, translatedHtml!);
 
+            AccountEvent.emit('NEW_CONTRACTOR')
             return res.json({
                 success: true,
                 message: "Signup successful",

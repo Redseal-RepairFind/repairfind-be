@@ -75,7 +75,8 @@ var promotions = [
         "value": 25,
         "valueType": promotion_schema_1.PROMOTION_VALUE_TYPE.FIXED,
         "description": "Get $25 cash bonus off when you refer",
-        "status": promotion_schema_1.PROMOTION_STATUS.ACTIVE
+        "status": promotion_schema_1.PROMOTION_STATUS.ACTIVE,
+        "contractorLimit": 150
     },
     {
         "name": "Early Bird Contractor",
@@ -86,6 +87,7 @@ var promotions = [
         "value": 50,
         "valueType": promotion_schema_1.PROMOTION_VALUE_TYPE.PERCENTAGE,
         "description": "Get 50% off on Repairfind service fee on your quotations",
-        "status": promotion_schema_1.PROMOTION_STATUS.ACTIVE
+        "status": promotion_schema_1.PROMOTION_STATUS.ACTIVE,
+        "customerLimit": 100
     }
 ];

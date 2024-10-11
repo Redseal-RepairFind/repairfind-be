@@ -2,7 +2,7 @@ import { validationResult } from "express-validator";
 import { NextFunction, Request, Response } from "express";
 import { ContractorModel } from "../../../database/contractor/models/contractor.model";
 import CustomerModel from "../../../database/customer/models/customer.model";
-import { IJob, JobModel, JOB_STATUS,  JOB_SCHEDULE_TYPE, IJobReSchedule } from "../../../database/common/job.model";
+import { IJob, JobModel, JOB_STATUS, JOB_SCHEDULE_TYPE, IJobReSchedule } from "../../../database/common/job.model";
 import { BadRequestError, InternalServerError } from "../../../utils/custom.errors";
 import { applyAPIFeature } from "../../../utils/api.feature";
 import { IMessage, MessageModel, MessageType } from "../../../database/common/messages.schema";
@@ -62,10 +62,10 @@ export const getMyBookings = async (req: any, res: Response, next: NextFunction)
 
         if (status) {
             const statuses = status.split(',')
-            filter.status = {$in: statuses}
+            filter.status = { $in: statuses }
             delete req.query.status
         }
-        
+
         if (startDate) {
             const start = new Date(startDate);
             let end = new Date(startDate);
@@ -75,7 +75,7 @@ export const getMyBookings = async (req: any, res: Response, next: NextFunction)
             filter['schedule.startDate'] = { $gte: start, $lte: end };
             delete req.query.startDate;
             delete req.query.endDate;
-        
+
             console.log(req.query);
         }
 
@@ -94,8 +94,8 @@ export const getMyBookings = async (req: any, res: Response, next: NextFunction)
         if (data) {
 
             await Promise.all(data.data.map(async (job: any) => {
-               
-              
+
+
                 const { contract, totalEnquires, hasUnrepliedEnquiry, jobDay, dispute, myQuotation } = await JobUtil.populate(job, {
                     contract: true,
                     dispute: true,
@@ -104,7 +104,7 @@ export const getMyBookings = async (req: any, res: Response, next: NextFunction)
                     hasUnrepliedEnquiry: true,
                     myQuotation: contractorId
                 });
-        
+
                 job.myQuotation = myQuotation
                 job.contract = contract
                 job.jobDay = jobDay
@@ -179,7 +179,7 @@ export const getBookingHistory = async (req: any, res: Response, next: NextFunct
                 //     contract.charges  = await contract.calculateCharges()
                 //     job.contract = contract
                 // }
-                
+
                 const { contract, totalEnquires, hasUnrepliedEnquiry, jobDay, dispute, myQuotation } = await JobUtil.populate(job, {
                     contract: true,
                     dispute: true,
@@ -188,14 +188,14 @@ export const getBookingHistory = async (req: any, res: Response, next: NextFunct
                     hasUnrepliedEnquiry: true,
                     myQuotation: contractorId
                 });
-        
+
                 job.myQuotation = myQuotation
                 job.contract = contract
                 job.jobDay = jobDay
                 job.dispute = dispute
                 job.totalEnquires = totalEnquires
                 job.hasUnrepliedEnquiry = hasUnrepliedEnquiry
-        
+
 
             }));
         }
@@ -267,7 +267,7 @@ export const getBookingDisputes = async (req: any, res: Response, next: NextFunc
                 //     contract.charges  = await contract.calculateCharges()
                 //     job.contract = contract
                 // }
-                
+
                 const { contract, totalEnquires, hasUnrepliedEnquiry, jobDay, dispute } = await JobUtil.populate(job, {
                     contract: true,
                     dispute: true,
@@ -275,14 +275,14 @@ export const getBookingDisputes = async (req: any, res: Response, next: NextFunc
                     totalEnquires: true,
                     hasUnrepliedEnquiry: true,
                 });
-        
+
                 job.contract = contract
                 job.jobDay = jobDay
                 job.dispute = dispute
                 job.totalEnquires = totalEnquires
                 job.hasUnrepliedEnquiry = hasUnrepliedEnquiry
 
-                
+
             }));
         }
 
@@ -322,7 +322,7 @@ export const getSingleBooking = async (req: any, res: Response, next: NextFuncti
         //     responseData.contract = contract
         // }
 
-               // responseData.dispute = await job.getJobDispute()
+        // responseData.dispute = await job.getJobDispute()
         // responseData.jobDay = await job.getJobDay()
 
         const { contract, totalEnquires, hasUnrepliedEnquiry, jobDay, dispute } = await JobUtil.populate(job, {
@@ -444,7 +444,7 @@ export const acceptOrDeclineReschedule = async (req: any, res: Response, next: N
             };
 
             // Change status to booked, just in case it was
-            if(job.revisitEnabled){
+            if (job.revisitEnabled) {
                 job.status = JOB_STATUS.BOOKED
             }
 
@@ -573,44 +573,38 @@ export const getRefundable = async (req: any, res: Response, next: NextFunction)
         const currentTime = new Date().getTime();
         const timeDifferenceInHours = Math.abs(jobDate - currentTime) / (1000 * 60 * 60);
 
-        // const transactions  = await TransactionModel.find({job: job.id})
-
         let refund = {
             refundAmount: payments.totalAmount,
-            canceletionFee: 0,
+            cancelationFee: 0,
             contractorShare: 0,
             companyShare: 0,
-            intiatedBy: 'customer',
+            initiatedBy: 'customer',
             policyApplied: 'free_cancelation',
             contractTerms: charges,
             payments
         };
 
-        if (timeDifferenceInHours >= 48) {
-            // Free cancellation up to 48 hours before the scheduled job time.
+        // For cancellations made within 24 hours, apply cancellation fees.
+        if (timeDifferenceInHours < 24) {
+            const cancelationFee = 1//50;
+            const contractorShare = 0.8 * cancelationFee;
+            const companyShare = 0.2 * cancelationFee;
 
-        } else if (timeDifferenceInHours < 24) {
-            // For cancellations made within 24 hours, apply cancellation fees.
-            const canceletionFee = 1//50;
-            const contractorShare = 0.8 * canceletionFee;
-            const companyShare = 0.2 * canceletionFee;
-
-
-            const refundAmount = payments.totalAmount - canceletionFee
+            const refundAmount = payments.totalAmount - cancelationFee
             refund = {
                 refundAmount,
-                canceletionFee,
+                cancelationFee,
                 contractorShare,
                 companyShare,
-                intiatedBy: 'customer',
+                initiatedBy: 'customer',
                 policyApplied: '50_dollar_policy',
                 contractTerms: charges,
                 payments
             };
+        }else{
+            // Free cancellation up to 48 hours before the scheduled job time.
+            // timeDifferenceInHours >= 48
         }
-
-        // Update job status and store cancellation data
-        //job.cancelation = refund // dont need to save this
         await job.save();
 
         res.json({ success: true, message: 'Booking cancelation initiated successfully', data: refund });
@@ -670,7 +664,7 @@ export const cancelBooking = async (req: any, res: Response, next: NextFunction)
             return res.status(400).json({ success: false, message: 'Booking has no associated schedule' });
         }
 
-        const jobDate = job.schedule.startDate.getTime();
+        const jobDate = job.schedule.startDate.getTime()
         const charges = await contract.calculateCharges()
 
         // choose which payment to refund ? SITE_VISIT_PAYMENT, JOB_DAY_PAYMENT, CHANGE_ORDER_PAYMENT
@@ -681,38 +675,33 @@ export const cancelBooking = async (req: any, res: Response, next: NextFunction)
         const currentTime = new Date().getTime();
         const timeDifferenceInHours = Math.abs(jobDate - currentTime) / (1000 * 60 * 60);
 
-        let refundPolicy = {
-            name: 'free_refund',
-            fee: 0, //
+        let refundPolicy = { name: 'free_refund', fee: 0 }
+
+        // For cancellations made within 24 hours, apply cancellation fees.
+       if (timeDifferenceInHours < 24) {
+            refundPolicy = { name: '50_dollar_policy', fee: 50}
+        }else{
+             // Free cancellation up to 48 hours before the scheduled job time.
+            //  timeDifferenceInHours >= 48
         }
 
-        if (timeDifferenceInHours >= 48) {
-            // Free cancellation up to 48 hours before the scheduled job time.
-
-        } else if (timeDifferenceInHours < 24) {
-            // For cancellations made within 24 hours, apply cancellation fees.
-            refundPolicy = {
-                name: '50_dollar_policy',
-                fee: 1//50, //
-            }
-        }
-
+        // map through all payments associated with job and create refund transaction
         for (const payment of payments.payments) {
             if (payment.refunded) continue
             let refund = {
                 refundAmount: payment.amount - refundPolicy.fee,
                 totalAmount: payment.amount,
                 fee: refundPolicy.fee,
-                contractorAmount: refundPolicy.fee * 0.8,
-                companyAmount: refundPolicy.fee * 0.2,
-                intiatedBy: 'customer',
+                contractorAmount: refundPolicy.fee * 0.8, // contractor takes 80% of the cautionary fee
+                companyAmount: refundPolicy.fee * 0.2, // company takes 20% of the cautionary fee
+                initiatedBy: 'customer',
                 policyApplied: refundPolicy.name,
             };
 
-            //create refund transaction - 
+            //create refund transaction for each payment
             await TransactionModel.create({
                 type: TRANSACTION_TYPE.REFUND,
-                amount: payments.totalAmount,
+                amount: refund.refundAmount,
 
                 initiatorUser: customerId,
                 initiatorUserType: 'customers',
@@ -739,9 +728,7 @@ export const cancelBooking = async (req: any, res: Response, next: NextFunction)
                 payment: payment.id,
             })
 
-
-            // console.log(payment)
-            //emit event here
+            // emit event here
             JobEvent.emit('JOB_REFUND_REQUESTED', { job, payment, refund })
 
         }
@@ -749,7 +736,6 @@ export const cancelBooking = async (req: any, res: Response, next: NextFunction)
 
         // Update the job status to canceled
         job.status = JOB_STATUS.CANCELED;
-
         job.jobHistory.push({
             eventType: 'JOB_CANCELED',
             timestamp: new Date(),
@@ -758,9 +744,8 @@ export const cancelBooking = async (req: any, res: Response, next: NextFunction)
 
 
 
-        // emit job cancelled event 
-        JobEvent.emit('JOB_CANCELED', { job, canceledBy: 'customer' })
         await job.save();
+        JobEvent.emit('JOB_CANCELED', { job, canceledBy: 'customer' })
 
 
         // Create a message in the conversation
@@ -788,7 +773,7 @@ export const requestBookingRefund = async (req: any, res: Response, next: NextFu
     try {
         const customerId = req.customer.id;
         const { bookingId } = req.params;
-        const { reason } = req.body;
+        const { reason = "Job not started by contractor" } = req.body;
 
         const job = await JobModel.findById(bookingId).populate('payments');
         if (!job) {
@@ -825,10 +810,7 @@ export const requestBookingRefund = async (req: any, res: Response, next: NextFu
         const charges = await contract.calculateCharges()
         const payments = await job.getPayments()
 
-        const refundPolicy = {
-            name: 'free_refund',
-            fee: 0, //
-        }
+        const refundPolicy = {name: 'free_refund', fee: 0 }
 
         for (const payment of payments.payments) {
 
@@ -837,9 +819,9 @@ export const requestBookingRefund = async (req: any, res: Response, next: NextFu
                 refundAmount: payment.amount - refundPolicy.fee,
                 totalAmount: payment.amount,
                 fee: refundPolicy.fee,
-                contractorAmount: refundPolicy.fee * 0.8,
-                companyAmount: refundPolicy.fee * 0.2,
-                intiatedBy: 'customer',
+                contractorAmount: 0,
+                companyAmount: 0,
+                initiatedBy: 'customer',
                 policyApplied: refundPolicy.name,
             };
 
@@ -877,12 +859,12 @@ export const requestBookingRefund = async (req: any, res: Response, next: NextFu
 
 
         // Update the job status to canceled
-        job.status = JOB_STATUS.CANCELED;
+        job.status = JOB_STATUS.REFUNDED;
 
         job.jobHistory.push({
             eventType: 'JOB_PAYMENT_REFUNDED',
             timestamp: new Date(),
-            payload: { reason, canceledBy: 'customer' }
+            payload: { reason, initiatedBy: 'customer' }
         });
 
 
@@ -1088,20 +1070,20 @@ export const createBookingDispute = async (req: any, res: Response, next: NextFu
 
 
 
-        if(evidence){
+        if (evidence) {
             const disputeEvidence = evidence.map((url: string) => ({
                 url,
                 addedBy: 'customer',
                 addedAt: new Date(),
             }));
-    
+
             dispute.evidence.push(...disputeEvidence);
         }
-       
+
 
         //if job was previously disputed, assign dispute to previous arbitrator
-        const previousDispute = await JobDisputeModel.findOne({job: job.id, status: JOB_DISPUTE_STATUS.REVISIT})
-        if(job.revisitEnabled && previousDispute){
+        const previousDispute = await JobDisputeModel.findOne({ job: job.id, status: JOB_DISPUTE_STATUS.REVISIT })
+        if (job.revisitEnabled && previousDispute) {
             dispute.status = JOB_DISPUTE_STATUS.ONGOING
             dispute.arbitrator = previousDispute.arbitrator
             dispute.status = JOB_DISPUTE_STATUS.ONGOING

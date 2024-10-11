@@ -758,7 +758,7 @@ var applyCouponToJobQuotation = function (req, res, next) { return __awaiter(voi
             case 2:
                 coupon = _b.sent();
                 if (!coupon)
-                    return [2 /*return*/, res.json({ success: false, message: 'Coupon is invalid' })];
+                    return [2 /*return*/, res.status(400).json({ success: false, message: 'Coupon is invalid' })];
                 if (['pending', 'redeemed', 'expired'].includes(coupon.status)) {
                     return [2 /*return*/, res.status(400).json({ message: "Coupon is ".concat(coupon.status) })];
                 }

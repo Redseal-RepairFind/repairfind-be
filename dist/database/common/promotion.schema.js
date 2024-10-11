@@ -66,6 +66,8 @@ var PromotionSchema = new mongoose_1.Schema({
         enum: Object.values(PROMOTION_STATUS), // Reference the enum
         default: PROMOTION_STATUS.INACTIVE, // Default value from enum
     },
+    contractorLimit: { type: Number },
+    customerLimit: { type: Number },
 }, {
     timestamps: true,
 });
