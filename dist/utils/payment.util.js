@@ -37,6 +37,7 @@ var __generator = (this && this.__generator) || function (thisArg, body) {
 };
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.PaymentUtil = void 0;
+var coupon_schema_1 = require("../database/common/coupon.schema");
 var calculateCharges = function (_a) {
     var totalEstimateAmount = _a.totalEstimateAmount, customerDiscount = _a.customerDiscount, contractorDiscount = _a.contractorDiscount;
     return __awaiter(void 0, void 0, void 0, function () {
@@ -59,10 +60,10 @@ var calculateCharges = function (_a) {
             repairfindServiceFee = parseFloat(((repairfindServiceFeeRate / 100) * totalEstimateAmount).toFixed(2));
             // Calculate customer discount based on valueType
             if (customerDiscount) {
-                if (customerDiscount.valueType === 'fixed') {
+                if (customerDiscount.valueType === coupon_schema_1.COUPON_VALUE_TYPE.FIXED) {
                     customerDiscountValue = customerDiscount.value;
                 }
-                else if (customerDiscount.valueType === 'percentage') {
+                else if (customerDiscount.valueType === coupon_schema_1.COUPON_VALUE_TYPE.PERCENTAGE) {
                     customerDiscountValue = parseFloat(((customerDiscount.value / 100) * totalEstimateAmount).toFixed(2));
                 }
                 // Ensure discount doesn't exceed total amount
@@ -70,10 +71,10 @@ var calculateCharges = function (_a) {
             }
             // Calculate contractor discount based on valueType
             if (contractorDiscount) {
-                if (contractorDiscount.valueType === 'fixed') {
+                if (contractorDiscount.valueType === coupon_schema_1.COUPON_VALUE_TYPE.FIXED) {
                     contractorDiscountValue = contractorDiscount.value;
                 }
-                else if (contractorDiscount.valueType === 'percentage') {
+                else if (contractorDiscount.valueType === coupon_schema_1.COUPON_VALUE_TYPE.PERCENTAGE) {
                     contractorDiscountValue = parseFloat(((contractorDiscount.value / 100) * repairfindServiceFee).toFixed(2));
                 }
                 // Ensure discount doesn't exceed total amount

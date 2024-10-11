@@ -1,11 +1,13 @@
+import { COUPON_VALUE_TYPE } from "../database/common/coupon.schema";
+
 const calculateCharges = async ({
     totalEstimateAmount,
     customerDiscount,
     contractorDiscount,
   }: {
     totalEstimateAmount: number;
-    customerDiscount?: { value: number; valueType: 'fixed' | 'percentage' };
-    contractorDiscount?: { value: number; valueType: 'fixed' | 'percentage' };
+    customerDiscount?: { value: number; valueType: COUPON_VALUE_TYPE.FIXED };
+    contractorDiscount?: { value: number; valueType: COUPON_VALUE_TYPE.FIXED };
   }) => {
     let [
       subtotal,
@@ -42,9 +44,9 @@ const calculateCharges = async ({
   
     // Calculate customer discount based on valueType
     if (customerDiscount) {
-      if (customerDiscount.valueType === 'fixed') {
+      if (customerDiscount.valueType === COUPON_VALUE_TYPE.FIXED) {
         customerDiscountValue = customerDiscount.value;
-      } else if (customerDiscount.valueType === 'percentage') {
+      } else if (customerDiscount.valueType === COUPON_VALUE_TYPE.PERCENTAGE) {
         customerDiscountValue = parseFloat(
           ((customerDiscount.value / 100) * totalEstimateAmount).toFixed(2)
         );
@@ -55,9 +57,9 @@ const calculateCharges = async ({
   
     // Calculate contractor discount based on valueType
     if (contractorDiscount) {
-      if (contractorDiscount.valueType === 'fixed') {
+      if (contractorDiscount.valueType === COUPON_VALUE_TYPE.FIXED) {
         contractorDiscountValue = contractorDiscount.value;
-      } else if (contractorDiscount.valueType === 'percentage') {
+      } else if (contractorDiscount.valueType === COUPON_VALUE_TYPE.PERCENTAGE) {
         contractorDiscountValue = parseFloat(
           ((contractorDiscount.value / 100) * repairfindServiceFee).toFixed(2)
         );
