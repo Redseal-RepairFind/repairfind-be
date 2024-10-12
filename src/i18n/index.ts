@@ -1,5 +1,5 @@
 import axios from 'axios';
-import { readFileSync, writeFileSync } from 'fs';
+import { existsSync, readFileSync, writeFileSync } from 'fs';
 import path from 'path';
 import { Logger } from '../services/logger';
 import { GoogleServiceProvider } from '../services/google';
@@ -19,10 +19,13 @@ interface Translation {
     }>;
 }
 
-// Load a JSON file and parse it
-function loadTranslations(filePath: string): Translation {
-    const jsonData = readFileSync(filePath, 'utf8');
-    return JSON.parse(jsonData);
+// Function to load translations from a JSON file, creating an empty file if it doesn't exist
+function loadTranslations(filePath: string): any {
+    if (!existsSync(filePath)) {
+        writeFileSync(filePath, JSON.stringify({}), 'utf8');  // Create an empty file if it doesn't exist
+    }
+    const fileContent = readFileSync(filePath, 'utf8');
+    return JSON.parse(fileContent);
 }
 
 
@@ -37,6 +40,9 @@ const translations: Translation = {
     ...loadTranslations(path.join(__dirname, '..', '..', 'locale', 'api_response.json')),
     ...loadTranslations(path.join(__dirname, '..', '..', 'locale', 'email.json')),
 };
+
+
+
 
 // Slugify function to convert plain English text to a slug
 function slugify(text: string): string {

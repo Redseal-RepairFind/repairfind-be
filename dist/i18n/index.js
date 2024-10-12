@@ -58,10 +58,13 @@ var google_1 = require("../services/google");
 var config_1 = require("../config");
 //@ts-ignore
 var translate_1 = require("translate");
-// Load a JSON file and parse it
+// Function to load translations from a JSON file, creating an empty file if it doesn't exist
 function loadTranslations(filePath) {
-    var jsonData = (0, fs_1.readFileSync)(filePath, 'utf8');
-    return JSON.parse(jsonData);
+    if (!(0, fs_1.existsSync)(filePath)) {
+        (0, fs_1.writeFileSync)(filePath, JSON.stringify({}), 'utf8'); // Create an empty file if it doesn't exist
+    }
+    var fileContent = (0, fs_1.readFileSync)(filePath, 'utf8');
+    return JSON.parse(fileContent);
 }
 // Define the path to the general.json file
 var generalTranslationsPath = path_1.default.join(__dirname, '..', '..', 'locale', 'general.json');
