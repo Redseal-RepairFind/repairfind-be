@@ -134,8 +134,7 @@ export const PaypalPaymentCheckoutTemplate = (payload: {token: string, paypalCli
 
                 cardField
                 .submit({
-                  createOrder: createOrderCallback,
-                  onApprove: onApproveCallback,
+                 
                 })
                 .then(() => {
                   loader.style.display = 'none';
@@ -144,6 +143,7 @@ export const PaypalPaymentCheckoutTemplate = (payload: {token: string, paypalCli
                 .catch((error) => {
                   loader.style.display = 'none';
                   submitButton.classList.remove('disabled');
+                  console.log(error)
                   alert('Processing of this card type is not supported. Use another type of card.');
                 });
 
