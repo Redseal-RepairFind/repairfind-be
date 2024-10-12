@@ -41,7 +41,6 @@ const calculateCharges = async ({
     contractorProcessingFeeRate = 3;
     gstRate = 5;
   
-    repairfindServiceFee = parseFloat(((repairfindServiceFeeRate / 100) * totalEstimateAmount).toFixed(2));
   
     // Concurrently fetch customer and contractor coupons (if any)
     const [customerCoupon, contractorCoupon] = await Promise.all([
@@ -68,13 +67,14 @@ const calculateCharges = async ({
         contractorDiscountValue = contractorDiscount.value;
       } else if (contractorDiscount.valueType === COUPON_VALUE_TYPE.PERCENTAGE) {
         contractorDiscountValue = parseFloat(
-          ((contractorDiscount.value / 100) * repairfindServiceFee).toFixed(2)
+          ((contractorDiscount.value / 100) * repairfindServiceFeeRate).toFixed(2)
         );
       }
-      // Ensure discount doesn't exceed total amount
-      contractorDiscountValue = Math.min(contractorDiscountValue, repairfindServiceFee);
-    }
-  
+  }
+    repairfindServiceFeeRate -= contractorDiscountValue
+    repairfindServiceFee = parseFloat(((repairfindServiceFeeRate / 100) * totalEstimateAmount).toFixed(2));
+
+
     customerProcessingFee = parseFloat(((customerProcessingFeeRate / 100) * totalEstimateAmount).toFixed(2));
     contractorProcessingFee = parseFloat(((contractorProcessingFeeRate / 100) * totalEstimateAmount).toFixed(2));
     gstAmount = parseFloat(((gstRate / 100) * totalEstimateAmount).toFixed(2));
@@ -111,7 +111,7 @@ const calculateCharges = async ({
       contractorDiscount: contractorDiscount?.value
         ? { 
             coupon: contractorCoupon,
-            amount: contractorDiscountValue, 
+            amount: repairfindServiceFee, 
             value: contractorDiscount.value, 
             valueType: contractorDiscount.valueType, 
             appliedOn: 'repairfindServiceFee'  // Indicating where it was applied

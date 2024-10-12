@@ -59,7 +59,6 @@ var calculateCharges = function (_a) {
                     customerProcessingFeeRate = 3;
                     contractorProcessingFeeRate = 3;
                     gstRate = 5;
-                    repairfindServiceFee = parseFloat(((repairfindServiceFeeRate / 100) * totalEstimateAmount).toFixed(2));
                     return [4 /*yield*/, Promise.all([
                             (customerDiscount === null || customerDiscount === void 0 ? void 0 : customerDiscount.coupon) ? coupon_schema_1.CouponModel.findById(customerDiscount.coupon).select('type _id name') : null,
                             (contractorDiscount === null || contractorDiscount === void 0 ? void 0 : contractorDiscount.coupon) ? coupon_schema_1.CouponModel.findById(contractorDiscount.coupon).select('type _id name') : null
@@ -83,11 +82,11 @@ var calculateCharges = function (_a) {
                             contractorDiscountValue = contractorDiscount.value;
                         }
                         else if (contractorDiscount.valueType === coupon_schema_1.COUPON_VALUE_TYPE.PERCENTAGE) {
-                            contractorDiscountValue = parseFloat(((contractorDiscount.value / 100) * repairfindServiceFee).toFixed(2));
+                            contractorDiscountValue = parseFloat(((contractorDiscount.value / 100) * repairfindServiceFeeRate).toFixed(2));
                         }
-                        // Ensure discount doesn't exceed total amount
-                        contractorDiscountValue = Math.min(contractorDiscountValue, repairfindServiceFee);
                     }
+                    repairfindServiceFeeRate -= contractorDiscountValue;
+                    repairfindServiceFee = parseFloat(((repairfindServiceFeeRate / 100) * totalEstimateAmount).toFixed(2));
                     customerProcessingFee = parseFloat(((customerProcessingFeeRate / 100) * totalEstimateAmount).toFixed(2));
                     contractorProcessingFee = parseFloat(((contractorProcessingFeeRate / 100) * totalEstimateAmount).toFixed(2));
                     gstAmount = parseFloat(((gstRate / 100) * totalEstimateAmount).toFixed(2));
@@ -120,7 +119,7 @@ var calculateCharges = function (_a) {
                             contractorDiscount: (contractorDiscount === null || contractorDiscount === void 0 ? void 0 : contractorDiscount.value)
                                 ? {
                                     coupon: contractorCoupon,
-                                    amount: contractorDiscountValue,
+                                    amount: repairfindServiceFee,
                                     value: contractorDiscount.value,
                                     valueType: contractorDiscount.valueType,
                                     appliedOn: 'repairfindServiceFee' // Indicating where it was applied
