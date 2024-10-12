@@ -166,7 +166,7 @@ export const calculateCharges = async (
         //check if user has earlybird coupon
         const coupon = await CouponModel.findOne({user:userId, type: 'SERVICE_FEE_DISCOUNT', status: COUPON_STATUS.ACTIVE})
         if(coupon){
-          contractorDiscount = {value: coupon.value, valueType: coupon.valueType }
+          contractorDiscount = {value: coupon.value, valueType: coupon.valueType, coupon: coupon.id }
         }
       }
     }

@@ -217,7 +217,7 @@ var calculateCharges = function (req, res, next) { return __awaiter(void 0, void
             case 5:
                 coupon = _d.sent();
                 if (coupon) {
-                    contractorDiscount = { value: coupon.value, valueType: coupon.valueType };
+                    contractorDiscount = { value: coupon.value, valueType: coupon.valueType, coupon: coupon.id };
                 }
                 _d.label = 6;
             case 6: return [4 /*yield*/, payment_util_1.PaymentUtil.calculateCharges({ totalEstimateAmount: Number(amount), customerDiscount: customerDiscount, contractorDiscount: contractorDiscount })];

@@ -1,4 +1,5 @@
-import { COUPON_VALUE_TYPE } from "../database/common/coupon.schema";
+import { ObjectId } from "mongoose";
+import { COUPON_VALUE_TYPE, CouponModel } from "../database/common/coupon.schema";
 
 const calculateCharges = async ({
     totalEstimateAmount,
@@ -6,8 +7,8 @@ const calculateCharges = async ({
     contractorDiscount,
   }: {
     totalEstimateAmount: number;
-    customerDiscount?: { value: number; valueType: COUPON_VALUE_TYPE };
-    contractorDiscount?: { value: number; valueType: COUPON_VALUE_TYPE };
+    customerDiscount?: { value: number; valueType: COUPON_VALUE_TYPE, coupon?: ObjectId };
+    contractorDiscount?: { value: number; valueType: COUPON_VALUE_TYPE, coupon?: ObjectId };
   }) => {
     let [
       subtotal,
@@ -42,6 +43,12 @@ const calculateCharges = async ({
   
     repairfindServiceFee = parseFloat(((repairfindServiceFeeRate / 100) * totalEstimateAmount).toFixed(2));
   
+    // Concurrently fetch customer and contractor coupons (if any)
+    const [customerCoupon, contractorCoupon] = await Promise.all([
+      customerDiscount?.coupon ? CouponModel.findById(customerDiscount.coupon).select('type _id name') : null,
+      contractorDiscount?.coupon ? CouponModel.findById(contractorDiscount.coupon).select('type _id name') : null
+    ]);
+  
     // Calculate customer discount based on valueType
     if (customerDiscount) {
       if (customerDiscount.valueType === COUPON_VALUE_TYPE.FIXED) {
@@ -75,7 +82,7 @@ const calculateCharges = async ({
   
     customerPayable = parseFloat((subtotal + customerProcessingFee + gstAmount - customerDiscountValue).toFixed(2));
     contractorPayable = parseFloat((subtotal + gstAmount - (contractorProcessingFee + (repairfindServiceFee - contractorDiscountValue)) ).toFixed(2));
-  
+    
     return {
       subtotal,
       gstAmount,
@@ -84,24 +91,35 @@ const calculateCharges = async ({
       repairfindServiceFee,
       customerProcessingFee,
       contractorProcessingFee,
-  
+    
       // Return rates as well
       gstRate,
       repairfindServiceFeeRate,
       contractorProcessingFeeRate,
       customerProcessingFeeRate,
-  
+    
       // Correctly apply customer and contractor discounts
       customerDiscount: customerDiscount?.value
-        ? { amount: customerDiscountValue, value: customerDiscount.value, valueType: customerDiscount.valueType }
+        ? { 
+            coupon: customerCoupon,
+            amount: customerDiscountValue, 
+            value: customerDiscount.value, 
+            valueType: customerDiscount.valueType, 
+            appliedOn: 'totalEstimateAmount'  // Indicating where it was applied
+          }
         : null,
       contractorDiscount: contractorDiscount?.value
-        ? { amount: contractorDiscountValue, value: contractorDiscount.value, valueType: contractorDiscount.valueType  }
+        ? { 
+            coupon: contractorCoupon,
+            amount: contractorDiscountValue, 
+            value: contractorDiscount.value, 
+            valueType: contractorDiscount.valueType, 
+            appliedOn: 'repairfindServiceFee'  // Indicating where it was applied
+          }
         : null,
     };
   };
   
-  export const PaymentUtil = {
+export const PaymentUtil = {
     calculateCharges,
-  };
-  
+};

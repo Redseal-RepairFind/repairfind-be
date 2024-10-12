@@ -27,7 +27,7 @@ export interface IJobQuotationEstimate {
 export interface IQuotationDiscount {
     coupon: ObjectId;
     value: number;
-    valueType: COUPON_VALUE_TYPE
+    valueType: COUPON_VALUE_TYPE,
 }
 
 
