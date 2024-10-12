@@ -92,7 +92,7 @@ var calculateCharges = function (_a) {
                     gstAmount = parseFloat(((gstRate / 100) * totalEstimateAmount).toFixed(2));
                     subtotal = totalEstimateAmount;
                     customerPayable = parseFloat((subtotal + customerProcessingFee + gstAmount - customerDiscountValue).toFixed(2));
-                    contractorPayable = parseFloat((subtotal + gstAmount - (contractorProcessingFee + (repairfindServiceFee - contractorDiscountValue))).toFixed(2));
+                    contractorPayable = parseFloat((subtotal + gstAmount - (contractorProcessingFee + repairfindServiceFee)).toFixed(2));
                     return [2 /*return*/, {
                             subtotal: subtotal,
                             gstAmount: gstAmount,
