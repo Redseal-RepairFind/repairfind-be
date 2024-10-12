@@ -653,7 +653,8 @@ export const applyCouponToJobQuotation = async (req: any, res: Response, next: N
 
         const coupon = await CouponModel.findOne({ code: couponCode, user: customerId, userType: 'customers' })
         if (!coupon) return res.status(400).json({ success: false, message: 'Coupon is invalid' });
-        if (['pending', 'redeemed', 'expired'].includes(coupon.status)) {
+        
+        if (Object.values(COUPON_STATUS).includes(coupon.status)) {
             return res.status(400).json({ message: `Coupon is ${coupon.status}` });
         }
 

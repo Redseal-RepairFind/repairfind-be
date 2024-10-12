@@ -759,7 +759,7 @@ var applyCouponToJobQuotation = function (req, res, next) { return __awaiter(voi
                 coupon = _b.sent();
                 if (!coupon)
                     return [2 /*return*/, res.status(400).json({ success: false, message: 'Coupon is invalid' })];
-                if (['pending', 'redeemed', 'expired'].includes(coupon.status)) {
+                if (Object.values(coupon_schema_1.COUPON_STATUS).includes(coupon.status)) {
                     return [2 /*return*/, res.status(400).json({ message: "Coupon is ".concat(coupon.status) })];
                 }
                 if (quotation.type == job_quotation_model_1.JOB_QUOTATION_TYPE.SITE_VISIT) {
