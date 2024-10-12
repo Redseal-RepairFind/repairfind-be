@@ -7,3 +7,4 @@
 # fcm.json
 prod.env
 staging.env
+/locale/general.json
