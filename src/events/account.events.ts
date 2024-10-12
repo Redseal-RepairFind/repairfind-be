@@ -99,7 +99,6 @@ AccountEvent.on('NEW_CONTRACTOR', async function (payload: { contractor: IContra
              status: COUPON_STATUS.ACTIVE,
          });
     
-        
 
         // Decrease promotion limit
         referralPromotion.contractorLimit -= 1;

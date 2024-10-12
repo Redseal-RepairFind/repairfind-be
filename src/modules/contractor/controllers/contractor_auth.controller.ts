@@ -98,7 +98,6 @@ class AuthHandler extends Base {
 
             const newReferralCode = await GeneratorUtil.generateReferralCode({length: 6, userId: contractor.id, userType: 'contractors'});
             contractor.referralCode = newReferralCode;
-            await contractor.save()
 
             const html = OtpEmailTemplate(otp, firstName ?? companyName, "We have received a request to verify your email");
             let translatedHtml = await i18n.getTranslation({ phraseOrSlug: html, targetLang: contractor.language, saveToFile: false, useGoogle: true, contentType: 'html' }) || html;
@@ -111,7 +110,9 @@ class AuthHandler extends Base {
             await EmailService.send(email, translatedSubject!, translatedHtml!);
 
             AccountEvent.emit('NEW_CONTRACTOR', {contractor})
-            
+
+            await contractor.save()
+
             return res.json({
                 success: true,
                 message: "Signup successful",

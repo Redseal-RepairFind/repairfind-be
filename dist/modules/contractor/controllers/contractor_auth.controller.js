@@ -187,30 +187,30 @@ var AuthHandler = /** @class */ (function (_super) {
                     case 9:
                         newReferralCode = _b.sent();
                         contractor.referralCode = newReferralCode;
-                        return [4 /*yield*/, contractor.save()];
-                    case 10:
-                        _b.sent();
                         html = (0, OtpEmailTemplate_1.OtpEmailTemplate)(otp, firstName !== null && firstName !== void 0 ? firstName : companyName, "We have received a request to verify your email");
                         return [4 /*yield*/, i18n_1.i18n.getTranslation({ phraseOrSlug: html, targetLang: contractor.language, saveToFile: false, useGoogle: true, contentType: 'html' })];
-                    case 11:
+                    case 10:
                         translatedHtml = (_b.sent()) || html;
                         return [4 /*yield*/, i18n_1.i18n.getTranslation({ phraseOrSlug: "Email Verification", targetLang: contractor.language })];
-                    case 12:
+                    case 11:
                         translatedSubject = (_b.sent()) || 'Email Verification';
                         return [4 /*yield*/, services_1.EmailService.send(email, translatedSubject, translatedHtml)];
-                    case 13:
+                    case 12:
                         _b.sent();
                         welcomeHtml = (0, welcome_email_1.ContractorWelcomeTemplate)(firstName !== null && firstName !== void 0 ? firstName : companyName);
                         return [4 /*yield*/, i18n_1.i18n.getTranslation({ phraseOrSlug: welcomeHtml, targetLang: contractor.language, saveToFile: false, useGoogle: true, contentType: 'html' })];
-                    case 14:
+                    case 13:
                         translatedHtml = (_b.sent()) || welcomeHtml;
                         return [4 /*yield*/, i18n_1.i18n.getTranslation({ phraseOrSlug: "Welcome to Repairfind", targetLang: contractor.language })];
-                    case 15:
+                    case 14:
                         translatedSubject = (_b.sent()) || 'Welcome to Repairfind';
                         return [4 /*yield*/, services_1.EmailService.send(email, translatedSubject, translatedHtml)];
-                    case 16:
+                    case 15:
                         _b.sent();
                         events_1.AccountEvent.emit('NEW_CONTRACTOR', { contractor: contractor });
+                        return [4 /*yield*/, contractor.save()];
+                    case 16:
+                        _b.sent();
                         return [2 /*return*/, res.json({
                                 success: true,
                                 message: "Signup successful",
