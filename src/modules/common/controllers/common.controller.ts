@@ -13,6 +13,8 @@ import { i18n } from "../../../i18n";
 import { ContractorModel } from "../../../database/contractor/models/contractor.model";
 import CustomerModel from "../../../database/customer/models/customer.model";
 import { GeneratorUtil } from "../../../utils/generator.util";
+import { COUPON_STATUS, CouponModel } from "../../../database/common/coupon.schema";
+import { IQuotationDiscount } from "../../../database/common/job_quotation.model";
 
 
 export const getBankList = async (
@@ -151,10 +153,25 @@ export const calculateCharges = async (
 ) => {
 
   try {
-    const {amount = 0} = req.body
+    const {userType, userId,  amount = 0} = req.body
 
+    let contractorDiscount = undefined
+    let customerDiscount = undefined
+    if(userType && userId){
+      const user = (userType === 'customers') 
+      ? await CustomerModel.findById(userId) 
+      : await ContractorModel.findById(userId);
+
+      if(userType == 'contractors'){
+        //check if user has earlybird coupon
+        const coupon = await CouponModel.findOne({user:userId, type: 'SERVICE_FEE_DISCOUNT', status: COUPON_STATUS.ACTIVE})
+        if(coupon){
+          contractorDiscount = {value: coupon.value, valueType: coupon.valueType }
+        }
+      }
+    }
   
-    const charges = await PaymentUtil.calculateCharges( {totalEstimateAmount: Number(amount)} )
+    const charges = await PaymentUtil.calculateCharges( {totalEstimateAmount: Number(amount), customerDiscount, contractorDiscount} )
     return res.json({ success: true, message: "Payment charges calculated", data: charges });
 
   } catch (err: any) {

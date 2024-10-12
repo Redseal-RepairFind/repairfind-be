@@ -50,6 +50,7 @@ var i18n_1 = require("../../../i18n");
 var contractor_model_1 = require("../../../database/contractor/models/contractor.model");
 var customer_model_1 = __importDefault(require("../../../database/customer/models/customer.model"));
 var generator_util_1 = require("../../../utils/generator.util");
+var coupon_schema_1 = require("../../../database/common/coupon.schema");
 var getBankList = function (req, res) { return __awaiter(void 0, void 0, void 0, function () {
     var data, err_1;
     return __generator(this, function (_a) {
@@ -191,20 +192,42 @@ var getCurrentOrLatestAppVersions = function (req, res, next) { return __awaiter
 }); };
 exports.getCurrentOrLatestAppVersions = getCurrentOrLatestAppVersions;
 var calculateCharges = function (req, res, next) { return __awaiter(void 0, void 0, void 0, function () {
-    var _a, amount, charges, err_5;
-    return __generator(this, function (_b) {
-        switch (_b.label) {
+    var _a, userType, userId, _b, amount, contractorDiscount, customerDiscount, user, _c, coupon, charges, err_5;
+    return __generator(this, function (_d) {
+        switch (_d.label) {
             case 0:
-                _b.trys.push([0, 2, , 3]);
-                _a = req.body.amount, amount = _a === void 0 ? 0 : _a;
-                return [4 /*yield*/, payment_util_1.PaymentUtil.calculateCharges({ totalEstimateAmount: Number(amount) })];
+                _d.trys.push([0, 8, , 9]);
+                _a = req.body, userType = _a.userType, userId = _a.userId, _b = _a.amount, amount = _b === void 0 ? 0 : _b;
+                contractorDiscount = undefined;
+                customerDiscount = undefined;
+                if (!(userType && userId)) return [3 /*break*/, 6];
+                if (!(userType === 'customers')) return [3 /*break*/, 2];
+                return [4 /*yield*/, customer_model_1.default.findById(userId)];
             case 1:
-                charges = _b.sent();
+                _c = _d.sent();
+                return [3 /*break*/, 4];
+            case 2: return [4 /*yield*/, contractor_model_1.ContractorModel.findById(userId)];
+            case 3:
+                _c = _d.sent();
+                _d.label = 4;
+            case 4:
+                user = _c;
+                if (!(userType == 'contractors')) return [3 /*break*/, 6];
+                return [4 /*yield*/, coupon_schema_1.CouponModel.findOne({ user: userId, type: 'SERVICE_FEE_DISCOUNT', status: coupon_schema_1.COUPON_STATUS.ACTIVE })];
+            case 5:
+                coupon = _d.sent();
+                if (coupon) {
+                    contractorDiscount = { value: coupon.value, valueType: coupon.valueType };
+                }
+                _d.label = 6;
+            case 6: return [4 /*yield*/, payment_util_1.PaymentUtil.calculateCharges({ totalEstimateAmount: Number(amount), customerDiscount: customerDiscount, contractorDiscount: contractorDiscount })];
+            case 7:
+                charges = _d.sent();
                 return [2 /*return*/, res.json({ success: true, message: "Payment charges calculated", data: charges })];
-            case 2:
-                err_5 = _b.sent();
+            case 8:
+                err_5 = _d.sent();
                 return [2 /*return*/, next(new custom_errors_1.InternalServerError('Error calculating payment charges', err_5))];
-            case 3: return [2 /*return*/];
+            case 9: return [2 /*return*/];
         }
     });
 }); };

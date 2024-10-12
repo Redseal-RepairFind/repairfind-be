@@ -219,6 +219,10 @@ const ContractorSchema = new Schema<IContractor>(
       label: { type: String, default: CONTRACTOR_BADGE.PROSPECT },
       icon: { type: String, default: null },
     },
+   
+    earlyBird: {
+      discountRedeemed: { type: Boolean },
+    },
 
     onboarding: {
       hasStripeAccount: { default: false, type: Boolean },

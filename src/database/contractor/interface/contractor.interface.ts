@@ -191,6 +191,9 @@ export interface IContractor extends Document {
   createdAt: Date;
   updatedAt: Date;
   deletedAt: Date;
+  earlyBird: {
+    discountRedeemed: boolean,
+  } | null,
   getOnboarding: () => {
     hasStripeAccount: boolean,
     hasStripeIdentity: boolean,

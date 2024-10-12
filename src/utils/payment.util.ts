@@ -6,8 +6,8 @@ const calculateCharges = async ({
     contractorDiscount,
   }: {
     totalEstimateAmount: number;
-    customerDiscount?: { value: number; valueType: COUPON_VALUE_TYPE.FIXED };
-    contractorDiscount?: { value: number; valueType: COUPON_VALUE_TYPE.FIXED };
+    customerDiscount?: { value: number; valueType: COUPON_VALUE_TYPE };
+    contractorDiscount?: { value: number; valueType: COUPON_VALUE_TYPE };
   }) => {
     let [
       subtotal,

@@ -23,7 +23,8 @@
     "zh": "帐户已报告"
   },
   "there_is_a_new_job_listing_that_matches_your_profile": {
-    "fr": "Il y a une nouvelle offre d'emploi qui correspond à votre profil"
+    "fr": "Il y a une nouvelle offre d'emploi qui correspond à votre profil",
+    "en": "There is a new job listing that matches your profile"
   },
   "email_verification": {
     "es": "Verificación de correo electrónico",

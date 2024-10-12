@@ -99,8 +99,11 @@ AccountEvent.on('NEW_CONTRACTOR', async function (payload: { contractor: IContra
              applicableAtCheckout: true,
              status: COUPON_STATUS.ACTIVE,
          });
- 
+    
         
+        contractor.earlyBird = {discountRedeemed: false}
+        await contractor.save()
+
         // Decrease promotion limit
         referralPromotion.contractorLimit -= 1;
         await referralPromotion.save();
