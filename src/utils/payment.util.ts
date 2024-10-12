@@ -82,6 +82,8 @@ const calculateCharges = async ({
   
     customerPayable = parseFloat((subtotal + customerProcessingFee + gstAmount - customerDiscountValue).toFixed(2));
     contractorPayable = parseFloat((subtotal + gstAmount - (contractorProcessingFee + repairfindServiceFee) ).toFixed(2));
+      
+
     
     return {
       subtotal,
