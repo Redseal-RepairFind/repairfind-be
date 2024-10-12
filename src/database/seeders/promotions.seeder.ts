@@ -38,7 +38,7 @@ const promotions = [
         "valueType": PROMOTION_VALUE_TYPE.PERCENTAGE,
         "description": "Get 50% off on Repairfind service fee on your quotations",
         "status": PROMOTION_STATUS.ACTIVE,
-        "customerLimit": 100,
+        "customerLimit": 150,
         "contractorLimit": 100,
     }
     

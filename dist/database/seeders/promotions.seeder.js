@@ -89,7 +89,7 @@ var promotions = [
         "valueType": promotion_schema_1.PROMOTION_VALUE_TYPE.PERCENTAGE,
         "description": "Get 50% off on Repairfind service fee on your quotations",
         "status": promotion_schema_1.PROMOTION_STATUS.ACTIVE,
-        "customerLimit": 100,
+        "customerLimit": 150,
         "contractorLimit": 100,
     }
 ];
