@@ -140,6 +140,8 @@ JobQuotationSchema.methods.calculateCharges = async function (type = null) {
     if(type){
         if (type == PAYMENT_TYPE.CHANGE_ORDER_PAYMENT) {
             estimates = this?.changeOrderEstimate?.estimates
+            customerDiscount = undefined
+            contractorDiscount = undefined
         }
     
         if (type == PAYMENT_TYPE.SITE_VISIT_PAYMENT) {

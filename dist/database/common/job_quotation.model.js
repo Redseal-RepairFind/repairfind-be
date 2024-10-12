@@ -119,6 +119,8 @@ JobQuotationSchema.methods.calculateCharges = function (type) {
                     if (type) {
                         if (type == payment_schema_1.PAYMENT_TYPE.CHANGE_ORDER_PAYMENT) {
                             estimates = (_a = this === null || this === void 0 ? void 0 : this.changeOrderEstimate) === null || _a === void 0 ? void 0 : _a.estimates;
+                            customerDiscount = undefined;
+                            contractorDiscount = undefined;
                         }
                         if (type == payment_schema_1.PAYMENT_TYPE.SITE_VISIT_PAYMENT) {
                             estimates = (_b = this === null || this === void 0 ? void 0 : this.siteVisitEstimate) === null || _b === void 0 ? void 0 : _b.estimates;
