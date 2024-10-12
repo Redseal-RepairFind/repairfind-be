@@ -137,6 +137,8 @@ JobQuotationSchema.methods.calculateCharges = async function (type = null) {
     let customerDiscount = this.customerDiscount
     let contractorDiscount = this.contractorDiscount
 
+
+    
     if(type){
         if (type == PAYMENT_TYPE.CHANGE_ORDER_PAYMENT) {
             estimates = this?.changeOrderEstimate?.estimates

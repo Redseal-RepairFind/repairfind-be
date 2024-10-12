@@ -122,7 +122,7 @@ export const createCheckoutOrder = async (req: any, res: Response, next: NextFun
     
             job.isChangeOrder = false;
             await job.save();
-            return res.json({ success: true, message: 'Payment intent created', data: capture });
+            return res.json({ success: true, message: 'Payment intent created', data: {capture, ...charges} });
             
         }
        

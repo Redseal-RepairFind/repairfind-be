@@ -198,7 +198,7 @@ var createCheckoutOrder = function (req, res, next) { return __awaiter(void 0, v
                 return [4 /*yield*/, job.save()];
             case 8:
                 _b.sent();
-                return [2 /*return*/, res.json({ success: true, message: 'Payment intent created', data: capture_1 })];
+                return [2 /*return*/, res.json({ success: true, message: 'Payment intent created', data: __assign({ capture: capture_1 }, charges_1) })];
             case 9:
                 if (job.status === job_model_1.JOB_STATUS.BOOKED) {
                     return [2 /*return*/, res.status(400).json({ success: false, message: 'This job is not pending, so new payment is not possible' })];
