@@ -21,7 +21,7 @@ import { JobDisputeModel } from "../../../database/common/job_dispute.model";
 import { ContractorQuizPipeline } from "../../../database/contractor/pipelines/contractor_quize.pipeline";
 import { ContractorStripeAccountPipeline } from "../../../database/contractor/pipelines/contractor_stripe_account.pipeline";
 import { GenericEmailTemplate } from "../../../templates/common/generic_email";
-import { EmailService } from "../../../services";
+import { EmailService, NotificationService } from "../../../services";
 import { PROMOTION_STATUS, PromotionModel } from "../../../database/common/promotion.schema";
 import { CouponModel } from "../../../database/common/coupon.schema";
 import { generateCouponCode } from "../../../utils/couponCodeGenerator";
@@ -114,7 +114,7 @@ export const exploreContractors = async (
           },
           rating: { $avg: '$reviews.averageRating' }, // Calculate average rating using $avg
           reviewCount: { $size: '$reviews' }, // Calculate average rating using $avg
-        
+
         }
       },
       {
@@ -157,20 +157,20 @@ export const exploreContractors = async (
     ];
 
 
-  
-
-      //example filter out who do not have stripe account
-      // pipeline.push({ $match: { "stripeAccountStatus.status": 'active' } })
 
 
-     //example filter out employees and contractors 
-     pipeline.push({ $match: { accountType: { $ne: CONTRACTOR_TYPES.Employee } } })
+    //example filter out who do not have stripe account
+    // pipeline.push({ $match: { "stripeAccountStatus.status": 'active' } })
+
+
+    //example filter out employees and contractors 
+    pipeline.push({ $match: { accountType: { $ne: CONTRACTOR_TYPES.Employee } } })
 
     // Add stages conditionally based on query parameters
     if (searchName) {
       pipeline.push({ $match: { "name": { $regex: new RegExp(searchName, 'i') } } });
     }
-   
+
 
     if (category) {
       pipeline.push({ $match: { "profile.skill": { $regex: new RegExp(category, 'i') } } });
@@ -191,10 +191,10 @@ export const exploreContractors = async (
       pipeline.push({ $match: { "accountType": accountType } });
     }
     if (hasPassedQuiz) {
-      pipeline.push({ $match: { "quiz.passed": hasPassedQuiz === "true" || null  } });
+      pipeline.push({ $match: { "quiz.passed": hasPassedQuiz === "true" || null } });
     }
     if (stripeAccountStatus) {
-      pipeline.push({ $match: { "stripeAccountStatus.status": stripeAccountStatus} })
+      pipeline.push({ $match: { "stripeAccountStatus.status": stripeAccountStatus } })
     }
     if (experienceYear) {
       pipeline.push({ $match: { "profile.experienceYear": parseInt(experienceYear) } });
@@ -746,21 +746,33 @@ export const attachCertnDetails = async (
   next: NextFunction
 ) => {
   try {
-    const certnDetails = req.body; // Extract certnId and certnDetails from the request body
+    const {certnDetails, contractorEmail} = req.body; // Extract certnId and certnDetails from the request body
     const { contractorId } = req.params; // Extract contractorId from the request parameters
 
     // Find the contractor by ID
-    const contractor = await ContractorModel.findById(contractorId);
+    const contractor = await ContractorModel.findOne({email: contractorEmail});
     if (!contractor) {
       return res.status(404).json({ success: false, message: 'Contractor not found' });
     }
 
     // Attach certnDetails to the contractor
-    await ContractorModel.findByIdAndUpdate(contractorId, {
-      certnId: certnDetails.application.id,
+    await ContractorModel.findByIdAndUpdate(contractor.id, {
+      certnId: certnDetails.application.applicant.id,
       certnDetails: certnDetails
     })
-   
+
+    NotificationService.sendNotification({
+      user: contractor.id,
+      userType: 'contractors',
+      title: 'Background Check Complete',
+      type: 'BACKGROUND_CHECK', //
+      message: `Your background check with CERTN is now complete`,
+      heading: { name: `Repairfind`, image: 'https://repairfindtwo.s3.us-east-2.amazonaws.com/repairfind-logo.png' },
+      payload: {
+      }
+    }, { push: true, socket: true, database: true })
+
+
 
     // Respond with success message
     return res.json({ success: true, message: 'Certn details attached', data: contractor });
@@ -769,6 +781,38 @@ export const attachCertnDetails = async (
     return next(new InternalServerError(`Error attaching certn details: ${error.message}`, error));
   }
 };
+
+
+// Attach Certn Id and let the cron job retrieve the result and notify
+export const attachCertnId = async (
+  req: Request,
+  res: Response,
+  next: NextFunction
+) => {
+  try {
+    const { certnId, contractorEmail } = req.body; // Extract certnId and certnDetails from the request body
+
+    // Find the contractor by ID
+    const contractor = await ContractorModel.findOne({email: contractorEmail});
+    if (!contractor) {
+      return res.status(404).json({ success: false, message: 'Contractor not found' });
+    }
+
+    // Attach certnDetails to the contractor
+    await ContractorModel.findByIdAndUpdate(contractor.id, {
+      certnId: certnId,
+    })
+
+
+    // Respond with success message
+    return res.json({ success: true, message: 'Certn details attached', data: contractor });
+  } catch (error: any) {
+    // Handle any errors that occur
+    return next(new InternalServerError(`Error attaching certn details: ${error.message}`, error));
+  }
+};
+
+
 
 
 
@@ -795,15 +839,15 @@ export const issueCoupon = async (
     // Create a new user coupon with promotion details
     const newUserCoupon = new CouponModel({
       promotion: promotion._id, // Attach promotion ID
-      name: promotion.name, 
+      name: promotion.name,
       code: generateCouponCode(7), // generate coupon code here
-      user: contractorId, 
+      user: contractorId,
       userType: 'contractors',
-      valueType: promotion.valueType, 
-      value: promotion.value, 
-      applicableAtCheckout: true, 
-      expiryDate: promotion.endDate, 
-      status: 'active' 
+      valueType: promotion.valueType,
+      value: promotion.value,
+      applicableAtCheckout: true,
+      expiryDate: promotion.endDate,
+      status: 'active'
     });
 
     // Save the new coupon
@@ -829,6 +873,7 @@ export const AdminContractorController = {
   updateAccountStatus,
   sendCustomEmail,
   attachCertnDetails,
+  attachCertnId,
   issueCoupon
 
 }

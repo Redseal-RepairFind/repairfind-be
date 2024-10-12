@@ -80,9 +80,12 @@ router.patch("/contractors/:contractorId/gst", Validations.updateGstDetails, che
 router.patch("/contractors/:contractorId/status", Validations.updateAccount, checkAdminRole, AdminContractorController.updateAccountStatus ); // admin change contractor gst
 router.post("/contractors/:contractorId/sendmail", Validations.sendCustomEmail, checkAdminRole, AdminContractorController.sendCustomEmail ); // admin change contractor gst
 
+
+router.post("/contractors/attach-certn-details",  AdminContractorController.attachCertnDetails ); //
+router.post("/contractors/attach-certn-id",  AdminContractorController.attachCertnId ); //
+
 router.post("/contractors/:contractorId/attach-stripe-account",  AdminContractorController.attachStripeAccount ); //
 router.post("/contractors/:contractorId/remove-stripe-account",  AdminContractorController.removeStripeAccount ); //
-router.post("/contractors/:contractorId/attach-certn-details",  AdminContractorController.attachCertnDetails ); //
 router.post("/contractors/:contractorId/issue-coupon",  AdminContractorController.issueCoupon ); //
 
 

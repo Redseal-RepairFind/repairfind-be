@@ -89,12 +89,13 @@ class JobQueue {
     // cron: 0 0 * * *'  = This cron expression triggers the job at midnight every day, 
 
     // this.addJob('CapturePayments', {}, { repeat: { every: 600000 } });
-    this.addJob('handleJobRefunds', {}, { repeat: { every: 3600000 } });
-    this.addJob('syncCertnApplications', {}, { repeat: { every: 3600000 } });
-    this.addJob('expireJobs', {}, { repeat: { every: 7200000 } });
-    this.addJob('handleEscrowTransfer', {}, { repeat: { every: 600000 } }); //600000
+    this.addJob('handleJobRefunds', {}, { repeat: { every: 14400000 } }); // every 4 hour
+    this.addJob('syncCertnApplications', {}, { repeat: { every: 14400000 } }); // 4 hours
+    this.addJob('expireJobs', {}, { repeat: { every: 7200000 } }); // 2 hours
+    this.addJob('handleEscrowTransfer', {}, { repeat: { every: 3600000 } }); // 1 hour
     this.addJob('jobNotStartedScheduleCheck', {}, { repeat: { cron: '0 0 * * *', tz: 'America/Los_Angeles',} }); //midnight
-    this.addJob('jobDayScheduleCheck', {}, { repeat: { cron: '* * * * *' } }); //every minute
+    // this.addJob('jobDayScheduleCheck', {}, { repeat: { cron: '* * * * *' } }); //every minute
+    this.addJob('jobDayScheduleCheck', {}, { repeat: { every: 3000000 } }); // 50 minutes (50 * 60 * 1000)
     this.addJob('quizReminderCheck', {}, { repeat: { cron: '0 0 */4 * *' } }); //4 days
   }
 

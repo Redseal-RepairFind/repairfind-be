@@ -62,9 +62,10 @@ router.get("/contractors/:contractorId/jobs/:jobId", adminRoleChecker_middleware
 router.patch("/contractors/:contractorId/gst", admin_validations_middleware_1.Validations.updateGstDetails, adminRoleChecker_middleware_1.checkAdminRole, admin_contractors_controller_1.AdminContractorController.updateGstDetails); // admin change contractor gst
 router.patch("/contractors/:contractorId/status", admin_validations_middleware_1.Validations.updateAccount, adminRoleChecker_middleware_1.checkAdminRole, admin_contractors_controller_1.AdminContractorController.updateAccountStatus); // admin change contractor gst
 router.post("/contractors/:contractorId/sendmail", admin_validations_middleware_1.Validations.sendCustomEmail, adminRoleChecker_middleware_1.checkAdminRole, admin_contractors_controller_1.AdminContractorController.sendCustomEmail); // admin change contractor gst
+router.post("/contractors/attach-certn-details", admin_contractors_controller_1.AdminContractorController.attachCertnDetails); //
+router.post("/contractors/attach-certn-id", admin_contractors_controller_1.AdminContractorController.attachCertnId); //
 router.post("/contractors/:contractorId/attach-stripe-account", admin_contractors_controller_1.AdminContractorController.attachStripeAccount); //
 router.post("/contractors/:contractorId/remove-stripe-account", admin_contractors_controller_1.AdminContractorController.removeStripeAccount); //
-router.post("/contractors/:contractorId/attach-certn-details", admin_contractors_controller_1.AdminContractorController.attachCertnDetails); //
 router.post("/contractors/:contractorId/issue-coupon", admin_contractors_controller_1.AdminContractorController.issueCoupon); //
 //done
 router.get("/customer/detail", adminRoleChecker_middleware_1.checkAdminRole, admin_customer_controller_1.AdminCustomerController.AdminGetCustomerDetailController); // admin get customer detail

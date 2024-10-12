@@ -42,14 +42,14 @@ var contractor_model_1 = require("../../../database/contractor/models/contractor
 var interface_dto_util_1 = require("../../../utils/interface_dto.util");
 var logger_1 = require("../../logger");
 var syncCertnApplications = function () { return __awaiter(void 0, void 0, void 0, function () {
-    var contractors, _i, contractors_1, contractor, res, error_1, error_2;
+    var contractors, _i, contractors_1, contractor, res, certnDetails, error_1, error_2;
     return __generator(this, function (_a) {
         switch (_a.label) {
             case 0:
                 _a.trys.push([0, 8, , 9]);
                 return [4 /*yield*/, contractor_model_1.ContractorModel.find({
                         certnId: { $ne: null },
-                        "certnDetails.result": { $ne: "CLEARED" }
+                        "certnDetails.report_status": { $ne: "COMPLETE" }
                     })];
             case 1:
                 contractors = _a.sent();
@@ -64,8 +64,20 @@ var syncCertnApplications = function () { return __awaiter(void 0, void 0, void 
                 return [4 /*yield*/, __1.CertnService.retrieveApplicant(contractor.certnId)];
             case 4:
                 res = _a.sent();
-                contractor.certnDetails = (0, interface_dto_util_1.castPayloadToDTO)(res, res);
+                certnDetails = (0, interface_dto_util_1.castPayloadToDTO)(res, res);
+                contractor.certnDetails = certnDetails;
                 contractor.save();
+                if (certnDetails.report_status == 'COMPLETE') {
+                    __1.NotificationService.sendNotification({
+                        user: contractor.id,
+                        userType: 'contractors',
+                        title: 'Background Check Complete',
+                        type: 'BACKGROUND_CHECK', //
+                        message: "Your background check with CERTN is now complete",
+                        heading: { name: "Repairfind", image: 'https://repairfindtwo.s3.us-east-2.amazonaws.com/repairfind-logo.png' },
+                        payload: {}
+                    }, { push: true, socket: true, database: true });
+                }
                 logger_1.Logger.info("Successfully synced certn profile for: ".concat(contractor.email));
                 return [3 /*break*/, 6];
             case 5:

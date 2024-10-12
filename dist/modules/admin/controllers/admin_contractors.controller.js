@@ -59,7 +59,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.AdminContractorController = exports.issueCoupon = exports.attachCertnDetails = exports.attachStripeAccount = exports.removeStripeAccount = exports.AdminChangeContractorAccountStatusController = exports.updateAccountStatus = exports.sendCustomEmail = exports.updateGstDetails = exports.getSingleJob = exports.getJobHistory = exports.getSingleContractor = exports.exploreContractors = void 0;
+exports.AdminContractorController = exports.issueCoupon = exports.attachCertnId = exports.attachCertnDetails = exports.attachStripeAccount = exports.removeStripeAccount = exports.AdminChangeContractorAccountStatusController = exports.updateAccountStatus = exports.sendCustomEmail = exports.updateGstDetails = exports.getSingleJob = exports.getJobHistory = exports.getSingleContractor = exports.exploreContractors = void 0;
 var express_validator_1 = require("express-validator");
 var admin_model_1 = __importDefault(require("../../../database/admin/models/admin.model"));
 var contractor_model_1 = require("../../../database/contractor/models/contractor.model");
@@ -704,33 +704,40 @@ var attachStripeAccount = function (req, res, next) { return __awaiter(void 0, v
 }); };
 exports.attachStripeAccount = attachStripeAccount;
 var attachCertnDetails = function (req, res, next) { return __awaiter(void 0, void 0, void 0, function () {
-    var certnDetails, contractorId, contractor, error_5;
-    return __generator(this, function (_a) {
-        switch (_a.label) {
+    var _a, certnDetails, contractorEmail, contractorId, contractor, error_5;
+    return __generator(this, function (_b) {
+        switch (_b.label) {
             case 0:
-                _a.trys.push([0, 3, , 4]);
-                certnDetails = req.body;
+                _b.trys.push([0, 3, , 4]);
+                _a = req.body, certnDetails = _a.certnDetails, contractorEmail = _a.contractorEmail;
                 contractorId = req.params.contractorId;
-                return [4 /*yield*/, contractor_model_1.ContractorModel.findById(contractorId)];
+                return [4 /*yield*/, contractor_model_1.ContractorModel.findOne({ email: contractorEmail })];
             case 1:
-                contractor = _a.sent();
+                contractor = _b.sent();
                 if (!contractor) {
                     return [2 /*return*/, res.status(404).json({ success: false, message: 'Contractor not found' })];
                 }
                 // Attach certnDetails to the contractor
-                return [4 /*yield*/, contractor_model_1.ContractorModel.findByIdAndUpdate(contractorId, {
-                        certnId: certnDetails.application.id,
+                return [4 /*yield*/, contractor_model_1.ContractorModel.findByIdAndUpdate(contractor.id, {
+                        certnId: certnDetails.application.applicant.id,
                         certnDetails: certnDetails
-                    })
-                    // Respond with success message
-                ];
+                    })];
             case 2:
                 // Attach certnDetails to the contractor
-                _a.sent();
+                _b.sent();
+                services_1.NotificationService.sendNotification({
+                    user: contractor.id,
+                    userType: 'contractors',
+                    title: 'Background Check Complete',
+                    type: 'BACKGROUND_CHECK', //
+                    message: "Your background check with CERTN is now complete",
+                    heading: { name: "Repairfind", image: 'https://repairfindtwo.s3.us-east-2.amazonaws.com/repairfind-logo.png' },
+                    payload: {}
+                }, { push: true, socket: true, database: true });
                 // Respond with success message
                 return [2 /*return*/, res.json({ success: true, message: 'Certn details attached', data: contractor })];
             case 3:
-                error_5 = _a.sent();
+                error_5 = _b.sent();
                 // Handle any errors that occur
                 return [2 /*return*/, next(new custom_errors_1.InternalServerError("Error attaching certn details: ".concat(error_5.message), error_5))];
             case 4: return [2 /*return*/];
@@ -738,8 +745,42 @@ var attachCertnDetails = function (req, res, next) { return __awaiter(void 0, vo
     });
 }); };
 exports.attachCertnDetails = attachCertnDetails;
+// Attach Certn Id and let the cron job retrieve the result and notify
+var attachCertnId = function (req, res, next) { return __awaiter(void 0, void 0, void 0, function () {
+    var _a, certnId, contractorEmail, contractor, error_6;
+    return __generator(this, function (_b) {
+        switch (_b.label) {
+            case 0:
+                _b.trys.push([0, 3, , 4]);
+                _a = req.body, certnId = _a.certnId, contractorEmail = _a.contractorEmail;
+                return [4 /*yield*/, contractor_model_1.ContractorModel.findOne({ email: contractorEmail })];
+            case 1:
+                contractor = _b.sent();
+                if (!contractor) {
+                    return [2 /*return*/, res.status(404).json({ success: false, message: 'Contractor not found' })];
+                }
+                // Attach certnDetails to the contractor
+                return [4 /*yield*/, contractor_model_1.ContractorModel.findByIdAndUpdate(contractor.id, {
+                        certnId: certnId,
+                    })
+                    // Respond with success message
+                ];
+            case 2:
+                // Attach certnDetails to the contractor
+                _b.sent();
+                // Respond with success message
+                return [2 /*return*/, res.json({ success: true, message: 'Certn details attached', data: contractor })];
+            case 3:
+                error_6 = _b.sent();
+                // Handle any errors that occur
+                return [2 /*return*/, next(new custom_errors_1.InternalServerError("Error attaching certn details: ".concat(error_6.message), error_6))];
+            case 4: return [2 /*return*/];
+        }
+    });
+}); };
+exports.attachCertnId = attachCertnId;
 var issueCoupon = function (req, res, next) { return __awaiter(void 0, void 0, void 0, function () {
-    var promotionId, contractorId, promotion, newUserCoupon, error_6;
+    var promotionId, contractorId, promotion, newUserCoupon, error_7;
     return __generator(this, function (_a) {
         switch (_a.label) {
             case 0:
@@ -776,9 +817,9 @@ var issueCoupon = function (req, res, next) { return __awaiter(void 0, void 0, v
                 // Respond with success message
                 return [2 /*return*/, res.json({ success: true, message: 'Promotion attached to user as coupon', data: newUserCoupon })];
             case 3:
-                error_6 = _a.sent();
+                error_7 = _a.sent();
                 // Handle any errors that occur
-                return [2 /*return*/, next(new custom_errors_1.InternalServerError("Error attaching promotion to user coupon: ".concat(error_6.message), error_6))];
+                return [2 /*return*/, next(new custom_errors_1.InternalServerError("Error attaching promotion to user coupon: ".concat(error_7.message), error_7))];
             case 4: return [2 /*return*/];
         }
     });
@@ -795,5 +836,6 @@ exports.AdminContractorController = {
     updateAccountStatus: exports.updateAccountStatus,
     sendCustomEmail: exports.sendCustomEmail,
     attachCertnDetails: exports.attachCertnDetails,
+    attachCertnId: exports.attachCertnId,
     issueCoupon: exports.issueCoupon
 };

@@ -230,9 +230,6 @@ var ContractorSchema = new mongoose_1.Schema({
         label: { type: String, default: contractor_interface_1.CONTRACTOR_BADGE.PROSPECT },
         icon: { type: String, default: null },
     },
-    earlyBird: {
-        discountRedeemed: { type: Boolean },
-    },
     onboarding: {
         hasStripeAccount: { default: false, type: Boolean },
         hasStripeIdentity: { default: false, type: Boolean },
