@@ -1,7 +1,7 @@
 import { Document, ObjectId, Schema, model } from "mongoose";
 import { PAYMENT_TYPE } from "./payment.schema";
 import { PaymentUtil } from "../../utils/payment.util";
-import { COUPON_STATUS, COUPON_TYPE, COUPON_VALUE_TYPE, CouponModel } from "./coupon.schema";
+import { COUPON_TYPE, COUPON_VALUE_TYPE } from "./coupon.schema";
 
 export enum JOB_QUOTATION_STATUS {
     PENDING = 'PENDING',
@@ -135,7 +135,7 @@ JobQuotationSchema.methods.calculateCharges = async function (type = null) {
     let estimates = this.estimates
     let totalEstimateAmount = 0
     let customerDiscount = this.customerDiscount
-    let contractorDiscount = undefined
+    let contractorDiscount = this.contractorDiscount
 
     if(type){
         if (type == PAYMENT_TYPE.CHANGE_ORDER_PAYMENT) {
@@ -145,6 +145,7 @@ JobQuotationSchema.methods.calculateCharges = async function (type = null) {
         if (type == PAYMENT_TYPE.SITE_VISIT_PAYMENT) {
             estimates = this?.siteVisitEstimate?.estimates
             customerDiscount = this.siteVisitEstimate.customerDiscount
+            contractorDiscount = this.siteVisitEstimate.contractorDiscount
         }
     }else{
         //merge all arrays
@@ -164,12 +165,7 @@ JobQuotationSchema.methods.calculateCharges = async function (type = null) {
         });
     }
    
-
-
-    const coupon = await CouponModel.findOne({user:this.contractor, type: 'SERVICE_FEE_DISCOUNT', status: COUPON_STATUS.ACTIVE})
-    if(coupon){
-      contractorDiscount = {value: coupon.value, valueType: coupon.valueType, coupon: coupon.id }
-    }
+    
 
     const charges = await PaymentUtil.calculateCharges({totalEstimateAmount, customerDiscount, contractorDiscount})
     return charges
