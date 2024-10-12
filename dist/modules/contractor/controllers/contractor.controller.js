@@ -1156,7 +1156,7 @@ var ProfileHandler = /** @class */ (function (_super) {
                         return [4 /*yield*/, contractor_model_1.ContractorModel.deleteById(contractorId)];
                     case 8:
                         _a.sent();
-                        events_1.AccountEvent.emit('ACCOUNT_DELETED', deletedAccount);
+                        events_1.AccountEvent.emit('ACCOUNT_DELETED', { user: deletedAccount });
                         res.json({ success: true, message: 'Account deleted successfully' });
                         return [3 /*break*/, 10];
                     case 9:

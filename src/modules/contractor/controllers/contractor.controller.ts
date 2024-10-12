@@ -1006,7 +1006,7 @@ class ProfileHandler extends Base {
 
       await ContractorModel.deleteById(contractorId)
 
-      AccountEvent.emit('ACCOUNT_DELETED', deletedAccount)
+      AccountEvent.emit('ACCOUNT_DELETED', {user: deletedAccount})
 
       res.json({ success: true, message: 'Account deleted successfully' });
     } catch (err: any) {

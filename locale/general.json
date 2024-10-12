@@ -5,7 +5,8 @@
   "new_unread_message": {
     "fr": "Nouveau message non lu",
     "zh": "新的未读消息",
-    "en": "New unread message"
+    "en": "New unread message",
+    "es": "Nuevo mensaje no leído"
   },
   "you_ve_sent_a_job_request_to": {
     "zh": "您已将工作请求发送至"
@@ -13,7 +14,8 @@
   "you_have_a_new_unread_message_from": {
     "fr": "Vous avez un nouveau message non lu de",
     "zh": "您有一条新的未读消息，来自",
-    "en": "You have a new unread message from"
+    "en": "You have a new unread message from",
+    "es": "Tienes un nuevo mensaje no leído de"
   },
   "password_change": {
     "zh": "更改密码"
@@ -34,11 +36,13 @@
   },
   "new_job_bid": {
     "zh": "新工作投标",
-    "fr": "Nouvelle offre d'emploi"
+    "fr": "Nouvelle offre d'emploi",
+    "es": "Nueva oferta de trabajo"
   },
   "your_job_on_repairfind_has_received_a_new_bid": {
     "zh": "您在 Repairfind 上的工作已收到新的出价",
-    "fr": "Votre travail sur Repairfind a reçu une nouvelle offre"
+    "fr": "Votre travail sur Repairfind a reçu une nouvelle offre",
+    "es": "Su trabajo en Repairfind ha recibido una nueva oferta"
   },
   "new_job_payment": {
     "en": "New Job Payment",

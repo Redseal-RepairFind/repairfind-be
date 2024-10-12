@@ -108,14 +108,14 @@ JobQuotationSchema.methods.calculateCharges = function (type) {
     var _a, _b, _c, _d, _e, _f;
     if (type === void 0) { type = null; }
     return __awaiter(this, void 0, void 0, function () {
-        var estimates, totalEstimateAmount, customerDiscount, contractorDiscount, siteVisitEstimateNotPaid, charges;
+        var estimates, totalEstimateAmount, customerDiscount, contractorDiscount, siteVisitEstimateNotPaid, coupon, charges;
         return __generator(this, function (_g) {
             switch (_g.label) {
                 case 0:
                     estimates = this.estimates;
                     totalEstimateAmount = 0;
                     customerDiscount = this.customerDiscount;
-                    contractorDiscount = this.contractorDiscount;
+                    contractorDiscount = undefined;
                     if (type) {
                         if (type == payment_schema_1.PAYMENT_TYPE.CHANGE_ORDER_PAYMENT) {
                             estimates = (_a = this === null || this === void 0 ? void 0 : this.changeOrderEstimate) === null || _a === void 0 ? void 0 : _a.estimates;
@@ -123,7 +123,6 @@ JobQuotationSchema.methods.calculateCharges = function (type) {
                         if (type == payment_schema_1.PAYMENT_TYPE.SITE_VISIT_PAYMENT) {
                             estimates = (_b = this === null || this === void 0 ? void 0 : this.siteVisitEstimate) === null || _b === void 0 ? void 0 : _b.estimates;
                             customerDiscount = this.siteVisitEstimate.customerDiscount;
-                            contractorDiscount = this.siteVisitEstimate.contractorDiscount;
                         }
                     }
                     else {
@@ -135,8 +134,14 @@ JobQuotationSchema.methods.calculateCharges = function (type) {
                             totalEstimateAmount += estimate.rate * estimate.quantity;
                         });
                     }
-                    return [4 /*yield*/, payment_util_1.PaymentUtil.calculateCharges({ totalEstimateAmount: totalEstimateAmount, customerDiscount: customerDiscount, contractorDiscount: contractorDiscount })];
+                    return [4 /*yield*/, coupon_schema_1.CouponModel.findOne({ user: this.contractor, type: 'SERVICE_FEE_DISCOUNT', status: coupon_schema_1.COUPON_STATUS.ACTIVE })];
                 case 1:
+                    coupon = _g.sent();
+                    if (coupon) {
+                        contractorDiscount = { value: coupon.value, valueType: coupon.valueType, coupon: coupon.id };
+                    }
+                    return [4 /*yield*/, payment_util_1.PaymentUtil.calculateCharges({ totalEstimateAmount: totalEstimateAmount, customerDiscount: customerDiscount, contractorDiscount: contractorDiscount })];
+                case 2:
                     charges = _g.sent();
                     return [2 /*return*/, charges];
             }

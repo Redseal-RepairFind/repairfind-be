@@ -111,6 +111,7 @@ class AuthHandler extends Base {
             await EmailService.send(email, translatedSubject!, translatedHtml!);
 
             AccountEvent.emit('NEW_CONTRACTOR', {contractor})
+            
             return res.json({
                 success: true,
                 message: "Signup successful",
