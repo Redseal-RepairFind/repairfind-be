@@ -119,7 +119,7 @@ exports.AccountEvent.on('NEW_CONTRACTOR', function (payload) {
         return __generator(this, function (_a) {
             switch (_a.label) {
                 case 0:
-                    _a.trys.push([0, 7, , 8]);
+                    _a.trys.push([0, 6, , 7]);
                     logger_1.Logger.info("handling NEW_CONTRACTOR event");
                     contractor = payload.contractor;
                     return [4 /*yield*/, promotion_schema_1.PromotionModel.findOne({ code: 'EARLYBIRDCONTRACTOR', status: promotion_schema_1.PROMOTION_STATUS.ACTIVE })];
@@ -146,26 +146,20 @@ exports.AccountEvent.on('NEW_CONTRACTOR', function (payload) {
                         })];
                 case 3:
                     coupon = _a.sent();
-                    contractor.earlyBird = { discountRedeemed: false };
-                    return [4 /*yield*/, contractor.save()
-                        // Decrease promotion limit
-                    ];
-                case 4:
-                    _a.sent();
                     // Decrease promotion limit
                     referralPromotion.contractorLimit -= 1;
                     return [4 /*yield*/, referralPromotion.save()];
-                case 5:
+                case 4:
                     _a.sent();
                     return [4 /*yield*/, sendEarlyBirdCouponEmail(contractor, referralPromotion)];
-                case 6:
+                case 5:
                     _a.sent();
-                    return [3 /*break*/, 8];
-                case 7:
+                    return [3 /*break*/, 7];
+                case 6:
                     error_2 = _a.sent();
                     logger_1.Logger.error("Error handling NEW_CONTRACTOR event: ".concat(error_2));
-                    return [3 /*break*/, 8];
-                case 8: return [2 /*return*/];
+                    return [3 /*break*/, 7];
+                case 7: return [2 /*return*/];
             }
         });
     });

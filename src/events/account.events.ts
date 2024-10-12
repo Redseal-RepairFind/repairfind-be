@@ -84,7 +84,6 @@ AccountEvent.on('NEW_CONTRACTOR', async function (payload: { contractor: IContra
         if (!referralPromotion) return;
         if (referralPromotion.contractorLimit <= 0) return;
 
-
          // If Referral promotion is ongoing, create user coupon for the referral bonus
          const couponCode = await GeneratorUtil.generateCouponCode(6);
          const coupon = await CouponModel.create({
@@ -101,8 +100,6 @@ AccountEvent.on('NEW_CONTRACTOR', async function (payload: { contractor: IContra
          });
     
         
-        contractor.earlyBird = {discountRedeemed: false}
-        await contractor.save()
 
         // Decrease promotion limit
         referralPromotion.contractorLimit -= 1;
