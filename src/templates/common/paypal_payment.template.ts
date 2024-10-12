@@ -70,7 +70,7 @@ export const PaypalPaymentCheckoutTemplate = (payload: {token: string, paypalCli
         });
         const orderData = await response.json();
         console.log('orderData', orderData);
-        return orderData.data.id;
+        return orderData.data.capture.id;
       } catch (error) {
         console.error(error);
         alert(\`Could not initiate PayPal Checkout...\`);
@@ -104,6 +104,9 @@ export const PaypalPaymentCheckoutTemplate = (payload: {token: string, paypalCli
             .Buttons({
               createOrder: createOrderCallback,
               onApprove: onApproveCallback,
+              onError: function(err) {
+                  console.error('Error:', err);
+              }
             })
             .render('#paypal-button-container');
 
@@ -134,7 +137,8 @@ export const PaypalPaymentCheckoutTemplate = (payload: {token: string, paypalCli
 
                 cardField
                 .submit({
-                 
+                  createOrder: createOrderCallback,
+                  onApprove: onApproveCallback,
                 })
                 .then(() => {
                   loader.style.display = 'none';
