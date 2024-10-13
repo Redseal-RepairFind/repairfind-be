@@ -759,8 +759,17 @@ var applyCouponToJobQuotation = function (req, res, next) { return __awaiter(voi
                 coupon = _b.sent();
                 if (!coupon)
                     return [2 /*return*/, res.status(400).json({ success: false, message: 'Coupon is invalid' })];
-                if (Object.values(coupon_schema_1.COUPON_STATUS).includes(coupon.status)) {
-                    return [2 /*return*/, res.status(400).json({ message: "Coupon is ".concat(coupon.status) })];
+                if (coupon.status === coupon_schema_1.COUPON_STATUS.EXPIRED) {
+                    return [2 /*return*/, res.status(400).json({ message: "Coupon has expired, kindly try another coupon" })];
+                }
+                if (coupon.status === coupon_schema_1.COUPON_STATUS.PENDING) {
+                    return [2 /*return*/, res.status(400).json({ message: "Coupon is pending and cannot be applied, " })];
+                }
+                if (coupon.status === coupon_schema_1.COUPON_STATUS.REDEEMED) {
+                    return [2 /*return*/, res.status(400).json({ message: "Coupon has already been redeemed" })];
+                }
+                if (coupon.status === coupon_schema_1.COUPON_STATUS.INUSE) {
+                    return [2 /*return*/, res.status(400).json({ message: "Coupon is already in use" })];
                 }
                 if (quotation.type == job_quotation_model_1.JOB_QUOTATION_TYPE.SITE_VISIT) {
                     if (quotation.siteVisitEstimate.hasOwnProperty('customerDiscount'))
@@ -784,7 +793,7 @@ var applyCouponToJobQuotation = function (req, res, next) { return __awaiter(voi
                         valueType: coupon.valueType,
                     };
                 }
-                coupon.status = coupon_schema_1.COUPON_STATUS.PENDING;
+                coupon.status = coupon_schema_1.COUPON_STATUS.INUSE;
                 return [4 /*yield*/, Promise.all([
                         coupon.save(),
                         quotation.save()

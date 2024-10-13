@@ -654,8 +654,18 @@ export const applyCouponToJobQuotation = async (req: any, res: Response, next: N
         const coupon = await CouponModel.findOne({ code: couponCode, user: customerId, userType: 'customers' })
         if (!coupon) return res.status(400).json({ success: false, message: 'Coupon is invalid' });
         
-        if (Object.values(COUPON_STATUS).includes(coupon.status)) {
-            return res.status(400).json({ message: `Coupon is ${coupon.status}` });
+        if (coupon.status === COUPON_STATUS.EXPIRED) {
+            return res.status(400).json({ message: `Coupon has expired, kindly try another coupon` });
+        }
+        if (coupon.status === COUPON_STATUS.PENDING) {
+            return res.status(400).json({ message: `Coupon is pending and cannot be applied, ` });
+        }
+        if (coupon.status === COUPON_STATUS.REDEEMED) {
+            return res.status(400).json({ message: `Coupon has already been redeemed` });
+        }
+
+        if (coupon.status === COUPON_STATUS.INUSE) {
+            return res.status(400).json({ message: `Coupon is already in use` });
         }
 
         if (quotation.type == JOB_QUOTATION_TYPE.SITE_VISIT) {
@@ -678,7 +688,7 @@ export const applyCouponToJobQuotation = async (req: any, res: Response, next: N
             }
         }
 
-        coupon.status = COUPON_STATUS.PENDING
+        coupon.status = COUPON_STATUS.INUSE
         await Promise.all([
             coupon.save(),
             quotation.save()
