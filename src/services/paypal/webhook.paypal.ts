@@ -165,7 +165,7 @@ export const paymentCaptureCompleted = async (payload: any, resourceType: any) =
 
                         job.status = JOB_STATUS.BOOKED
                         job.bookingViewedByContractor = false;
-
+                        payment.job = job.id
                         await Promise.all([
                             quotation.save(),
                             job.save()
@@ -214,6 +214,7 @@ export const paymentCaptureCompleted = async (payload: any, resourceType: any) =
                             Logger.info('quotation.siteVisit.date is not a valid Date object.');
                         }
 
+                        payment.job = job.id
                         await Promise.all([
                             quotation.save(),
                             job.save()
@@ -243,7 +244,7 @@ export const paymentCaptureCompleted = async (payload: any, resourceType: any) =
                         if (!changeOrderEstimate) return
                         changeOrderEstimate.isPaid = true
                         changeOrderEstimate.payment = payment.id
-
+                        payment.job = job.id
                         JobEvent.emit('CHANGE_ORDER_ESTIMATE_PAID', { job, quotation, changeOrderEstimate })
                         const conversation = await ConversationUtil.updateOrCreateConversation(job.customer, 'customers', job.contractor, 'contractors')
                         const newMessage: IMessage = await MessageModel.create({

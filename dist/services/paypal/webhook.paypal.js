@@ -220,6 +220,7 @@ var paymentCaptureCompleted = function (payload, resourceType) { return __awaite
                 };
                 job.status = job_model_1.JOB_STATUS.BOOKED;
                 job.bookingViewedByContractor = false;
+                payment.job = job.id;
                 return [4 /*yield*/, Promise.all([
                         quotation.save(),
                         job.save()
@@ -269,6 +270,7 @@ var paymentCaptureCompleted = function (payload, resourceType) { return __awaite
                 else {
                     logger_1.Logger.info('quotation.siteVisit.date is not a valid Date object.');
                 }
+                payment.job = job.id;
                 return [4 /*yield*/, Promise.all([
                         quotation.save(),
                         job.save()
@@ -304,6 +306,7 @@ var paymentCaptureCompleted = function (payload, resourceType) { return __awaite
                     return [2 /*return*/];
                 changeOrderEstimate.isPaid = true;
                 changeOrderEstimate.payment = payment.id;
+                payment.job = job.id;
                 events_1.JobEvent.emit('CHANGE_ORDER_ESTIMATE_PAID', { job: job, quotation: quotation, changeOrderEstimate: changeOrderEstimate });
                 return [4 /*yield*/, conversation_util_1.ConversationUtil.updateOrCreateConversation(job.customer, 'customers', job.contractor, 'contractors')];
             case 21:
