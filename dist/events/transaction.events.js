@@ -1,4 +1,38 @@
 "use strict";
+var __assign = (this && this.__assign) || function () {
+    __assign = Object.assign || function(t) {
+        for (var s, i = 1, n = arguments.length; i < n; i++) {
+            s = arguments[i];
+            for (var p in s) if (Object.prototype.hasOwnProperty.call(s, p))
+                t[p] = s[p];
+        }
+        return t;
+    };
+    return __assign.apply(this, arguments);
+};
+var __createBinding = (this && this.__createBinding) || (Object.create ? (function(o, m, k, k2) {
+    if (k2 === undefined) k2 = k;
+    var desc = Object.getOwnPropertyDescriptor(m, k);
+    if (!desc || ("get" in desc ? !m.__esModule : desc.writable || desc.configurable)) {
+      desc = { enumerable: true, get: function() { return m[k]; } };
+    }
+    Object.defineProperty(o, k2, desc);
+}) : (function(o, m, k, k2) {
+    if (k2 === undefined) k2 = k;
+    o[k2] = m[k];
+}));
+var __setModuleDefault = (this && this.__setModuleDefault) || (Object.create ? (function(o, v) {
+    Object.defineProperty(o, "default", { enumerable: true, value: v });
+}) : function(o, v) {
+    o["default"] = v;
+});
+var __importStar = (this && this.__importStar) || function (mod) {
+    if (mod && mod.__esModule) return mod;
+    var result = {};
+    if (mod != null) for (var k in mod) if (k !== "default" && Object.prototype.hasOwnProperty.call(mod, k)) __createBinding(result, mod, k);
+    __setModuleDefault(result, mod);
+    return result;
+};
 var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, generator) {
     function adopt(value) { return value instanceof P ? value : new P(function (resolve) { resolve(value); }); }
     return new (P || (P = Promise))(function (resolve, reject) {
@@ -44,15 +78,18 @@ var events_1 = require("events");
 var customer_model_1 = __importDefault(require("../database/customer/models/customer.model"));
 var contractor_model_1 = require("../database/contractor/models/contractor.model");
 var services_1 = require("../services");
+var coupon_schema_1 = require("../database/common/coupon.schema");
+var transaction_model_1 = __importStar(require("../database/common/transaction.model"));
 exports.TransactionEvent = new events_1.EventEmitter();
 exports.TransactionEvent.on('ESCROW_TRANSFER_SUCCESSFUL', function (transaction) {
     var _a;
     return __awaiter(this, void 0, void 0, function () {
-        var fromUser, _b, toUser, _c, error_1;
+        var fromUser, _b, toUser, _c, coupons, error_1;
+        var _this = this;
         return __generator(this, function (_d) {
             switch (_d.label) {
                 case 0:
-                    _d.trys.push([0, 9, , 10]);
+                    _d.trys.push([0, 11, , 12]);
                     console.log('handling ESCROW_TRANSFER_SUCCESSFUL event', transaction.id);
                     if (!(transaction.fromUserType == 'customers')) return [3 /*break*/, 2];
                     return [4 /*yield*/, customer_model_1.default.findById(transaction.fromUser)];
@@ -76,30 +113,60 @@ exports.TransactionEvent.on('ESCROW_TRANSFER_SUCCESSFUL', function (transaction)
                     _d.label = 8;
                 case 8:
                     toUser = _c;
-                    if (toUser) {
-                        services_1.NotificationService.sendNotification({
-                            user: toUser.id,
-                            userType: transaction.toUserType,
-                            title: 'Fund transfer',
-                            type: 'FUND_TRANSFER', //
+                    if (!toUser) return [3 /*break*/, 10];
+                    services_1.NotificationService.sendNotification({
+                        user: toUser.id,
+                        userType: transaction.toUserType,
+                        title: 'Fund transfer',
+                        type: 'FUND_TRANSFER', //
+                        message: "Fund transfer successful",
+                        heading: { name: "".concat(toUser.name), image: (_a = toUser.profilePhoto) === null || _a === void 0 ? void 0 : _a.url },
+                        payload: {
+                            entity: transaction.id,
+                            entityType: 'transactions',
                             message: "Fund transfer successful",
-                            heading: { name: "".concat(toUser.name), image: (_a = toUser.profilePhoto) === null || _a === void 0 ? void 0 : _a.url },
-                            payload: {
-                                entity: transaction.id,
-                                entityType: 'transactions',
-                                message: "Fund transfer successful",
-                                customer: toUser.id,
-                                event: 'FUND_TRANSFER',
-                                transactionId: transaction.id,
-                            }
-                        }, { push: true, socket: true });
-                    }
-                    return [3 /*break*/, 10];
+                            customer: toUser.id,
+                            event: 'FUND_TRANSFER',
+                            transactionId: transaction.id,
+                        }
+                    }, { push: true, socket: true });
+                    if (!(transaction.toUserType === 'contractors')) return [3 /*break*/, 10];
+                    return [4 /*yield*/, coupon_schema_1.CouponModel.find({ user: toUser.id, userType: 'contractors', status: coupon_schema_1.COUPON_STATUS.ACTIVE, type: coupon_schema_1.COUPON_TYPE.REFERRAL_BONUS })];
                 case 9:
+                    coupons = _d.sent();
+                    coupons.map(function (coupon) { return __awaiter(_this, void 0, void 0, function () {
+                        return __generator(this, function (_a) {
+                            switch (_a.label) {
+                                case 0: 
+                                //create refund transaction for each payment
+                                return [4 /*yield*/, transaction_model_1.default.create({
+                                        type: transaction_model_1.TRANSACTION_TYPE.REFUND,
+                                        amount: coupon.value,
+                                        toUser: coupon.user,
+                                        toUserType: coupon.userType,
+                                        description: "Referal Bonus Payment for: ".concat(coupon === null || coupon === void 0 ? void 0 : coupon.code),
+                                        status: transaction_model_1.TRANSACTION_STATUS.APPROVED,
+                                        remark: 'bonus_payout',
+                                        invoice: {
+                                            items: [],
+                                            charges: { amount: coupon.value }
+                                        },
+                                        metadata: __assign(__assign({}, coupon), { amount: coupon.value }),
+                                    })];
+                                case 1:
+                                    //create refund transaction for each payment
+                                    _a.sent();
+                                    return [2 /*return*/];
+                            }
+                        });
+                    }); });
+                    _d.label = 10;
+                case 10: return [3 /*break*/, 12];
+                case 11:
                     error_1 = _d.sent();
                     console.error("Error handling ESCROW_TRANSFER_SUCCESSFUL event: ".concat(error_1));
-                    return [3 /*break*/, 10];
-                case 10: return [2 /*return*/];
+                    return [3 /*break*/, 12];
+                case 12: return [2 /*return*/];
             }
         });
     });

@@ -2535,7 +2535,7 @@ JobEvent.on('NEW_JOB_ENQUIRY_REPLY', async function (payload: { jobId: any, enqu
                     <p style="color: #333333;">Do well to check and follow up </p>
                     <p><strong>Job Title:</strong> ${job.description}</p>
                     <p><strong>Your Enquiry</strong> ${enquiry.enquiry}</p>
-                    <p><strong>Reply</strong> ${enquiry.replies ? enquiry.replies[0] : ''}</p>
+                    <p><strong>Reply</strong> ${enquiry.replies ? enquiry?.replies[0]?.replyText : ''}</p>
                     `
             let html = GenericEmailTemplate({ name: contractor.name, subject: emailSubject, content: emailContent })
             const translatedHtml = await i18n.getTranslation({phraseOrSlug: html, targetLang: contractor.language, saveToFile: false, useGoogle: true, contentType: 'html'}) || html;            

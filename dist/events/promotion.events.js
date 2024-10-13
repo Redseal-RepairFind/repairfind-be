@@ -94,7 +94,7 @@ exports.PromotionEvent.on('NEW_REFERRAL', function (payload) {
                             valueType: coupon_schema_1.COUPON_VALUE_TYPE.FIXED,
                             value: referralPromotion.value,
                             applicableAtCheckout: true,
-                            status: coupon_schema_1.COUPON_STATUS.PENDING,
+                            status: coupon_schema_1.COUPON_STATUS.PENDING, // TODO: Track and enable when refered user performs a transactable , job completion is a good place
                         })];
                 case 7:
                     coupon = _b.sent();

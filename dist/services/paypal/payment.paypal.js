@@ -97,6 +97,9 @@ var createOrder = function (payload) { return __awaiter(void 0, void 0, void 0, 
                                     vault: {
                                         store_in_vault: "ON_SUCCESS"
                                     }
+                                },
+                                experience_context: {
+                                    shipping_preference: "NO_SHIPPING",
                                 }
                             }
                         },
@@ -111,6 +114,10 @@ var createOrder = function (payload) { return __awaiter(void 0, void 0, void 0, 
                                 surname: payload.payer.lastName, // Payer's last name
                             },
                             email_address: payload.payer.email, // Payer's email address
+                            // address_line_1: "2211 N First Street",
+                            // address_line_2: "17.3.160",
+                            // postal_code: "95131",
+                            // country_code: "US"
                         },
                     }, {
                         headers: {

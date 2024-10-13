@@ -2610,37 +2610,38 @@ exports.JobEvent.on('NEW_JOB_ENQUIRY', function (payload) {
     });
 });
 exports.JobEvent.on('NEW_JOB_ENQUIRY_REPLY', function (payload) {
+    var _a;
     return __awaiter(this, void 0, void 0, function () {
         var job_3, enquiry, customer_2, contractor, savedJobs, contractorIds, devices, deviceTokens, emailSubject, emailContent, html, translatedHtml, translatedSubject, error_28;
         var _this = this;
-        return __generator(this, function (_a) {
-            switch (_a.label) {
+        return __generator(this, function (_b) {
+            switch (_b.label) {
                 case 0:
-                    _a.trys.push([0, 10, , 11]);
+                    _b.trys.push([0, 10, , 11]);
                     logger_1.Logger.info('handling alert NEW_JOB_ENQUIRY_REPLY event', payload.jobId);
                     return [4 /*yield*/, job_model_1.JobModel.findById(payload.jobId)];
                 case 1:
-                    job_3 = _a.sent();
+                    job_3 = _b.sent();
                     return [4 /*yield*/, job_enquiry_model_1.JobEnquiryModel.findById(payload.enquiryId)];
                 case 2:
-                    enquiry = _a.sent();
+                    enquiry = _b.sent();
                     if (!job_3 || !enquiry)
                         return [2 /*return*/];
                     return [4 /*yield*/, customer_model_1.default.findOne({ _id: job_3.customer })];
                 case 3:
-                    customer_2 = _a.sent();
+                    customer_2 = _b.sent();
                     return [4 /*yield*/, contractor_model_1.ContractorModel.findOne({ _id: enquiry.contractor })];
                 case 4:
-                    contractor = _a.sent();
+                    contractor = _b.sent();
                     if (!customer_2 || !contractor)
                         return [2 /*return*/];
                     return [4 /*yield*/, contractor_saved_job_model_1.default.find({ job: job_3.id })];
                 case 5:
-                    savedJobs = _a.sent();
+                    savedJobs = _b.sent();
                     contractorIds = savedJobs.map(function (savedJob) { return savedJob.contractor; });
                     return [4 /*yield*/, contractor_devices_model_1.default.find({ contractor: { $in: contractorIds } })];
                 case 6:
-                    devices = _a.sent();
+                    devices = _b.sent();
                     deviceTokens = devices.map(function (device) { return device.expoToken; });
                     devices.map(function (device) { return __awaiter(_this, void 0, void 0, function () {
                         var contractor, contractorLang, nTitle, nMessage;
@@ -2680,19 +2681,19 @@ exports.JobEvent.on('NEW_JOB_ENQUIRY_REPLY', function (payload) {
                     }); });
                     if (!(customer_2 && contractor)) return [3 /*break*/, 9];
                     emailSubject = 'Job Enquiry Reply';
-                    emailContent = "\n                    <h2>".concat(emailSubject, "</h2>\n                    <p>Hello ").concat(contractor.name, ",</p>\n                    <p style=\"color: #333333;\">Customer has replied to your enquiry on Repairfind</p>\n                    <p style=\"color: #333333;\">Do well to check and follow up </p>\n                    <p><strong>Job Title:</strong> ").concat(job_3.description, "</p>\n                    <p><strong>Your Enquiry</strong> ").concat(enquiry.enquiry, "</p>\n                    <p><strong>Reply</strong> ").concat(enquiry.replies ? enquiry.replies[0] : '', "</p>\n                    ");
+                    emailContent = "\n                    <h2>".concat(emailSubject, "</h2>\n                    <p>Hello ").concat(contractor.name, ",</p>\n                    <p style=\"color: #333333;\">Customer has replied to your enquiry on Repairfind</p>\n                    <p style=\"color: #333333;\">Do well to check and follow up </p>\n                    <p><strong>Job Title:</strong> ").concat(job_3.description, "</p>\n                    <p><strong>Your Enquiry</strong> ").concat(enquiry.enquiry, "</p>\n                    <p><strong>Reply</strong> ").concat(enquiry.replies ? (_a = enquiry === null || enquiry === void 0 ? void 0 : enquiry.replies[0]) === null || _a === void 0 ? void 0 : _a.replyText : '', "</p>\n                    ");
                     html = (0, generic_email_1.GenericEmailTemplate)({ name: contractor.name, subject: emailSubject, content: emailContent });
                     return [4 /*yield*/, i18n_1.i18n.getTranslation({ phraseOrSlug: html, targetLang: contractor.language, saveToFile: false, useGoogle: true, contentType: 'html' })];
                 case 7:
-                    translatedHtml = (_a.sent()) || html;
+                    translatedHtml = (_b.sent()) || html;
                     return [4 /*yield*/, i18n_1.i18n.getTranslation({ phraseOrSlug: emailSubject, targetLang: contractor.language })];
                 case 8:
-                    translatedSubject = (_a.sent()) || emailSubject;
+                    translatedSubject = (_b.sent()) || emailSubject;
                     services_1.EmailService.send(contractor.email, translatedSubject, translatedHtml);
-                    _a.label = 9;
+                    _b.label = 9;
                 case 9: return [3 /*break*/, 11];
                 case 10:
-                    error_28 = _a.sent();
+                    error_28 = _b.sent();
                     logger_1.Logger.error("Error handling NEW_JOB_ENQUIRY_REPLY event: ".concat(error_28));
                     return [3 /*break*/, 11];
                 case 11: return [2 /*return*/];

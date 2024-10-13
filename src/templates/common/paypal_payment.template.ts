@@ -137,8 +137,7 @@ export const PaypalPaymentCheckoutTemplate = (payload: {token: string, paypalCli
 
                 cardField
                 .submit({
-                  createOrder: createOrderCallback,
-                  onApprove: onApproveCallback,
+                  
                 })
                 .then(() => {
                   loader.style.display = 'none';
@@ -168,3 +167,6 @@ export const PaypalPaymentCheckoutTemplate = (payload: {token: string, paypalCli
 `;
 
 
+
+// createOrder: createOrderCallback,
+// onApprove: onApproveCallback,

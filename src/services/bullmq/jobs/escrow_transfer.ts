@@ -44,8 +44,15 @@ export const handleEscrowTransfer = async () => {
                     metadata.transfer = stripeTransfer;
                     transaction.metadata = metadata;
                     transaction.status = TRANSACTION_STATUS.SUCCESSFUL;
-
                     transferDetails = stripeTransfer;
+                    await transaction.save();
+
+                    // Handle other stuffs like payout accumulated bonus from event
+                    TransactionEvent.emit('ESCROW_TRANSFER_SUCCESSFUL', transaction);
+                    
+                    // Send notification email to the contractor
+                    await sendEscrowTransferEmail(toUser, transaction, payment, transferDetails);
+
                 }
 
                 if (payment.channel === 'paypal') {
@@ -59,16 +66,13 @@ export const handleEscrowTransfer = async () => {
                     transaction.metadata = metadata;
                     transaction.status = TRANSACTION_STATUS.SUCCESSFUL;
                     transferDetails = paypalTransfer;
+                    await transaction.save();
+                    
+                    // Handle other stuffs like payout accumulated bonus from event
+                    TransactionEvent.emit('ESCROW_TRANSFER_SUCCESSFUL', transaction);
+                    // Send notification email to the contractor
+                    await sendEscrowTransferEmail(toUser, transaction, payment, transferDetails);
                 }
-
-                // Save transaction updates
-                await transaction.save();
-
-                // Handle other stuffs like payout accumulated bonus from event
-                // TransactionEvent.emit('ESCROW_TRANSFER_SUCCESSFUL', transaction);
-
-                // Send notification email to the contractor
-                await sendEscrowTransferEmail(toUser, transaction, payment, transferDetails);
 
             } catch (error) {
                 Logger.info(`Error processing payout transfer: ${transaction.id}`, error);

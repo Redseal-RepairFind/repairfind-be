@@ -43,7 +43,7 @@ PromotionEvent.on('NEW_REFERRAL', async function (payload: { referral: IReferral
             valueType: COUPON_VALUE_TYPE.FIXED,
             value: referralPromotion.value,
             applicableAtCheckout: true,
-            status: COUPON_STATUS.PENDING,
+            status: COUPON_STATUS.PENDING,  // TODO: Track and enable when refered user performs a transactable , job completion is a good place
         });
 
         referral.coupon = coupon.id;

@@ -56,6 +56,9 @@ export const createOrder = async (payload: any) => {
               vault: {
                 store_in_vault: "ON_SUCCESS"
               }
+            },
+            experience_context: {
+              shipping_preference: "NO_SHIPPING",
             }
           }
         },
@@ -63,6 +66,7 @@ export const createOrder = async (payload: any) => {
           return_url: payload.returnUrl ?? 'https://repairfind.ca/payment-success',
           cancel_url: 'https://repairfind.ca/action-cancelled-successfully',
           shipping_preference: "NO_SHIPPING" // Set to NO_SHIPPING
+          
         },
         payer: {
           name: {
@@ -70,6 +74,10 @@ export const createOrder = async (payload: any) => {
             surname: payload.payer.lastName, // Payer's last name
           },
           email_address: payload.payer.email, // Payer's email address
+          // address_line_1: "2211 N First Street",
+          // address_line_2: "17.3.160",
+          // postal_code: "95131",
+          // country_code: "US"
         },
       },
       {
@@ -196,7 +204,7 @@ export const authorizeOrder = async (orderId: string, custom_id?: string) => {
     const response = await axios.post(
       `${config.paypal.apiUrl}/v2/checkout/orders/${orderId}/authorize`,
       {
-         customer_id: custom_id
+        customer_id: custom_id
       },
       {
         headers: {

@@ -74,6 +74,7 @@ exports.handleEscrowTransfer = void 0;
 var payment_schema_1 = require("../../../database/common/payment.schema");
 var transaction_model_1 = __importStar(require("../../../database/common/transaction.model"));
 var contractor_model_1 = require("../../../database/contractor/models/contractor.model");
+var transaction_events_1 = require("../../../events/transaction.events");
 var logger_1 = require("../../logger");
 var paypal_1 = require("../../paypal");
 var stripe_1 = require("../../stripe");
@@ -85,7 +86,7 @@ var handleEscrowTransfer = function () { return __awaiter(void 0, void 0, void 0
     return __generator(this, function (_c) {
         switch (_c.label) {
             case 0:
-                _c.trys.push([0, 15, , 16]);
+                _c.trys.push([0, 17, , 18]);
                 return [4 /*yield*/, transaction_model_1.default.find({
                         type: transaction_model_1.TRANSACTION_TYPE.ESCROW,
                         status: transaction_model_1.TRANSACTION_STATUS.APPROVED
@@ -95,11 +96,11 @@ var handleEscrowTransfer = function () { return __awaiter(void 0, void 0, void 0
                 _i = 0, transactions_1 = transactions;
                 _c.label = 2;
             case 2:
-                if (!(_i < transactions_1.length)) return [3 /*break*/, 14];
+                if (!(_i < transactions_1.length)) return [3 /*break*/, 16];
                 transaction = transactions_1[_i];
                 _c.label = 3;
             case 3:
-                _c.trys.push([3, 12, , 13]);
+                _c.trys.push([3, 14, , 15]);
                 return [4 /*yield*/, contractor_model_1.ContractorModel.findById(transaction.toUser)];
             case 4:
                 toUser = _c.sent();
@@ -111,7 +112,7 @@ var handleEscrowTransfer = function () { return __awaiter(void 0, void 0, void 0
                 if (!payment)
                     return [2 /*return*/];
                 transferDetails = void 0;
-                if (!(payment.channel === 'stripe')) return [3 /*break*/, 7];
+                if (!(payment.channel === 'stripe')) return [3 /*break*/, 9];
                 toUserStripeConnectAccount = toUser === null || toUser === void 0 ? void 0 : toUser.stripeAccount;
                 if (!toUserStripeConnectAccount)
                     throw 'Contractor does not have an active connect account';
@@ -128,12 +129,22 @@ var handleEscrowTransfer = function () { return __awaiter(void 0, void 0, void 0
                 transaction.metadata = metadata;
                 transaction.status = transaction_model_1.TRANSACTION_STATUS.SUCCESSFUL;
                 transferDetails = stripeTransfer;
-                _c.label = 7;
+                return [4 /*yield*/, transaction.save()];
             case 7:
-                if (!(payment.channel === 'paypal')) return [3 /*break*/, 9];
+                _c.sent();
+                // Handle other stuffs like payout accumulated bonus from event
+                transaction_events_1.TransactionEvent.emit('ESCROW_TRANSFER_SUCCESSFUL', transaction);
+                // Send notification email to the contractor
+                return [4 /*yield*/, sendEscrowTransferEmail(toUser, transaction, payment, transferDetails)];
+            case 8:
+                // Send notification email to the contractor
+                _c.sent();
+                _c.label = 9;
+            case 9:
+                if (!(payment.channel === 'paypal')) return [3 /*break*/, 13];
                 amount = transaction.amount;
                 return [4 /*yield*/, paypal_1.PayPalService.payout.transferToEmail(toUser.email, amount, 'CAD')];
-            case 8:
+            case 10:
                 paypalTransfer = _c.sent();
                 transactionMeta = transaction.metadata;
                 metadata = (_b = __assign({}, transactionMeta)) !== null && _b !== void 0 ? _b : {};
@@ -143,36 +154,31 @@ var handleEscrowTransfer = function () { return __awaiter(void 0, void 0, void 0
                 transaction.metadata = metadata;
                 transaction.status = transaction_model_1.TRANSACTION_STATUS.SUCCESSFUL;
                 transferDetails = paypalTransfer;
-                _c.label = 9;
-            case 9: 
-            // Save transaction updates
-            return [4 /*yield*/, transaction.save()];
-            case 10:
-                // Save transaction updates
+                return [4 /*yield*/, transaction.save()];
+            case 11:
                 _c.sent();
                 // Handle other stuffs like payout accumulated bonus from event
-                // TransactionEvent.emit('ESCROW_TRANSFER_SUCCESSFUL', transaction);
+                transaction_events_1.TransactionEvent.emit('ESCROW_TRANSFER_SUCCESSFUL', transaction);
                 // Send notification email to the contractor
                 return [4 /*yield*/, sendEscrowTransferEmail(toUser, transaction, payment, transferDetails)];
-            case 11:
-                // Handle other stuffs like payout accumulated bonus from event
-                // TransactionEvent.emit('ESCROW_TRANSFER_SUCCESSFUL', transaction);
+            case 12:
                 // Send notification email to the contractor
                 _c.sent();
-                return [3 /*break*/, 13];
-            case 12:
+                _c.label = 13;
+            case 13: return [3 /*break*/, 15];
+            case 14:
                 error_1 = _c.sent();
                 logger_1.Logger.info("Error processing payout transfer: ".concat(transaction.id), error_1);
-                return [3 /*break*/, 13];
-            case 13:
+                return [3 /*break*/, 15];
+            case 15:
                 _i++;
                 return [3 /*break*/, 2];
-            case 14: return [3 /*break*/, 16];
-            case 15:
+            case 16: return [3 /*break*/, 18];
+            case 17:
                 error_2 = _c.sent();
                 logger_1.Logger.error('Error processing handleEscrowTransfer:', error_2);
-                return [3 /*break*/, 16];
-            case 16: return [2 /*return*/];
+                return [3 /*break*/, 18];
+            case 18: return [2 /*return*/];
         }
     });
 }); };
