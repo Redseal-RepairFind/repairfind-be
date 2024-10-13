@@ -86,7 +86,7 @@ var calculateCharges = function (_a) {
                         }
                     }
                     repairfindServiceFeeRate -= contractorDiscountValue;
-                    repairfindServiceFee = parseFloat(((repairfindServiceFeeRate / 100) * totalEstimateAmount).toFixed(2));
+                    repairfindServiceFee = parseFloat(((repairfindServiceFeeRate / 100) * totalEstimateAmount).toFixed(2)).toFixed(2);
                     customerProcessingFee = parseFloat(((customerProcessingFeeRate / 100) * totalEstimateAmount).toFixed(2));
                     contractorProcessingFee = parseFloat(((contractorProcessingFeeRate / 100) * totalEstimateAmount).toFixed(2));
                     gstAmount = parseFloat(((gstRate / 100) * totalEstimateAmount).toFixed(2));

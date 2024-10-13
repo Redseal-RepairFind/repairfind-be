@@ -71,8 +71,10 @@ const calculateCharges = async ({
         );
       }
   }
+
+  
     repairfindServiceFeeRate -= contractorDiscountValue
-    repairfindServiceFee = parseFloat(((repairfindServiceFeeRate / 100) * totalEstimateAmount).toFixed(2));
+    repairfindServiceFee = parseFloat(((repairfindServiceFeeRate / 100) * totalEstimateAmount).toFixed(2)).toFixed(2);
 
 
     customerProcessingFee = parseFloat(((customerProcessingFeeRate / 100) * totalEstimateAmount).toFixed(2));
