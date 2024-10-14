@@ -100,7 +100,7 @@ app.get("/api/v1/customer/paypal/create-checkout-view", function (req, res) { re
                         return [2 /*return*/, res.status(400).json({ success: false, message: 'Change order estimate already paid' })];
                 }
                 logger_1.Logger.info("Checkout View Loaded", { token: token, quotationId: quotationId, jobId: jobId, isChangeOrder: isChangeOrder });
-                if (!isChangeOrder && (job.status !== job_model_1.JOB_STATUS.PENDING)) {
+                if (!isChangeOrder && ![job_model_1.JOB_STATUS.PENDING, job_model_1.JOB_STATUS.SUBMITTED].includes(job.status)) {
                     return [2 /*return*/, res.status(400).json({ success: false, message: 'Job is not pending, so new payment is not possible' })];
                 }
                 paypalClientId = config_1.config.paypal.clientId;
