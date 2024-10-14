@@ -54,7 +54,7 @@ const calculateCharges = async ({
     if (contractorDiscount.valueType === COUPON_VALUE_TYPE.PERCENTAGE) {
       contractorDiscountValue = parseFloat(
         ((contractorDiscount.value / 100) * repairfindServiceFeeRate).toFixed(2)
-      );
+      ).toFixed(2);
       // Reduce service fee rate by the percentage discount
       repairfindServiceFeeRate -= contractorDiscountValue;
       // Recalculate the service fee based on the adjusted rate
@@ -135,7 +135,7 @@ const calculateCharges = async ({
       subtotal: subtotal,
       processingFee: customerProcessingFee,
       total: customerPayable,
-      totalLabel: `GST ($${gstAmount}) + Processing Fee ($${customerProcessingFee}) + Subtotal ($${subtotal}) - Discount($${customerDiscountValue})`
+      totalLabel: `GST ($${gstAmount}) + Processing Fee ($${customerProcessingFee}) + Subtotal ($${subtotal}) - Discount($${ (customerDiscountValue).toFixed(2) })`
     },
 
   };

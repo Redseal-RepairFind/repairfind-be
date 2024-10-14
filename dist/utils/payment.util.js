@@ -70,7 +70,7 @@ var calculateCharges = function (_a) {
                     // Calculate contractor discount based on valueType
                     if (contractorDiscount) {
                         if (contractorDiscount.valueType === coupon_schema_1.COUPON_VALUE_TYPE.PERCENTAGE) {
-                            contractorDiscountValue = parseFloat(((contractorDiscount.value / 100) * repairfindServiceFeeRate).toFixed(2));
+                            contractorDiscountValue = parseFloat(((contractorDiscount.value / 100) * repairfindServiceFeeRate).toFixed(2)).toFixed(2);
                             // Reduce service fee rate by the percentage discount
                             repairfindServiceFeeRate -= contractorDiscountValue;
                             // Recalculate the service fee based on the adjusted rate
@@ -143,7 +143,7 @@ var calculateCharges = function (_a) {
                             subtotal: subtotal,
                             processingFee: customerProcessingFee,
                             total: customerPayable,
-                            totalLabel: "GST ($".concat(gstAmount, ") + Processing Fee ($").concat(customerProcessingFee, ") + Subtotal ($").concat(subtotal, ") - Discount($").concat(customerDiscountValue, ")")
+                            totalLabel: "GST ($".concat(gstAmount, ") + Processing Fee ($").concat(customerProcessingFee, ") + Subtotal ($").concat(subtotal, ") - Discount($").concat((customerDiscountValue).toFixed(2), ")")
                         },
                     };
                     return [2 /*return*/, {
