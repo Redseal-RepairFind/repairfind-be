@@ -112,9 +112,6 @@ export const exploreContractors = async (
                         payouts_enabled: "$stripeAccount.payouts_enabled",
                         charges_enabled: "$stripeAccount.charges_enabled",
 
-                        // transfers_enabled: { $ifNull: ["$stripeAccount.capabilities.transfers", "inactive"] },
-                        // card_payments_enabled: { $ifNull: ["$stripeAccount.capabilities.card_payments", "inactive"] },
-
                         transfers_enabled: {
                             $cond: {
                                 if: { $ifNull: ["$stripeAccount.capabilities.transfers", "inactive"] }, //{ $eq: ["$stripeAccount.capabilities.transfers", "active"] },
@@ -210,6 +207,9 @@ export const exploreContractors = async (
                 }
             },
 
+              // filter out contractors with no stripe verified status
+              { $match: { "stripeIdentity.status": 'verified' } },
+
 
             {
                 $project: {
@@ -234,6 +234,7 @@ export const exploreContractors = async (
 
             // filter out contractors without certn approval
             { $match: { "certnDetails.report_status": 'COMPLETE' } },
+
 
             //example filter out employees and contractors 
             { $match: { accountType: { $ne: CONTRACTOR_TYPES.Employee } } },

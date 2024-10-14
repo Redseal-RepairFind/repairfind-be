@@ -133,8 +133,6 @@ var exploreContractors = function (req, res) { return __awaiter(void 0, void 0, 
                                 details_submitted: "$stripeAccount.details_submitted",
                                 payouts_enabled: "$stripeAccount.payouts_enabled",
                                 charges_enabled: "$stripeAccount.charges_enabled",
-                                // transfers_enabled: { $ifNull: ["$stripeAccount.capabilities.transfers", "inactive"] },
-                                // card_payments_enabled: { $ifNull: ["$stripeAccount.capabilities.card_payments", "inactive"] },
                                 transfers_enabled: {
                                     $cond: {
                                         if: { $ifNull: ["$stripeAccount.capabilities.transfers", "inactive"] }, //{ $eq: ["$stripeAccount.capabilities.transfers", "active"] },
@@ -226,6 +224,8 @@ var exploreContractors = function (req, res) { return __awaiter(void 0, void 0, 
                             }
                         }
                     },
+                    // filter out contractors with no stripe verified status
+                    { $match: { "stripeIdentity.status": 'verified' } },
                     {
                         $project: {
                             stripeIdentity: 0,
