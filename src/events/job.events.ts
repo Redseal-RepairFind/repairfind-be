@@ -1137,16 +1137,16 @@ JobEvent.on('JOB_BOOKED', async function (payload: { jobId: ObjectId, contractor
                 <table style="width: 100%; border-collapse: collapse; border: 1px solid lightgray;">
                     <tr>
                         <td style="border: 1px solid lightgray; padding: 8px;">Payment Processing Fee ($${charges.customerProcessingFeeRate}%)</td>
-                        <td style="border: 1px solid lightgray; padding: 8px; text-align: right;">$${charges.contractorProcessingFee}</td>
+                        <td style="border: 1px solid lightgray; padding: 8px; text-align: right;">$${ (charges.contractorProcessingFee).toFixed(2) }</td>
                     </tr>
                     <tr>
                         <td style="border: 1px solid lightgray; padding: 8px;">Service Fee (${charges.repairfindServiceFeeRate}%)</td>
-                        <td style="border: 1px solid lightgray; padding: 8px; text-align: right;">$${charges.repairfindServiceFee}</td>
+                        <td style="border: 1px solid lightgray; padding: 8px; text-align: right;">$${ (charges.repairfindServiceFee).toFixed(2) }</td>
                     </tr>
             
                     <tr>
                         <td style="border: 1px solid lightgray; padding: 8px;"><strong>Total Deductions</strong></td>
-                        <td style="border: 1px solid lightgray; padding: 8px; text-align: right;"><strong>$${charges.contractorSummary.deductions.total}</strong></td>
+                        <td style="border: 1px solid lightgray; padding: 8px; text-align: right;"><strong>$${ (charges.contractorSummary.deductions.total).toFixed(2) }</strong></td>
                     </tr>
                 </table>
             
@@ -1160,7 +1160,7 @@ JobEvent.on('JOB_BOOKED', async function (payload: { jobId: ObjectId, contractor
                         : ''
                     }
 
-                <p><strong>Net Amount to Contractor:</strong> ${charges.contractorSummary.payable.totalLabel} = $${charges.contractorPayable}</p>
+                <p><strong>Net Amount to Contractor:</strong> ${charges.contractorSummary.payable.totalLabel} = $${ (charges.contractorPayable).toFixed(2) }</p>
                 <p><strong>Payment Method:</strong> Card Payment<br>
                 <strong>Transaction ID:</strong> RFT${quotation.id}</p>
             `;
@@ -1242,11 +1242,11 @@ JobEvent.on('JOB_BOOKED', async function (payload: { jobId: ObjectId, contractor
                         </tr>
                         <tr>
                         <td style="border: 1px solid lightgray; padding: 8px;">GST (${charges.gstRate}%)</td>
-                        <td style="border: 1px solid lightgray; padding: 8px; text-align: right;">$${charges.gstAmount}</td>
+                        <td style="border: 1px solid lightgray; padding: 8px; text-align: right;">$${ (charges.gstAmount).toFixed(2) }</td>
                         </tr>
                         <tr>
                         <td style="border: 1px solid lightgray; padding: 8px;">Payment Processing Fee (${charges.customerProcessingFeeRate}%)</td>
-                        <td style="border: 1px solid lightgray; padding: 8px; text-align: right;">$${charges.customerProcessingFee}</td>
+                        <td style="border: 1px solid lightgray; padding: 8px; text-align: right;">$${ (charges.customerProcessingFee).toFixed(2) }</td>
                         </tr>
                         
                         ${charges.customerDiscount ? `
@@ -1258,7 +1258,7 @@ JobEvent.on('JOB_BOOKED', async function (payload: { jobId: ObjectId, contractor
                         
                         <tr>
                         <td style="border: 1px solid lightgray; padding: 8px;"><strong>Total Amount Due</strong> <br> ${charges.customerSummary.payable.totalLabel}</td>
-                        <td style="border: 1px solid lightgray; padding: 8px; text-align: right;"><strong>$${charges.customerPayable}</strong></td>
+                        <td style="border: 1px solid lightgray; padding: 8px; text-align: right;"><strong>$${ (charges.customerPayable).toFixed(2) }</strong></td>
                         </tr>
                     </table>
                     <p><strong>Payment Method:</strong> Credit/Debit Card<br>
