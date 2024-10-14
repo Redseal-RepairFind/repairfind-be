@@ -95,7 +95,8 @@ export const signUp = async (
 
           customer.referral = referral._id;
           await Promise.all([
-              referral.save()
+              referral.save(),
+              customer.save()
           ])  
           PromotionEvent.emit('NEW_REFERRAL', {referral})
       }

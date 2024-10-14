@@ -118,7 +118,8 @@ var signUp = function (req, res) { return __awaiter(void 0, void 0, void 0, func
                 });
                 customer.referral = referral._id;
                 return [4 /*yield*/, Promise.all([
-                        referral.save()
+                        referral.save(),
+                        customer.save()
                     ])];
             case 6:
                 _b.sent();
