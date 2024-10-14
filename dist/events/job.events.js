@@ -1772,32 +1772,35 @@ exports.JobEvent.on('JOB_MARKED_COMPLETE_BY_CONTRACTOR', function (payload) {
 exports.JobEvent.on('JOB_COMPLETED', function (payload) {
     var _a, _b;
     return __awaiter(this, void 0, void 0, function () {
-        var job, customer, contractor, event_3, contractorLang, nTitle, nMessage, transaction, metadata, referral, coupon, referral, coupon, error_17;
+        var job, quotation, customer, contractor, event_3, contractorLang, nTitle, nMessage, transaction, metadata, referral, coupon, referral, coupon, couponId, coupon, couponId, coupon, error_17;
         return __generator(this, function (_c) {
             switch (_c.label) {
                 case 0:
-                    _c.trys.push([0, 15, , 16]);
+                    _c.trys.push([0, 22, , 23]);
                     logger_1.Logger.info('handling alert JOB_COMPLETED event', payload.job.id);
                     return [4 /*yield*/, job_model_1.JobModel.findById(payload.job.id)];
                 case 1:
                     job = _c.sent();
                     if (!job)
                         return [2 /*return*/];
-                    return [4 /*yield*/, customer_model_1.default.findById(job.customer)];
+                    return [4 /*yield*/, job_quotation_model_1.JobQuotationModel.findById(job === null || job === void 0 ? void 0 : job.contract)];
                 case 2:
+                    quotation = _c.sent();
+                    return [4 /*yield*/, customer_model_1.default.findById(job.customer)];
+                case 3:
                     customer = _c.sent();
                     return [4 /*yield*/, contractor_model_1.ContractorModel.findById(job.contractor)];
-                case 3:
+                case 4:
                     contractor = _c.sent();
                     event_3 = (job.schedule.type == job_model_1.JOB_SCHEDULE_TYPE.SITE_VISIT) ? 'COMPLETED_SITE_VISIT' : 'JOB_COMPLETED';
                     if (!customer || !contractor)
                         return [2 /*return*/];
                     contractorLang = contractor.language;
                     return [4 /*yield*/, i18n_1.i18n.getTranslation({ phraseOrSlug: 'Job Completed', targetLang: contractorLang })];
-                case 4:
+                case 5:
                     nTitle = _c.sent();
                     return [4 /*yield*/, i18n_1.i18n.getTranslation({ phraseOrSlug: 'Job completion confirmed by customer', targetLang: contractorLang })];
-                case 5:
+                case 6:
                     nMessage = _c.sent();
                     services_1.NotificationService.sendNotification({
                         user: contractor.id,
@@ -1815,7 +1818,7 @@ exports.JobEvent.on('JOB_COMPLETED', function (payload) {
                         }
                     }, { push: true, socket: true, database: true });
                     return [4 /*yield*/, transaction_model_1.default.findOne({ job: job.id, type: transaction_model_1.TRANSACTION_TYPE.ESCROW })];
-                case 6:
+                case 7:
                     transaction = _c.sent();
                     if (transaction) {
                         transaction.status = transaction_model_1.TRANSACTION_STATUS.APPROVED;
@@ -1823,45 +1826,66 @@ exports.JobEvent.on('JOB_COMPLETED', function (payload) {
                         transaction.metadata = __assign(__assign({}, metadata), { event: event_3 });
                         transaction.save();
                     }
-                    if (!customer.referral) return [3 /*break*/, 10];
+                    if (!customer.referral) return [3 /*break*/, 11];
                     return [4 /*yield*/, referral_schema_1.ReferralModel.findById(customer.referral)];
-                case 7:
-                    referral = _c.sent();
-                    if (!referral || !referral.coupon)
-                        return [2 /*return*/];
-                    return [4 /*yield*/, coupon_schema_1.CouponModel.findOne({ _id: referral.coupon, status: coupon_schema_1.COUPON_STATUS.PENDING })];
                 case 8:
-                    coupon = _c.sent();
-                    if (!coupon)
-                        return [2 /*return*/];
-                    coupon.status = coupon_schema_1.COUPON_STATUS.ACTIVE;
-                    return [4 /*yield*/, coupon.save()];
-                case 9:
-                    _c.sent();
-                    _c.label = 10;
-                case 10:
-                    if (!contractor.referral) return [3 /*break*/, 14];
-                    return [4 /*yield*/, referral_schema_1.ReferralModel.findById(contractor.referral)];
-                case 11:
                     referral = _c.sent();
-                    if (!referral || !referral.coupon)
-                        return [2 /*return*/];
+                    if (!(referral && referral.coupon)) return [3 /*break*/, 11];
                     return [4 /*yield*/, coupon_schema_1.CouponModel.findOne({ _id: referral.coupon, status: coupon_schema_1.COUPON_STATUS.PENDING })];
-                case 12:
+                case 9:
                     coupon = _c.sent();
-                    if (!coupon)
-                        return [2 /*return*/];
+                    if (!coupon) return [3 /*break*/, 11];
                     coupon.status = coupon_schema_1.COUPON_STATUS.ACTIVE;
                     return [4 /*yield*/, coupon.save()];
-                case 13:
+                case 10:
                     _c.sent();
-                    _c.label = 14;
-                case 14: return [3 /*break*/, 16];
+                    _c.label = 11;
+                case 11:
+                    if (!contractor.referral) return [3 /*break*/, 15];
+                    return [4 /*yield*/, referral_schema_1.ReferralModel.findById(contractor.referral)];
+                case 12:
+                    referral = _c.sent();
+                    if (!(referral && referral.coupon)) return [3 /*break*/, 15];
+                    return [4 /*yield*/, coupon_schema_1.CouponModel.findOne({ _id: referral.coupon, status: coupon_schema_1.COUPON_STATUS.PENDING })];
+                case 13:
+                    coupon = _c.sent();
+                    if (!coupon) return [3 /*break*/, 15];
+                    coupon.status = coupon_schema_1.COUPON_STATUS.ACTIVE;
+                    return [4 /*yield*/, coupon.save()];
+                case 14:
+                    _c.sent();
+                    _c.label = 15;
                 case 15:
+                    if (!quotation) return [3 /*break*/, 21];
+                    if (!quotation.customerDiscount) return [3 /*break*/, 18];
+                    couponId = quotation.customerDiscount.coupon;
+                    return [4 /*yield*/, coupon_schema_1.CouponModel.findById(couponId)];
+                case 16:
+                    coupon = _c.sent();
+                    if (!coupon) return [3 /*break*/, 18];
+                    coupon.status = coupon_schema_1.COUPON_STATUS.REDEEMED;
+                    return [4 /*yield*/, coupon.save()];
+                case 17:
+                    _c.sent();
+                    _c.label = 18;
+                case 18:
+                    if (!quotation.contractorDiscount) return [3 /*break*/, 21];
+                    couponId = quotation.contractorDiscount.coupon;
+                    return [4 /*yield*/, coupon_schema_1.CouponModel.findById(couponId)];
+                case 19:
+                    coupon = _c.sent();
+                    if (!coupon) return [3 /*break*/, 21];
+                    coupon.status = coupon_schema_1.COUPON_STATUS.REDEEMED;
+                    return [4 /*yield*/, coupon.save()];
+                case 20:
+                    _c.sent();
+                    _c.label = 21;
+                case 21: return [3 /*break*/, 23];
+                case 22:
                     error_17 = _c.sent();
                     logger_1.Logger.error("Error handling JOB_COMPLETED event: ".concat(error_17));
-                    return [3 /*break*/, 16];
-                case 16: return [2 /*return*/];
+                    return [3 /*break*/, 23];
+                case 23: return [2 /*return*/];
             }
         });
     });

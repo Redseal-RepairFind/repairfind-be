@@ -1831,8 +1831,9 @@ JobEvent.on('JOB_COMPLETED', async function (payload: { job: IJob }) {
         Logger.info('handling alert JOB_COMPLETED event', payload.job.id)
 
         const job = await JobModel.findById(payload.job.id)
-
         if (!job) return
+
+        const quotation = await JobQuotationModel.findById(job?.contract)
 
         const customer = await CustomerModel.findById(job.customer)
         const contractor = await ContractorModel.findById(job.contractor)
@@ -1892,22 +1893,49 @@ JobEvent.on('JOB_COMPLETED', async function (payload: { job: IJob }) {
         // Enable pending referral bonuses here
         if (customer.referral) {
             const referral = await ReferralModel.findById(customer.referral)
-            if (!referral || !referral.coupon) return
-            const coupon = await CouponModel.findOne({ _id: referral.coupon, status: COUPON_STATUS.PENDING })
-            if (!coupon) return
-            coupon.status = COUPON_STATUS.ACTIVE
-            await coupon.save();
+            if (referral && referral.coupon){
+                const coupon = await CouponModel.findOne({ _id: referral.coupon, status: COUPON_STATUS.PENDING })
+                if (coupon){
+                    coupon.status = COUPON_STATUS.ACTIVE
+                    await coupon.save();
+                }
+                
+            }
+           
         }
 
         if (contractor.referral) {
             const referral = await ReferralModel.findById(contractor.referral)
-            if (!referral || !referral.coupon) return
-            const coupon = await CouponModel.findOne({ _id: referral.coupon, status: COUPON_STATUS.PENDING })
-            if (!coupon) return
-            coupon.status = COUPON_STATUS.ACTIVE
-            await coupon.save();
+            if (referral && referral.coupon){
+                const coupon = await CouponModel.findOne({ _id: referral.coupon, status: COUPON_STATUS.PENDING })
+               if(coupon){
+                coupon.status = COUPON_STATUS.ACTIVE
+                await coupon.save();
+               }
+            }
+           
         }
 
+        //check if job had coupon applied  and mark it as redeemed
+        if(quotation){
+            if(quotation.customerDiscount){
+                const couponId = quotation.customerDiscount.coupon
+                const coupon = await CouponModel.findById(couponId)
+                if(coupon){
+                    coupon.status = COUPON_STATUS.REDEEMED
+                    await coupon.save()
+                }
+            }
+
+            if(quotation.contractorDiscount){
+                const couponId = quotation.contractorDiscount.coupon
+                const coupon = await CouponModel.findById(couponId)
+                if(coupon){
+                    coupon.status = COUPON_STATUS.REDEEMED
+                    await coupon.save()
+                }
+            }
+        }
 
     } catch (error) {
         Logger.error(`Error handling JOB_COMPLETED event: ${error}`);
