@@ -105,7 +105,7 @@ const calculateCharges = async ({
       gst: gstAmount,
       subtotal: subtotal,
       total: contractorPayable,
-      totalLabel: `GST ($${gstAmount}) + Subtotal ($${subtotal}) -  Deductions ($${contractorProcessingFee + repairfindServiceFee})`
+      totalLabel: `GST ($${gstAmount}) + Subtotal ($${subtotal}) -  Deductions ($${ (contractorProcessingFee + repairfindServiceFee).toFixed(2) })`
     },
     discount: {
       amount: contractorDiscountValue,
@@ -135,7 +135,7 @@ const calculateCharges = async ({
       subtotal: subtotal,
       processingFee: customerProcessingFee,
       total: customerPayable,
-      totalLabel: `GST ($${gstAmount}) + Processing Fee ($${customerProcessingFee}) + Subtotal ($${subtotal}) - Discount($${ (customerDiscountValue).toFixed(2) })`
+      totalLabel: `GST ($${gstAmount}) + Processing Fee ($${ customerProcessingFee}) + Subtotal ($${subtotal}) - Discount($${ (customerDiscountValue).toFixed(2) })`
     },
 
   };

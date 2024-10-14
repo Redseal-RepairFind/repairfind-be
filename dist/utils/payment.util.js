@@ -114,7 +114,7 @@ var calculateCharges = function (_a) {
                             gst: gstAmount,
                             subtotal: subtotal,
                             total: contractorPayable,
-                            totalLabel: "GST ($".concat(gstAmount, ") + Subtotal ($").concat(subtotal, ") -  Deductions ($").concat(contractorProcessingFee + repairfindServiceFee, ")")
+                            totalLabel: "GST ($".concat(gstAmount, ") + Subtotal ($").concat(subtotal, ") -  Deductions ($").concat((contractorProcessingFee + repairfindServiceFee).toFixed(2), ")")
                         },
                         discount: {
                             amount: contractorDiscountValue,
