@@ -76,7 +76,6 @@ export const signUp = async (
 
     const newReferralCode =  await GeneratorUtil.generateReferralCode({length: 6, userId: customer.id, userType: 'customers'});
     customer.referralCode = newReferralCode;
-    let customerSaved = await customer.save();
 
 
     if (referralCode) {
@@ -96,7 +95,6 @@ export const signUp = async (
           customer.referral = referral._id;
           await Promise.all([
               referral.save(),
-              customer.save()
           ])  
           PromotionEvent.emit('NEW_REFERRAL', {referral})
       }
@@ -113,6 +111,9 @@ export const signUp = async (
     const translatedVerificationHtml = await i18n.getTranslation({phraseOrSlug: emailVerificationHtml,targetLang: customer.language,saveToFile: false, useGoogle: true, contentType: 'html'}) || emailVerificationHtml;
     const translatedVerificationSubject = await i18n.getTranslation({phraseOrSlug: "'Email Verification",targetLang: customer.language}) || 'Welcome to Repairfind';
     EmailService.send(email, translatedVerificationSubject, translatedVerificationHtml, )
+
+    
+   let customerSaved = await customer.save();
 
     res.json({
       success: true,

@@ -58,7 +58,7 @@ var referral_code_schema_1 = require("../../../database/common/referral_code.sch
 var promotion_events_1 = require("../../../events/promotion.events");
 var referral_schema_1 = require("../../../database/common/referral.schema");
 var signUp = function (req, res) { return __awaiter(void 0, void 0, void 0, function () {
-    var _a, email, password, firstName, lastName, acceptTerms, phoneNumber, language, referralCode, errors, userEmailExists, otp, createdTime, emailOtp, hashedPassword, customer, newReferralCode, customerSaved, userReferral, referral, welcomeHtml, translatedWelcomeHtml, translatedWelcomeSubject, emailVerificationHtml, translatedVerificationHtml, translatedVerificationSubject, err_1;
+    var _a, email, password, firstName, lastName, acceptTerms, phoneNumber, language, referralCode, errors, userEmailExists, otp, createdTime, emailOtp, hashedPassword, customer, newReferralCode, userReferral, referral, welcomeHtml, translatedWelcomeHtml, translatedWelcomeSubject, emailVerificationHtml, translatedVerificationHtml, translatedVerificationSubject, customerSaved, err_1;
     return __generator(this, function (_b) {
         switch (_b.label) {
             case 0:
@@ -99,14 +99,11 @@ var signUp = function (req, res) { return __awaiter(void 0, void 0, void 0, func
             case 3:
                 newReferralCode = _b.sent();
                 customer.referralCode = newReferralCode;
-                return [4 /*yield*/, customer.save()];
-            case 4:
-                customerSaved = _b.sent();
-                if (!referralCode) return [3 /*break*/, 7];
+                if (!referralCode) return [3 /*break*/, 6];
                 return [4 /*yield*/, referral_code_schema_1.ReferralCodeModel.findOne({ code: referralCode })];
-            case 5:
+            case 4:
                 userReferral = _b.sent();
-                if (!userReferral) return [3 /*break*/, 7];
+                if (!userReferral) return [3 /*break*/, 6];
                 referral = new referral_schema_1.ReferralModel({
                     referralCode: userReferral.id,
                     user: customer._id,
@@ -119,29 +116,31 @@ var signUp = function (req, res) { return __awaiter(void 0, void 0, void 0, func
                 customer.referral = referral._id;
                 return [4 /*yield*/, Promise.all([
                         referral.save(),
-                        customer.save()
                     ])];
-            case 6:
+            case 5:
                 _b.sent();
                 promotion_events_1.PromotionEvent.emit('NEW_REFERRAL', { referral: referral });
-                _b.label = 7;
-            case 7:
+                _b.label = 6;
+            case 6:
                 welcomeHtml = (0, welcome_email_1.CustomerWelcomeEmailTemplate)(lastName);
                 return [4 /*yield*/, i18n_1.i18n.getTranslation({ phraseOrSlug: welcomeHtml, targetLang: customer.language, saveToFile: false, useGoogle: true, contentType: 'html' })];
-            case 8:
+            case 7:
                 translatedWelcomeHtml = (_b.sent()) || welcomeHtml;
                 return [4 /*yield*/, i18n_1.i18n.getTranslation({ phraseOrSlug: "Welcome to Repairfind", targetLang: customer.language })];
-            case 9:
+            case 8:
                 translatedWelcomeSubject = (_b.sent()) || 'Welcome to Repairfind';
                 services_1.EmailService.send(email, translatedWelcomeSubject, translatedWelcomeHtml);
                 emailVerificationHtml = (0, OtpEmailTemplate_1.OtpEmailTemplate)(otp, firstName, 'We have received a request to verify your email');
                 return [4 /*yield*/, i18n_1.i18n.getTranslation({ phraseOrSlug: emailVerificationHtml, targetLang: customer.language, saveToFile: false, useGoogle: true, contentType: 'html' })];
-            case 10:
+            case 9:
                 translatedVerificationHtml = (_b.sent()) || emailVerificationHtml;
                 return [4 /*yield*/, i18n_1.i18n.getTranslation({ phraseOrSlug: "'Email Verification", targetLang: customer.language })];
-            case 11:
+            case 10:
                 translatedVerificationSubject = (_b.sent()) || 'Welcome to Repairfind';
                 services_1.EmailService.send(email, translatedVerificationSubject, translatedVerificationHtml);
+                return [4 /*yield*/, customer.save()];
+            case 11:
+                customerSaved = _b.sent();
                 res.json({
                     success: true,
                     message: "Signup successful",
