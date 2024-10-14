@@ -43,8 +43,8 @@ JobEvent.on('NEW_JOB_REQUEST', async function (payload) {
 
 
             const contractorLang = contractor.language
-            let nMessage = await i18n.getTranslation({phraseOrSlug: "You've received a job request from",targetLang: contractorLang});
-            let nTitle = await i18n.getTranslation({phraseOrSlug: 'New Job Request',targetLang: contractorLang});
+            let nMessage = await i18n.getTranslation({ phraseOrSlug: "You've received a job request from", targetLang: contractorLang });
+            let nTitle = await i18n.getTranslation({ phraseOrSlug: 'New Job Request', targetLang: contractorLang });
 
             NotificationService.sendNotification({
                 user: contractor.id,
@@ -72,7 +72,7 @@ JobEvent.on('NEW_JOB_REQUEST', async function (payload) {
                 phraseOrSlug: 'New Job Request',
                 targetLang: customerLang
             });
-            
+
 
             NotificationService.sendNotification({
                 user: customer.id,
@@ -121,7 +121,7 @@ JobEvent.on('JOB_REQUEST_ACCEPTED', async function (payload) {
                 phraseOrSlug: 'Job Request Accepted',
                 targetLang: contractorLang
             });
-            
+
             NotificationService.sendNotification({
                 user: contractor.id,
                 userType: 'contractors',
@@ -155,7 +155,7 @@ JobEvent.on('JOB_REQUEST_ACCEPTED', async function (payload) {
                 phraseOrSlug: "Contractor has accepted your job request",
                 targetLang: customerLang
             });
-            
+
             NotificationService.sendNotification({
                 user: customer.id,
                 userType: 'customers',
@@ -209,7 +209,7 @@ JobEvent.on('JOB_REQUEST_REJECTED', async function (payload) {
                 phraseOrSlug: "You've rejected a job request from",
                 targetLang: contractorLang
             });
-            
+
             NotificationService.sendNotification({
                 user: contractor.id,
                 userType: 'contractors',
@@ -236,7 +236,7 @@ JobEvent.on('JOB_REQUEST_REJECTED', async function (payload) {
                 phraseOrSlug: "Contractor has rejected your job request",
                 targetLang: customerLang
             });
-            
+
             NotificationService.sendNotification({
                 user: customer.id,
                 userType: 'customers',
@@ -292,10 +292,10 @@ JobEvent.on('NEW_JOB_LISTING', async function (payload) {
             const devices = await ContractorDeviceModel.find({ contractor: { $in: filteredContractorIds } })
             // const deviceTokens = devices.map(device => device.expoToken);
 
-            devices.map( async(device) => {
+            devices.map(async (device) => {
                 const contractor = await ContractorModel.findById(device.contractor)
-                
-                if(contractor){
+
+                if (contractor) {
                     const contractorLang = contractor.language;
                     let nTitle = await i18n.getTranslation({
                         phraseOrSlug: 'New Job Listing',
@@ -319,7 +319,7 @@ JobEvent.on('NEW_JOB_LISTING', async function (payload) {
                     })
                 }
 
-                
+
             });
         }
 
@@ -342,16 +342,16 @@ JobEvent.on('JOB_CANCELED', async function (payload: { job: IJob, canceledBy: st
 
         if (payload.canceledBy == 'contractor') {
             Logger.info('job cancelled by contractor')
-            const html = JobCanceledEmailTemplate({ name: customer.name, canceledBy: payload.canceledBy, job: payload.job })            
-            const translatedHtml = await i18n.getTranslation({phraseOrSlug: html, targetLang: contractor.language, saveToFile: false, useGoogle: true, contentType: 'html'}) || html;            
-            const translatedSubject = await i18n.getTranslation({phraseOrSlug: "Job Canceled", targetLang: contractor.language}) || 'Job Canceled';
+            const html = JobCanceledEmailTemplate({ name: customer.name, canceledBy: payload.canceledBy, job: payload.job })
+            const translatedHtml = await i18n.getTranslation({ phraseOrSlug: html, targetLang: contractor.language, saveToFile: false, useGoogle: true, contentType: 'html' }) || html;
+            const translatedSubject = await i18n.getTranslation({ phraseOrSlug: "Job Canceled", targetLang: contractor.language }) || 'Job Canceled';
             EmailService.send(customer.email, translatedSubject, translatedHtml)
         }
         if (payload.canceledBy == 'customer') {
             Logger.info('job cancelled by customer')
             const html = JobCanceledEmailTemplate({ name: contractor.name, canceledBy: 'customer', job: payload.job })
-            const translatedHtml = await i18n.getTranslation({phraseOrSlug: html, targetLang: customer.language, saveToFile: false, useGoogle: true, contentType: 'html'}) || html;            
-            const translatedSubject = await i18n.getTranslation({phraseOrSlug: "Job Canceled", targetLang: customer.language}) || 'Job Canceled';
+            const translatedHtml = await i18n.getTranslation({ phraseOrSlug: html, targetLang: customer.language, saveToFile: false, useGoogle: true, contentType: 'html' }) || html;
+            const translatedSubject = await i18n.getTranslation({ phraseOrSlug: "Job Canceled", targetLang: customer.language }) || 'Job Canceled';
             EmailService.send(contractor.email, translatedSubject, translatedHtml)
 
         }
@@ -365,7 +365,7 @@ JobEvent.on('JOB_CANCELED', async function (payload: { job: IJob, canceledBy: st
             phraseOrSlug: 'Your job on Repairfind has been canceled',
             targetLang: customerLang
         });
-        
+
 
         NotificationService.sendNotification({
             user: customer.id,
@@ -394,7 +394,7 @@ JobEvent.on('JOB_CANCELED', async function (payload: { job: IJob, canceledBy: st
             phraseOrSlug: 'Your job on Repairfind has been canceled',
             targetLang: contractorLang
         });
-        
+
         NotificationService.sendNotification({
             user: contractor.id,
             userType: 'contractors',
@@ -439,7 +439,7 @@ JobEvent.on('JOB_DISPUTE_REFUND_CREATED', async function (payload: { job: IJob, 
                 phraseOrSlug: 'Full refund of your disputed job has been approved on Repairfind',
                 targetLang: contractorLang
             });
-            
+
 
             NotificationService.sendNotification({
                 user: contractor.id,
@@ -467,7 +467,7 @@ JobEvent.on('JOB_DISPUTE_REFUND_CREATED', async function (payload: { job: IJob, 
                 phraseOrSlug: 'Full refund of your disputed job has been approved on Repairfind',
                 targetLang: customerLang
             });
-            
+
 
             NotificationService.sendNotification({
                 user: customer.id,
@@ -546,7 +546,7 @@ JobEvent.on('JOB_REVISIT_ENABLED', async function (payload: { job: IJob, dispute
                 phraseOrSlug: 'A revisit for your disputed job has been enabled on Repairfind',
                 targetLang: customerLang
             });
-            
+
 
             NotificationService.sendNotification({
                 user: customer.id,
@@ -601,9 +601,9 @@ JobEvent.on('JOB_QUOTATION_DECLINED', async function (payload: { jobId: ObjectId
                 <p>Login to our app to follow up </p>
                 `
             let html = GenericEmailTemplate({ name: contractor.name, subject: emailSubject, content: emailContent })
-           
-            const translatedHtml = await i18n.getTranslation({phraseOrSlug: html, targetLang: contractor.language, saveToFile: false, useGoogle: true, contentType: 'html'}) || html;            
-            const translatedSubject = await i18n.getTranslation({phraseOrSlug: emailSubject, targetLang: contractor.language}) || emailSubject;
+
+            const translatedHtml = await i18n.getTranslation({ phraseOrSlug: html, targetLang: contractor.language, saveToFile: false, useGoogle: true, contentType: 'html' }) || html;
+            const translatedSubject = await i18n.getTranslation({ phraseOrSlug: emailSubject, targetLang: contractor.language }) || emailSubject;
             EmailService.send(contractor.email, translatedSubject, translatedHtml)
 
             const conversation = await ConversationUtil.updateOrCreateConversation(customer.id, 'customers', contractor.id, 'contractors')
@@ -616,7 +616,7 @@ JobEvent.on('JOB_QUOTATION_DECLINED', async function (payload: { jobId: ObjectId
             let nTitle = await i18n.getTranslation({
                 phraseOrSlug: 'Job Quotation Declined',
                 targetLang: contractorLang
-            });            
+            });
             NotificationService.sendNotification({
                 user: contractor.id,
                 userType: 'contractors',
@@ -670,8 +670,8 @@ JobEvent.on('JOB_QUOTATION_ACCEPTED', async function (payload: { jobId: ObjectId
                 `
 
             let html = GenericEmailTemplate({ name: contractor.name, subject: emailSubject, content: emailContent })
-            const translatedHtml = await i18n.getTranslation({phraseOrSlug: html, targetLang: contractor.language, saveToFile: false, useGoogle: true, contentType: 'html'}) || html;            
-            const translatedSubject = await i18n.getTranslation({phraseOrSlug: emailSubject, targetLang: contractor.language}) || emailSubject;
+            const translatedHtml = await i18n.getTranslation({ phraseOrSlug: html, targetLang: contractor.language, saveToFile: false, useGoogle: true, contentType: 'html' }) || html;
+            const translatedSubject = await i18n.getTranslation({ phraseOrSlug: emailSubject, targetLang: contractor.language }) || emailSubject;
             EmailService.send(contractor.email, translatedSubject, translatedHtml)
 
             const conversation = await ConversationUtil.updateOrCreateConversation(customer.id, 'customers', contractor.id, 'contractors')
@@ -684,7 +684,7 @@ JobEvent.on('JOB_QUOTATION_ACCEPTED', async function (payload: { jobId: ObjectId
             let nMessage = await i18n.getTranslation({
                 phraseOrSlug: 'Your quotation for a job on RepairFind was accepted',
                 targetLang: contractorLang
-            });            
+            });
             NotificationService.sendNotification({
                 user: contractor.id,
                 userType: 'contractors',
@@ -789,8 +789,8 @@ JobEvent.on('JOB_RESCHEDULE_DECLINED_ACCEPTED', async function (payload: { job: 
                 <p><strong>Proposed Date:</strong> ${rescheduleDate}</p>
                 `
                 let html = GenericEmailTemplate({ name: contractor.name, subject: emailSubject, content: emailContent })
-                const translatedHtml = await i18n.getTranslation({phraseOrSlug: html, targetLang: contractor.language, saveToFile: false, useGoogle: true, contentType: 'html'}) || html;            
-                const translatedSubject = await i18n.getTranslation({phraseOrSlug: emailSubject, targetLang: contractor.language}) || emailSubject;
+                const translatedHtml = await i18n.getTranslation({ phraseOrSlug: html, targetLang: contractor.language, saveToFile: false, useGoogle: true, contentType: 'html' }) || html;
+                const translatedSubject = await i18n.getTranslation({ phraseOrSlug: emailSubject, targetLang: contractor.language }) || emailSubject;
                 EmailService.send(contractor.email, translatedSubject, translatedHtml)
 
                 const contractorLang = contractor.language;
@@ -802,7 +802,7 @@ JobEvent.on('JOB_RESCHEDULE_DECLINED_ACCEPTED', async function (payload: { job: 
                 let nMessage = await i18n.getTranslation({
                     phraseOrSlug: `Your job reschedule request on Repairfind has been ${payload.action} by customer`,
                     targetLang: contractorLang
-                });                
+                });
 
                 NotificationService.sendNotification({
                     user: contractor.id,
@@ -852,8 +852,8 @@ JobEvent.on('JOB_RESCHEDULE_DECLINED_ACCEPTED', async function (payload: { job: 
                 <p><strong>Proposed Date:</strong> ${rescheduleDate}</p>
                 `
                 let html = GenericEmailTemplate({ name: customer.name, subject: emailSubject, content: emailContent })
-                const translatedHtml = await i18n.getTranslation({phraseOrSlug: html, targetLang: customer.language, saveToFile: false, useGoogle: true, contentType: 'html'}) || html;            
-                const translatedSubject = await i18n.getTranslation({phraseOrSlug: emailSubject, targetLang: customer.language}) || emailSubject;
+                const translatedHtml = await i18n.getTranslation({ phraseOrSlug: html, targetLang: customer.language, saveToFile: false, useGoogle: true, contentType: 'html' }) || html;
+                const translatedSubject = await i18n.getTranslation({ phraseOrSlug: emailSubject, targetLang: customer.language }) || emailSubject;
                 EmailService.send(customer.email, translatedSubject, translatedHtml)
 
 
@@ -866,7 +866,7 @@ JobEvent.on('JOB_RESCHEDULE_DECLINED_ACCEPTED', async function (payload: { job: 
                     phraseOrSlug: `Your job reschedule request on Repairfind has been ${payload.action} by contractor`,
                     targetLang: customerLang
                 });
-                
+
 
                 NotificationService.sendNotification({
                     user: customer.id,
@@ -951,8 +951,8 @@ JobEvent.on('NEW_JOB_RESCHEDULE_REQUEST', async function (payload: { job: IJob, 
                 <p><strong>Proposed Date:</strong> ${rescheduleDate}</p>
                 `
                 let html = GenericEmailTemplate({ name: customer.name, subject: emailSubject, content: emailContent })
-                const translatedHtml = await i18n.getTranslation({phraseOrSlug: html, targetLang: customer.language, saveToFile: false, useGoogle: true, contentType: 'html'}) || html;            
-                const translatedSubject = await i18n.getTranslation({phraseOrSlug: emailSubject, targetLang: customer.language}) || emailSubject;
+                const translatedHtml = await i18n.getTranslation({ phraseOrSlug: html, targetLang: customer.language, saveToFile: false, useGoogle: true, contentType: 'html' }) || html;
+                const translatedSubject = await i18n.getTranslation({ phraseOrSlug: emailSubject, targetLang: customer.language }) || emailSubject;
                 EmailService.send(customer.email, translatedSubject, translatedHtml)
 
 
@@ -1001,8 +1001,8 @@ JobEvent.on('NEW_JOB_RESCHEDULE_REQUEST', async function (payload: { job: IJob, 
                 <p><strong>Proposed Date:</strong> ${rescheduleDate}</p>
                 `
                 let html = GenericEmailTemplate({ name: contractor.name, subject: emailSubject, content: emailContent })
-                const translatedHtml = await i18n.getTranslation({phraseOrSlug: html, targetLang: contractor.language, saveToFile: false, useGoogle: true, contentType: 'html'}) || html;            
-                const translatedSubject = await i18n.getTranslation({phraseOrSlug: emailSubject, targetLang: contractor.language}) || emailSubject;
+                const translatedHtml = await i18n.getTranslation({ phraseOrSlug: html, targetLang: contractor.language, saveToFile: false, useGoogle: true, contentType: 'html' }) || html;
+                const translatedSubject = await i18n.getTranslation({ phraseOrSlug: emailSubject, targetLang: contractor.language }) || emailSubject;
                 EmailService.send(contractor.email, translatedSubject, translatedHtml)
 
                 NotificationService.sendNotification({
@@ -1054,18 +1054,19 @@ JobEvent.on('JOB_BOOKED', async function (payload: { jobId: ObjectId, contractor
         const job = await JobModel.findById(payload.jobId)
         const quotation = await JobQuotationModel.findById(payload.quotationId)
         const paymentType = payload.paymentType ?? null
-        
+
         if (job && contractor && customer && quotation) {
             const charges = await quotation.calculateCharges(paymentType);
             const contractorProfile = await ContractorProfileModel.findOne({ contractor: contractor.id })
             let paymentReceipt: any = quotation.payment
             let estimates = quotation.estimates
 
-            if(paymentType == PAYMENT_TYPE.SITE_VISIT_PAYMENT){
+            console.log('receiot', charges)
+            if (paymentType == PAYMENT_TYPE.SITE_VISIT_PAYMENT) {
                 paymentReceipt = quotation?.siteVisitEstimate?.payment
-                estimates =  paymentReceipt = quotation?.siteVisitEstimate?.estimates
+                estimates = paymentReceipt = quotation?.siteVisitEstimate?.estimates
             }
-            if(paymentType == PAYMENT_TYPE.SITE_VISIT_PAYMENT){
+            if (paymentType == PAYMENT_TYPE.SITE_VISIT_PAYMENT) {
                 paymentReceipt = quotation.siteVisitEstimate?.payment
                 estimates = quotation.siteVisitEstimate?.estimates
             }
@@ -1083,8 +1084,8 @@ JobEvent.on('JOB_BOOKED', async function (payload: { jobId: ObjectId, contractor
                 }
                 const jobDateContractor = new Intl.DateTimeFormat('en-GB', dateTimeOptions).format(new Date(job.schedule.startDate));
                 const currentDate = new Intl.DateTimeFormat('en-GB', dateTimeOptions).format(new Date(new Date));
-               
-                   
+
+
                 let emailSubject = 'Job Escrow Payment';
                 let emailContent = `
                     <h2>${emailSubject}</h2>
@@ -1098,71 +1099,88 @@ JobEvent.on('JOB_BOOKED', async function (payload: { jobId: ObjectId, contractor
                 `;
 
 
-               
+
 
                 // HTML content for the receipt
                 const receipthtmlContent = `
-                    <h3>Escrow Payment Receipt</h3>
-                    <p><strong>RepairFind</strong><br>
-                    Phone: (604) 568-6378<br>
-                    Email: info@repairfind.ca</p>
-                    <hr>
-
-                    <p>Date: ${currentDate}<br>
-                    Receipt Number: RFP${paymentReceipt}</p>
-
-                    <p><strong>Contractor:</strong><br>
-                    ${contractor.name}<br>
-                    ${contractorProfile?.location?.address}<br>
+                <h3>Escrow Payment Receipt</h3>
+                <p><strong>RepairFind</strong><br>
+                Phone: (604) 568-6378<br>
+                Email: info@repairfind.ca</p>
+                <hr>
+            
+                <p>Date: ${currentDate}<br>
+                Receipt Number: RFP${paymentReceipt}</p>
+            
+                <p><strong>Contractor:</strong><br>
+                ${contractor.name}<br>
+                ${contractorProfile?.location?.address}<br>
+                </p>
+            
+                <hr>
+                <strong>Description:</strong>
+                <strong>Job Title:</strong> ${job.description}<br>
+                <strong>Scheduled Date:</strong> ${jobDateContractor}
+            
+                <p><strong>Invoice Items:</strong></p>
+                <table style="width: 100%; border-collapse: collapse; border: 1px solid lightgray;">
+                ${estimates.map(estimate => `
+                    <tr>
+                      <td style="border: 1px solid lightgray; padding: 8px;"><strong>${estimate.description}</strong></td>
+                      <td style="border: 1px solid lightgray; padding: 8px; text-align: right;">$${(estimate.rate * estimate.quantity).toFixed(2)}</td>
+                    </tr>
+                  `).join('')}   
+                    <tr>
+                        <td style="border: 1px solid lightgray; padding: 8px;"><strong>Subtotal</strong></td>
+                        <td style="border: 1px solid lightgray; padding: 8px; text-align: right;">$${(charges.subtotal).toFixed(2)}</td>
+                    </tr>
+                </table>
+                
+                <p><strong>Deduction/Charges:</strong></p>
+                <table style="width: 100%; border-collapse: collapse; border: 1px solid lightgray;">
+                    <tr>
+                        <td style="border: 1px solid lightgray; padding: 8px;">Payment Processing Fee ($${charges.customerProcessingFeeRate}%)</td>
+                        <td style="border: 1px solid lightgray; padding: 8px; text-align: right;">$${charges.contractorProcessingFee}</td>
+                    </tr>
+                    <tr>
+                        <td style="border: 1px solid lightgray; padding: 8px;">Service Fee (${charges.repairfindServiceFeeRate}%)</td>
+                        <td style="border: 1px solid lightgray; padding: 8px; text-align: right;">$${charges.repairfindServiceFee}</td>
+                    </tr>
+            
+                    <tr>
+                        <td style="border: 1px solid lightgray; padding: 8px;"><strong>Total Deductions</strong></td>
+                        <td style="border: 1px solid lightgray; padding: 8px; text-align: right;"><strong>$${charges.contractorSummary.deductions.total}</strong></td>
+                    </tr>
+                </table>
+            
+                ${
+                    charges.contractorDiscount && charges.contractorDiscount.coupon
+                    ? `
+                    <p>
+                        <strong>Discount Applied:</strong> ${charges.contractorDiscount?.coupon?.name} <br> 
+                        <strong>Discount Applied On:</strong> ${charges.contractorDiscount?.appliedOn}
                     </p>
+                    `
+                    : ''
+                }
 
-                    <hr>
-                    <strong>Description:</strong>
-                    <strong>Job Title:</strong> ${job.description}<br>
-                    <strong>Scheduled Date:</strong> ${jobDateContractor}
-
-                    <p><strong>Invoice Items:</strong></p>
-                    <table style="width: 100%; border-collapse: collapse; border: 1px solid lightgray;">
-                    ${estimates.map(estimate => `
-                        <tr>
-                          <td style="border: 1px solid lightgray; padding: 8px;"><strong>${estimate.description}</strong></td>
-                          <td style="border: 1px solid lightgray; padding: 8px; text-align: right;">$${(estimate.rate * estimate.quantity).toFixed(2)}</td>
-                        </tr>
-                      `).join('')}   
-                        <tr>
-                            <td style="border: 1px solid lightgray; padding: 8px;"><strong>Subtotal</strong></td>
-                            <td style="border: 1px solid lightgray; padding: 8px; text-align: right;">$${(charges.subtotal).toFixed(2)}</td>
-                        </tr>
-                    </table>
-                    <p><strong>Deduction/Charges:</strong></p>
-                    <table style="width: 100%; border-collapse: collapse; border: 1px solid lightgray;">
-                        <tr>
-                            <td style="border: 1px solid lightgray; padding: 8px;">Payment Processing Fee ($${charges.customerProcessingFeeRate}%)</td>
-                            <td style="border: 1px solid lightgray; padding: 8px; text-align: right;">$${charges.contractorProcessingFee}</td>
-                        </tr>
-                        <tr>
-                            <td style="border: 1px solid lightgray; padding: 8px;">Service Fee (${charges.repairfindServiceFeeRate}%)</td>
-                            <td style="border: 1px solid lightgray; padding: 8px; text-align: right;">$${charges.repairfindServiceFee}</td>
-                        </tr>
-                        <tr>
-                            <td style="border: 1px solid lightgray; padding: 8px;"><strong>Total Deducted</strong></td>
-                            <td style="border: 1px solid lightgray; padding: 8px; text-align: right;"><strong>$${charges.repairfindServiceFee + charges.contractorProcessingFee}</strong></td>
-                        </tr>
-                    </table>
-                    <p><strong>Net Amount to Contractor:</strong> $${charges.subtotal} + GST $${charges.gstAmount} - Total Deduction $${charges.repairfindServiceFee + charges.contractorProcessingFee} = $${charges.contractorPayable}</p>
-                    <p><strong>Payment Method:</strong> Card Payment<br>
-                    <strong>Transaction ID:</strong> RFT${quotation.id}</p>
-                `;
+                <p><strong>Net Amount to Contractor:</strong> ${charges.contractorSummary.payable.totalLabel} = $${charges.contractorPayable}</p>
+                <p><strong>Payment Method:</strong> Card Payment<br>
+                <strong>Transaction ID:</strong> RFT${quotation.id}</p>
+            `;
+            
+            // Now you can send or display `receipthtmlContent` as needed
+            
 
 
                 let html = GenericEmailTemplate({ name: contractor.name, subject: emailSubject, content: emailContent });
-                const translatedHtml = await i18n.getTranslation({phraseOrSlug: html, targetLang: contractor.language, saveToFile: false, useGoogle: true, contentType: 'html'}) || html;            
-                const translatedSubject = await i18n.getTranslation({phraseOrSlug: emailSubject, targetLang: contractor.language}) || emailSubject;
+                const translatedHtml = await i18n.getTranslation({ phraseOrSlug: html, targetLang: contractor.language, saveToFile: false, useGoogle: true, contentType: 'html' }) || html;
+                const translatedSubject = await i18n.getTranslation({ phraseOrSlug: emailSubject, targetLang: contractor.language }) || emailSubject;
                 EmailService.send(contractor.email, translatedSubject, translatedHtml);
 
                 let receipthtml = GenericEmailTemplate({ name: contractor.name, subject: 'Escrow Payment Receipt', content: receipthtmlContent });
-                const translatedReceiptHtml = await i18n.getTranslation({phraseOrSlug: receipthtml, targetLang: contractor.language, saveToFile: false, useGoogle: true, contentType: 'html'}) || receipthtml;            
-                const translatedReceiptSubject = await i18n.getTranslation({phraseOrSlug: 'Escrow Payment Receipt', targetLang: contractor.language}) || 'Escrow Payment Receipt';
+                const translatedReceiptHtml = await i18n.getTranslation({ phraseOrSlug: receipthtml, targetLang: contractor.language, saveToFile: false, useGoogle: true, contentType: 'html' }) || receipthtml;
+                const translatedReceiptSubject = await i18n.getTranslation({ phraseOrSlug: 'Escrow Payment Receipt', targetLang: contractor.language }) || 'Escrow Payment Receipt';
                 EmailService.send(contractor.email, translatedReceiptSubject, translatedReceiptHtml);
 
             }
@@ -1218,45 +1236,53 @@ JobEvent.on('JOB_BOOKED', async function (payload: { jobId: ObjectId, contractor
 
                     <p><strong>Services/Charges:</strong></p>
                     <table style="width: 100%; border-collapse: collapse; border: 1px solid lightgray; margin-bottom: 10px;">
-                         ${estimates.map(estimate => `
+                        ${estimates.map(estimate => `
                         <tr>
-                          <td style="border: 1px solid lightgray; padding: 8px;"><strong>${estimate.description}</strong></td>
-                          <td style="border: 1px solid lightgray; padding: 8px; text-align: right;">$${(estimate.rate * estimate.quantity).toFixed(2)}</td>
+                            <td style="border: 1px solid lightgray; padding: 8px;"><strong>${estimate.description}</strong></td>
+                            <td style="border: 1px solid lightgray; padding: 8px; text-align: right;">$${(estimate.rate * estimate.quantity).toFixed(2)}</td>
                         </tr>
-                      `).join('')}   
+                        `).join('')}   
                         <tr>
-                            <td style="border: 1px solid lightgray; padding: 8px;"><strong>Subtotal</strong></td>
-                            <td style="border: 1px solid lightgray; padding: 8px; text-align: right;"><strong>$${(charges.subtotal).toFixed(2)}</strong></td>
-                        </tr>
-                        <tr>
-                            <td style="border: 1px solid lightgray; padding: 8px;">GST (${charges.gstRate}%)</td>
-                            <td style="border: 1px solid lightgray; padding: 8px; text-align: right;">$${charges.gstAmount}</td>
+                        <td style="border: 1px solid lightgray; padding: 8px;"><strong>Subtotal</strong></td>
+                        <td style="border: 1px solid lightgray; padding: 8px; text-align: right;"><strong>$${(charges.subtotal).toFixed(2)}</strong></td>
                         </tr>
                         <tr>
-                            <td style="border: 1px solid lightgray; padding: 8px;">Payment Processing Fee (${charges.customerProcessingFeeRate}%)</td>
-                            <td style="border: 1px solid lightgray; padding: 8px; text-align: right;">$${charges.customerProcessingFee}</td>
+                        <td style="border: 1px solid lightgray; padding: 8px;">GST (${charges.gstRate}%)</td>
+                        <td style="border: 1px solid lightgray; padding: 8px; text-align: right;">$${charges.gstAmount}</td>
                         </tr>
-                       
                         <tr>
-                            <td style="border: 1px solid lightgray; padding: 8px;"><strong>Total Amount Due</strong></td>
-                            <td style="border: 1px solid lightgray; padding: 8px; text-align: right;"><strong>$${charges.customerPayable}</strong></td>
+                        <td style="border: 1px solid lightgray; padding: 8px;">Payment Processing Fee (${charges.customerProcessingFeeRate}%)</td>
+                        <td style="border: 1px solid lightgray; padding: 8px; text-align: right;">$${charges.customerProcessingFee}</td>
+                        </tr>
+                        
+                        ${charges.customerDiscount ? `
+                        <tr>
+                            <td style="border: 1px solid lightgray; padding: 8px;"><strong>Discount (${charges?.customerDiscount?.coupon?.name})</strong></td>
+                            <td style="border: 1px solid lightgray; padding: 8px; text-align: right;">-$${charges?.customerDiscount?.amount.toFixed(2)}</td>
+                        </tr>
+                        ` : ``}
+                        
+                        <tr>
+                        <td style="border: 1px solid lightgray; padding: 8px;"><strong>Total Amount Due</strong> <br> ${charges.customerSummary.payable.totalLabel}</td>
+                        <td style="border: 1px solid lightgray; padding: 8px; text-align: right;"><strong>$${charges.customerPayable}</strong></td>
                         </tr>
                     </table>
-                  <p><strong>Payment Method:</strong> Credit/Debit Card<br>
-                  <strong>Transaction ID:</strong> RPT${quotation.id}</p>
-                  <p style="color: #333333;">Thank you for your payment!</p>
-                  <p style="color: #333333;">If you did not initiate this payment, kindly reach out to us via support.</p>
+                    <p><strong>Payment Method:</strong> Credit/Debit Card<br>
+                    <strong>Transaction ID:</strong> RPT${quotation.id}</p>
+                    <p style="color: #333333;">Thank you for your payment!</p>
+                    <p style="color: #333333;">If you did not initiate this payment, kindly reach out to us via support.</p>
                 `;
 
+
                 let html = GenericEmailTemplate({ name: customer.name, subject: emailSubject, content: emailContent });
-                const translatedHtml = await i18n.getTranslation({phraseOrSlug: html, targetLang: customer.language, saveToFile: false, useGoogle: true, contentType: 'html'}) || html;            
-                const translatedSubject = await i18n.getTranslation({phraseOrSlug: emailSubject, targetLang: customer.language}) || emailSubject;
+                const translatedHtml = await i18n.getTranslation({ phraseOrSlug: html, targetLang: customer.language, saveToFile: false, useGoogle: true, contentType: 'html' }) || html;
+                const translatedSubject = await i18n.getTranslation({ phraseOrSlug: emailSubject, targetLang: customer.language }) || emailSubject;
                 EmailService.send(customer.email, translatedSubject, translatedHtml);
 
 
                 let receipthtml = GenericEmailTemplate({ name: customer.name, subject: 'Payment Receipt', content: receiptContent });
-                const translatedReceiptHtml = await i18n.getTranslation({phraseOrSlug: receipthtml, targetLang: customer.language, saveToFile: false, useGoogle: true, contentType: 'html'}) || receipthtml;            
-                const translatedReceiptSubject = await i18n.getTranslation({phraseOrSlug: 'Payment Receipt', targetLang: customer.language}) || 'Payment Receipt';
+                const translatedReceiptHtml = await i18n.getTranslation({ phraseOrSlug: receipthtml, targetLang: customer.language, saveToFile: false, useGoogle: true, contentType: 'html' }) || receipthtml;
+                const translatedReceiptSubject = await i18n.getTranslation({ phraseOrSlug: 'Payment Receipt', targetLang: customer.language }) || 'Payment Receipt';
                 EmailService.send(customer.email, translatedReceiptSubject, translatedReceiptHtml);
 
 
@@ -1264,9 +1290,9 @@ JobEvent.on('JOB_BOOKED', async function (payload: { jobId: ObjectId, contractor
 
 
             const customerLang = customer.language;
-            let nTitle = await i18n.getTranslation({phraseOrSlug: 'Job Booked', targetLang: customerLang });
+            let nTitle = await i18n.getTranslation({ phraseOrSlug: 'Job Booked', targetLang: customerLang });
             let nMessage = await i18n.getTranslation({ phraseOrSlug: 'You have booked a job on Repairfind', targetLang: customerLang });
-            
+
             NotificationService.sendNotification({
                 user: customer.id,
                 userType: 'customers',
@@ -1288,7 +1314,7 @@ JobEvent.on('JOB_BOOKED', async function (payload: { jobId: ObjectId, contractor
             const contractorLang = contractor.language;
             nTitle = await i18n.getTranslation({ phraseOrSlug: 'Job Booked', targetLang: contractorLang });
             nMessage = await i18n.getTranslation({ phraseOrSlug: 'You have a booked job on Repairfind', targetLang: contractorLang });
-            
+
             NotificationService.sendNotification({
                 user: contractor.id,
                 userType: 'contractors',
@@ -1342,7 +1368,7 @@ JobEvent.on('JOB_DISPUTE_CREATED', async function (payload: { dispute: IJobDispu
             phraseOrSlug: 'You have an open job dispute',
             targetLang: customerLang
         });
-        
+
         NotificationService.sendNotification({
             user: customer.id,
             userType: 'customers',
@@ -1370,7 +1396,7 @@ JobEvent.on('JOB_DISPUTE_CREATED', async function (payload: { dispute: IJobDispu
             phraseOrSlug: 'You have an open job dispute',
             targetLang: contractorLang
         });
-        
+
 
         NotificationService.sendNotification({
             user: contractor.id,
@@ -1450,7 +1476,7 @@ JobEvent.on('JOB_MARKED_COMPLETE_BY_CONTRACTOR', async function (payload: { job:
             phraseOrSlug: 'Contractor has marked job as completed',
             targetLang: customerLang
         });
-        
+
         NotificationService.sendNotification({
             user: customer.id,
             userType: 'customers',
@@ -1526,7 +1552,7 @@ JobEvent.on('JOB_COMPLETED', async function (payload: { job: IJob }) {
         const job = await JobModel.findById(payload.job.id)
 
         if (!job) return
-        
+
         const customer = await CustomerModel.findById(job.customer)
         const contractor = await ContractorModel.findById(job.contractor)
         const event = (job.schedule.type == JOB_SCHEDULE_TYPE.SITE_VISIT) ? 'COMPLETED_SITE_VISIT' : 'JOB_COMPLETED'
@@ -1536,7 +1562,7 @@ JobEvent.on('JOB_COMPLETED', async function (payload: { job: IJob }) {
         const contractorLang = contractor.language;
         let nTitle = await i18n.getTranslation({ phraseOrSlug: 'Job Completed', targetLang: contractorLang });
         let nMessage = await i18n.getTranslation({ phraseOrSlug: 'Job completion confirmed by customer', targetLang: contractorLang });
-        
+
         NotificationService.sendNotification({
             user: contractor.id,
             userType: 'contractors',
@@ -1583,20 +1609,20 @@ JobEvent.on('JOB_COMPLETED', async function (payload: { job: IJob }) {
         }
 
         // Enable pending referral bonuses here
-        if(customer.referral){
-            const referral  = await ReferralModel.findById(customer.referral)
-            if(!referral || !referral.coupon) return 
-            const coupon = await CouponModel.findOne({id: referral.coupon, status: COUPON_STATUS.PENDING})
-            if(!coupon) return 
+        if (customer.referral) {
+            const referral = await ReferralModel.findById(customer.referral)
+            if (!referral || !referral.coupon) return
+            const coupon = await CouponModel.findOne({ id: referral.coupon, status: COUPON_STATUS.PENDING })
+            if (!coupon) return
             coupon.status = COUPON_STATUS.ACTIVE
             await coupon.save();
         }
 
-        if(contractor.referral){
-            const referral  = await ReferralModel.findById(contractor.referral)
-            if(!referral || !referral.coupon) return 
-            const coupon = await CouponModel.findOne({id: referral.coupon, status: COUPON_STATUS.PENDING})
-            if(!coupon) return 
+        if (contractor.referral) {
+            const referral = await ReferralModel.findById(contractor.referral)
+            if (!referral || !referral.coupon) return
+            const coupon = await CouponModel.findOne({ id: referral.coupon, status: COUPON_STATUS.PENDING })
+            if (!coupon) return
             coupon.status = COUPON_STATUS.ACTIVE
             await coupon.save();
         }
@@ -1636,7 +1662,7 @@ JobEvent.on('JOB_CHANGE_ORDER', async function (payload: { job: IJob }) {
             phraseOrSlug: `Change order is ${state} for your job`,
             targetLang: contractorLang
         });
-        
+
         NotificationService.sendNotification({
             user: contractor.id,
             userType: 'contractors',
@@ -1708,7 +1734,7 @@ JobEvent.on('SITE_VISIT_ESTIMATE_SUBMITTED', async function (payload: { job: IJo
             phraseOrSlug: 'Site visit estimate has been submitted',
             targetLang: customerLang
         });
-        
+
         NotificationService.sendNotification({
             user: customer.id,
             userType: 'customers',
@@ -1738,7 +1764,7 @@ JobEvent.on('SITE_VISIT_ESTIMATE_SUBMITTED', async function (payload: { job: IJo
             phraseOrSlug: 'Site visit estimate has been submitted',
             targetLang: contractorLang
         });
-        
+
         NotificationService.sendNotification({
             user: contractor.id,
             userType: 'contractors',
@@ -1795,7 +1821,7 @@ JobEvent.on('CHANGE_ORDER_ESTIMATE_SUBMITTED', async function (payload: { job: I
             phraseOrSlug: 'Change order estimate has been submitted',
             targetLang: customerLang
         });
-        
+
         NotificationService.sendNotification({
             user: customer.id,
             userType: 'customers',
@@ -1868,7 +1894,7 @@ JobEvent.on('NEW_JOB_QUOTATION', async function (payload: { job: IJob, quotation
             phraseOrSlug: 'Your job on Repairfind has received a new bid',
             targetLang: customerLang
         });
-        
+
         NotificationService.sendNotification({
             user: customer.id,
             userType: 'customers',
@@ -1914,7 +1940,7 @@ JobEvent.on('JOB_QUOTATION_EDITED', async function (payload: { job: IJob, quotat
             phraseOrSlug: 'Job estimate has been edited by contractor',
             targetLang: customerLang
         });
-        
+
         NotificationService.sendNotification({
             user: customer.id,
             userType: 'customers',
@@ -1977,7 +2003,7 @@ JobEvent.on('CHANGE_ORDER_ESTIMATE_PAID', async function (payload: { job: IJob, 
         const contractorLang = contractor.language;
         let nTitle = await i18n.getTranslation({ phraseOrSlug: 'Change Order Estimate Paid', targetLang: contractorLang });
         let nMessage = await i18n.getTranslation({ phraseOrSlug: 'Change order estimate has been paid', targetLang: contractorLang });
-        
+
         NotificationService.sendNotification({
             user: contractor.id,
             userType: 'contractors',
@@ -1999,8 +2025,8 @@ JobEvent.on('CHANGE_ORDER_ESTIMATE_PAID', async function (payload: { job: IJob, 
 
 
         const customerLang = contractor.language;
-         nTitle = await i18n.getTranslation({ phraseOrSlug: 'Change Order Estimate Paid', targetLang: customerLang });
-         nMessage = await i18n.getTranslation({ phraseOrSlug: 'Change order estimate has been paid', targetLang: customerLang });
+        nTitle = await i18n.getTranslation({ phraseOrSlug: 'Change Order Estimate Paid', targetLang: customerLang });
+        nMessage = await i18n.getTranslation({ phraseOrSlug: 'Change order estimate has been paid', targetLang: customerLang });
 
         NotificationService.sendNotification({
             user: customer.id,
@@ -2057,7 +2083,7 @@ JobEvent.on('JOB_DAY_STARTED', async function (payload: { job: IJob, jobDay: IJo
             phraseOrSlug: 'JobDay trip started',
             targetLang: contractorLang
         });
-        
+
         NotificationService.sendNotification(
             {
                 user: contractor.id,
@@ -2102,7 +2128,7 @@ JobEvent.on('JOB_DAY_STARTED', async function (payload: { job: IJob, jobDay: IJo
             phraseOrSlug: 'Contractor is on his way',
             targetLang: customerLang
         });
-        
+
         NotificationService.sendNotification({
             user: customer.id,
             userType: 'customers',
@@ -2146,7 +2172,7 @@ JobEvent.on('JOB_DAY_ARRIVAL', async function (payload: { jobDay: IJobDay, verif
             phraseOrSlug: 'Contractor is at your site.',
             targetLang: customerLang
         });
-        
+
 
         NotificationService.sendNotification(
             {
@@ -2176,7 +2202,7 @@ JobEvent.on('JOB_DAY_ARRIVAL', async function (payload: { jobDay: IJobDay, verif
             phraseOrSlug: 'Job Day arrival, waiting for confirmation from customer.',
             targetLang: contractorLang
         });
-        
+
 
         NotificationService.sendNotification(
             {
@@ -2246,7 +2272,7 @@ JobEvent.on('JOB_DAY_CONFIRMED', async function (payload: { jobDay: IJobDay }) {
             phraseOrSlug: 'Customer has confirmed your arrival.',
             targetLang: contractorLang
         });
-        
+
         NotificationService.sendNotification(
             {
                 user: job.contractor,
@@ -2295,7 +2321,7 @@ JobEvent.on('JOB_DAY_CONFIRMED', async function (payload: { jobDay: IJobDay }) {
             phraseOrSlug: "You successfully confirmed the contractor's arrival.",
             targetLang: customerLang
         });
-        
+
 
         NotificationService.sendNotification(
             {
@@ -2344,8 +2370,8 @@ JobEvent.on('JOB_REFUND_REQUESTED', async function (payload: { job: any, payment
                 <p><strong>Refund Amount:</strong> ${refund.refundAmount}</p>
                 `
         let html = GenericEmailTemplate({ name: customer.name, subject: emailSubject, content: emailContent })
-        const translatedHtml = await i18n.getTranslation({phraseOrSlug: html, targetLang: customer.language, saveToFile: false, useGoogle: true, contentType: 'html'}) || html;            
-        const translatedSubject = await i18n.getTranslation({phraseOrSlug: emailSubject, targetLang: customer.language}) || emailSubject;
+        const translatedHtml = await i18n.getTranslation({ phraseOrSlug: html, targetLang: customer.language, saveToFile: false, useGoogle: true, contentType: 'html' }) || html;
+        const translatedSubject = await i18n.getTranslation({ phraseOrSlug: emailSubject, targetLang: customer.language }) || emailSubject;
         EmailService.send(customer.email, translatedSubject, translatedHtml)
 
 
@@ -2361,8 +2387,8 @@ JobEvent.on('JOB_REFUND_REQUESTED', async function (payload: { job: any, payment
                 <p><strong>Refund Amount:</strong> ${refund.refundAmount}</p>
                 `
         html = GenericEmailTemplate({ name: contractor.name, subject: emailSubject, content: emailContent })
-        const translatedHtmlC = await i18n.getTranslation({phraseOrSlug: html, targetLang: contractor.language, saveToFile: false, useGoogle: true, contentType: 'html'}) || html;            
-        const translatedSubjectC = await i18n.getTranslation({phraseOrSlug: emailSubject, targetLang: contractor.language}) || emailSubject;
+        const translatedHtmlC = await i18n.getTranslation({ phraseOrSlug: html, targetLang: contractor.language, saveToFile: false, useGoogle: true, contentType: 'html' }) || html;
+        const translatedSubjectC = await i18n.getTranslation({ phraseOrSlug: emailSubject, targetLang: contractor.language }) || emailSubject;
         EmailService.send(contractor.email, translatedSubjectC, translatedHtmlC)
 
 
@@ -2404,7 +2430,7 @@ JobEvent.on('NEW_JOB_ENQUIRY', async function (payload: { jobId: any, enquiryId:
                     phraseOrSlug: 'A Job you saved on Repairfind has a new enquiry',
                     targetLang: contractorLang
                 });
-                
+
                 NotificationService.sendNotification(
                     {
                         user: device.contractor.toString(),
@@ -2432,7 +2458,7 @@ JobEvent.on('NEW_JOB_ENQUIRY', async function (payload: { jobId: any, enquiryId:
                 phraseOrSlug: 'Your job on Repairfind has a new enquiry',
                 targetLang: customerLang
             });
-            
+
             NotificationService.sendNotification(
                 {
                     user: customer.id,
@@ -2446,7 +2472,7 @@ JobEvent.on('NEW_JOB_ENQUIRY', async function (payload: { jobId: any, enquiryId:
                 { push: true, socket: true, database: true }
             );
 
-            
+
             let emailSubject = 'New Job Enquiry '
             let emailContent = `
                 <h2>${emailSubject}</h2>
@@ -2459,8 +2485,8 @@ JobEvent.on('NEW_JOB_ENQUIRY', async function (payload: { jobId: any, enquiryId:
                 <p style="color: #333333;">Do well to check and follow up as soon as possible </p>
                 `
             let html = GenericEmailTemplate({ name: customer.name, subject: emailSubject, content: emailContent })
-            const translatedHtml = await i18n.getTranslation({phraseOrSlug: html, targetLang: customer.language, saveToFile: false, useGoogle: true, contentType: 'html'}) || html;            
-            const translatedSubject = await i18n.getTranslation({phraseOrSlug: emailSubject, targetLang: customer.language}) || emailSubject;
+            const translatedHtml = await i18n.getTranslation({ phraseOrSlug: html, targetLang: customer.language, saveToFile: false, useGoogle: true, contentType: 'html' }) || html;
+            const translatedSubject = await i18n.getTranslation({ phraseOrSlug: emailSubject, targetLang: customer.language }) || emailSubject;
             EmailService.send(customer.email, translatedSubject, translatedHtml)
         }
 
@@ -2494,9 +2520,9 @@ JobEvent.on('NEW_JOB_ENQUIRY_REPLY', async function (payload: { jobId: any, enqu
         const deviceTokens = devices.map(device => device.expoToken);
 
 
-        devices.map( async(device) => {
+        devices.map(async (device) => {
             const contractor = await ContractorModel.findById(device.contractor)
-            if(contractor){
+            if (contractor) {
                 const contractorLang = contractor.language;
                 let nTitle = await i18n.getTranslation({
                     phraseOrSlug: 'New Job Enquiry Reply',
@@ -2506,7 +2532,7 @@ JobEvent.on('NEW_JOB_ENQUIRY_REPLY', async function (payload: { jobId: any, enqu
                     phraseOrSlug: 'A job you are following on Repairfind has a new reply from the customer',
                     targetLang: contractorLang
                 });
-                
+
                 NotificationService.sendNotification(
                     {
                         user: contractor.id,
@@ -2519,7 +2545,7 @@ JobEvent.on('NEW_JOB_ENQUIRY_REPLY', async function (payload: { jobId: any, enqu
                     },
                     { push: true, socket: true, database: true }
                 );
-                
+
             }
         });
 
@@ -2538,8 +2564,8 @@ JobEvent.on('NEW_JOB_ENQUIRY_REPLY', async function (payload: { jobId: any, enqu
                     <p><strong>Reply</strong> ${enquiry.replies ? enquiry?.replies[0]?.replyText : ''}</p>
                     `
             let html = GenericEmailTemplate({ name: contractor.name, subject: emailSubject, content: emailContent })
-            const translatedHtml = await i18n.getTranslation({phraseOrSlug: html, targetLang: contractor.language, saveToFile: false, useGoogle: true, contentType: 'html'}) || html;            
-            const translatedSubject = await i18n.getTranslation({phraseOrSlug: emailSubject, targetLang: contractor.language}) || emailSubject;
+            const translatedHtml = await i18n.getTranslation({ phraseOrSlug: html, targetLang: contractor.language, saveToFile: false, useGoogle: true, contentType: 'html' }) || html;
+            const translatedSubject = await i18n.getTranslation({ phraseOrSlug: emailSubject, targetLang: contractor.language }) || emailSubject;
             EmailService.send(contractor.email, translatedSubject, translatedHtml)
         }
 

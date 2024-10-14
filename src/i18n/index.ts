@@ -77,7 +77,7 @@ function saveTranslationToFile(slug: string, targetLang: Language, translatedTex
     // Write the updated translations back to the general.json file
     writeFileSync(generalTranslationsPath, JSON.stringify(currentTranslations, null, 2), 'utf8');
 
-    Logger.info(`New translation saved for '${slug}' in language '${targetLang}' to general.json.`);
+    // Logger.info(`New translation saved for '${slug}' in language '${targetLang}' to general.json.`);
 }
 
 
@@ -103,7 +103,7 @@ async function getTranslation({ phraseOrSlug,  sourceLang = 'en', targetLang, sa
         }
 
         // If no translation is found, fall back to Google Translate API
-        Logger.info(`No local translation found for '${phraseOrSlug}', using Google Translate...`);
+        // Logger.info(`No local translation found for '${phraseOrSlug}', using Google Translate...`);
 
         let translatedText = phraseOrSlug
         if(useGoogle){
@@ -136,7 +136,7 @@ export async function freeCloudTranslate(text: string, targetLang: string, sourc
         const translate = Translate({ engine: config.i18n.engine, key: config.i18n.key });        
         const translatedText = await translate(text, { to: targetLang } );
 
-        console.log('translatedText', translatedText)
+        // console.log('translatedText', translatedText)
         return translatedText
     } catch (error: any) {
         Logger.error('Error translating text:', error?.response?.data);

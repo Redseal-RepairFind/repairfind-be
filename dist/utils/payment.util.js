@@ -41,7 +41,7 @@ var coupon_schema_1 = require("../database/common/coupon.schema");
 var calculateCharges = function (_a) {
     var totalEstimateAmount = _a.totalEstimateAmount, customerDiscount = _a.customerDiscount, contractorDiscount = _a.contractorDiscount;
     return __awaiter(void 0, void 0, void 0, function () {
-        var _b, subtotal, repairfindServiceFee, gstAmount, totalAmount, customerPayable, contractorPayable, customerProcessingFee, contractorProcessingFee, customerDiscountValue, contractorDiscountValue, repairfindServiceFeeRate, customerProcessingFeeRate, contractorProcessingFeeRate, gstRate, _c, customerCoupon, contractorCoupon;
+        var _b, subtotal, repairfindServiceFee, gstAmount, totalAmount, customerPayable, contractorPayable, customerProcessingFee, contractorProcessingFee, customerDiscountValue, contractorDiscountValue, repairfindServiceFeeRate, customerProcessingFeeRate, contractorProcessingFeeRate, gstRate, _c, customerCoupon, contractorCoupon, contractorSummary, customerSummary;
         return __generator(this, function (_d) {
             switch (_d.label) {
                 case 0:
@@ -108,6 +108,44 @@ var calculateCharges = function (_a) {
                         }
                     }
                     contractorPayable = parseFloat((subtotal + gstAmount - (contractorProcessingFee + repairfindServiceFee)).toFixed(2));
+                    contractorSummary = {
+                        totalPayable: contractorPayable,
+                        payable: {
+                            gst: gstAmount,
+                            subtotal: subtotal,
+                            total: contractorPayable,
+                            totalLabel: "GST ($".concat(gstAmount, ") + Subtotal ($").concat(subtotal, ") -  Deductions ($").concat(contractorProcessingFee + repairfindServiceFee, ")")
+                        },
+                        discount: {
+                            amount: contractorDiscountValue,
+                            coupon: contractorCoupon,
+                            appliedOn: (contractorDiscount === null || contractorDiscount === void 0 ? void 0 : contractorDiscount.valueType) === coupon_schema_1.COUPON_VALUE_TYPE.PERCENTAGE
+                                ? 'Service Fee Rate'
+                                : 'Service Fee', // Indicating where it was applied
+                        },
+                        deductions: {
+                            total: contractorProcessingFee + repairfindServiceFee,
+                            serviceFee: repairfindServiceFee,
+                            processingFee: contractorProcessingFee,
+                            totalLabel: "Service Fee ($".concat(repairfindServiceFee, ") + Processing Fee ($").concat(contractorProcessingFee, ")")
+                        },
+                    };
+                    customerSummary = {
+                        subtotal: subtotal,
+                        totalPayable: customerPayable,
+                        discount: {
+                            amount: customerDiscountValue !== null && customerDiscountValue !== void 0 ? customerDiscountValue : 0,
+                            coupon: customerCoupon,
+                            appliedOn: 'Total Estimate'
+                        },
+                        payable: {
+                            gst: gstAmount,
+                            subtotal: subtotal,
+                            processingFee: customerProcessingFee,
+                            total: customerPayable,
+                            totalLabel: "GST ($".concat(gstAmount, ") + Processing Fee ($").concat(customerProcessingFee, ") + Subtotal ($").concat(subtotal, ") - Discount($").concat(customerDiscountValue, ")")
+                        },
+                    };
                     return [2 /*return*/, {
                             subtotal: subtotal,
                             gstAmount: gstAmount,
@@ -121,6 +159,8 @@ var calculateCharges = function (_a) {
                             repairfindServiceFeeRate: repairfindServiceFeeRate,
                             contractorProcessingFeeRate: contractorProcessingFeeRate,
                             customerProcessingFeeRate: customerProcessingFeeRate,
+                            contractorSummary: contractorSummary,
+                            customerSummary: customerSummary,
                             // Correctly apply customer and contractor discounts
                             customerDiscount: (customerDiscount === null || customerDiscount === void 0 ? void 0 : customerDiscount.value)
                                 ? {
@@ -128,7 +168,7 @@ var calculateCharges = function (_a) {
                                     amount: customerDiscountValue,
                                     value: customerDiscount.value,
                                     valueType: customerDiscount.valueType,
-                                    appliedOn: 'totalEstimateAmount', // Indicating where it was applied
+                                    appliedOn: 'Total Estimate', // Indicating where it was applied
                                 }
                                 : null,
                             contractorDiscount: (contractorDiscount === null || contractorDiscount === void 0 ? void 0 : contractorDiscount.value)
@@ -138,8 +178,8 @@ var calculateCharges = function (_a) {
                                     value: contractorDiscount.value,
                                     valueType: contractorDiscount.valueType,
                                     appliedOn: contractorDiscount.valueType === coupon_schema_1.COUPON_VALUE_TYPE.PERCENTAGE
-                                        ? 'repairfindServiceFeeRate'
-                                        : 'repairfindServiceFee', // Indicating where it was applied
+                                        ? 'Service Fee Rate'
+                                        : 'Service Fee', // Indicating where it was applied
                                 }
                                 : null,
                         }];

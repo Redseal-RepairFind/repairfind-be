@@ -95,11 +95,50 @@ const calculateCharges = async ({
       customerDiscountValue -= (1 - customerPayable);
       customerPayable = 1;
     }
-
-
   }
 
   contractorPayable = parseFloat((subtotal + gstAmount - (contractorProcessingFee + repairfindServiceFee)).toFixed(2));
+
+  const contractorSummary = {
+    totalPayable: contractorPayable,
+    payable: {
+      gst: gstAmount,
+      subtotal: subtotal,
+      total: contractorPayable,
+      totalLabel: `GST ($${gstAmount}) + Subtotal ($${subtotal}) -  Deductions ($${contractorProcessingFee + repairfindServiceFee})`
+    },
+    discount: {
+      amount: contractorDiscountValue,
+      coupon: contractorCoupon,
+      appliedOn: contractorDiscount?.valueType === COUPON_VALUE_TYPE.PERCENTAGE
+            ? 'Service Fee Rate'
+            : 'Service Fee', // Indicating where it was applied
+    },
+    deductions: {
+      total: contractorProcessingFee + repairfindServiceFee,
+      serviceFee: repairfindServiceFee,
+      processingFee: contractorProcessingFee,
+      totalLabel: `Service Fee ($${repairfindServiceFee}) + Processing Fee ($${contractorProcessingFee})`
+    },
+  };
+
+  const customerSummary = {
+    subtotal: subtotal,
+    totalPayable: customerPayable,
+    discount: {
+      amount: customerDiscountValue ?? 0,
+      coupon: customerCoupon,
+      appliedOn: 'Total Estimate'
+    },
+    payable: {
+      gst: gstAmount,
+      subtotal: subtotal,
+      processingFee: customerProcessingFee,
+      total: customerPayable,
+      totalLabel: `GST ($${gstAmount}) + Processing Fee ($${customerProcessingFee}) + Subtotal ($${subtotal}) - Discount($${customerDiscountValue})`
+    },
+
+  };
 
   return {
     subtotal,
@@ -116,6 +155,9 @@ const calculateCharges = async ({
     contractorProcessingFeeRate,
     customerProcessingFeeRate,
 
+    contractorSummary,
+    customerSummary,
+
     // Correctly apply customer and contractor discounts
     customerDiscount: customerDiscount?.value
       ? {
@@ -123,7 +165,7 @@ const calculateCharges = async ({
           amount: customerDiscountValue,
           value: customerDiscount.value,
           valueType: customerDiscount.valueType,
-          appliedOn: 'totalEstimateAmount', // Indicating where it was applied
+          appliedOn: 'Total Estimate', // Indicating where it was applied
         }
       : null,
     contractorDiscount: contractorDiscount?.value
@@ -133,8 +175,8 @@ const calculateCharges = async ({
           value: contractorDiscount.value,
           valueType: contractorDiscount.valueType,
           appliedOn: contractorDiscount.valueType === COUPON_VALUE_TYPE.PERCENTAGE
-            ? 'repairfindServiceFeeRate'
-            : 'repairfindServiceFee', // Indicating where it was applied
+            ? 'Service Fee Rate'
+            : 'Service Fee', // Indicating where it was applied
         }
       : null,
   };

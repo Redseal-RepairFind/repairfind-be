@@ -43,6 +43,95 @@ export interface IExtraEstimate extends Document {
 }
 
 
+export interface ICharges {
+    subtotal: number;
+    gstAmount: number;
+    customerPayable: number;
+    contractorPayable: number;
+    repairfindServiceFee: number;
+    customerProcessingFee: number;
+    contractorProcessingFee: number;
+  
+    // Rates
+    gstRate: number;
+    repairfindServiceFeeRate: number;
+    contractorProcessingFeeRate: number;
+    customerProcessingFeeRate: number;
+  
+    // Summaries for contractor and customer
+    contractorSummary: {
+      totalPayable: number;
+      payable: {
+        gst: number;
+        subtotal: number;
+        total: number;
+        totalLabel: string;
+      };
+      discount: {
+        amount: number;
+        coupon?: {
+          _id: string;
+          name: string;
+          type: string;
+        };
+        appliedOn: string;
+      };
+      deductions: {
+        total: number;
+        serviceFee: number;
+        processingFee: number;
+        totalLabel: string;
+      };
+    };
+  
+    customerSummary: {
+      subtotal: number;
+      totalPayable: number;
+      discount: {
+        amount: number;
+        coupon?: {
+          _id: string;
+          name: string;
+          type: string;
+        };
+        appliedOn: string;
+      };
+      payable: {
+        gst: number;
+        subtotal: number;
+        processingFee: number;
+        total: number;
+        totalLabel: string;
+      };
+    };
+  
+    // Discounts
+    customerDiscount?: {
+      coupon?: {
+        _id: string;
+        name: string;
+        type: string;
+      };
+      amount: number;
+      value: number;
+      valueType: string;
+      appliedOn: string;
+    } | null;
+  
+    contractorDiscount?: {
+      coupon?: {
+        _id: string;
+        name: string;
+        type: string;
+      };
+      amount: number;
+      value: number;
+      valueType: string;
+      appliedOn: string;
+    } | null;
+  }
+  
+  
 
 export interface IJobQuotation extends Document {
     contractor: ObjectId;
@@ -62,20 +151,7 @@ export interface IJobQuotation extends Document {
     estimatedDuration: number;
     customerDiscount: IQuotationDiscount
     contractorDiscount: IQuotationDiscount
-    calculateCharges: (type?: string)  => {
-        subtotal: number, 
-        gstAmount: number, 
-        customerPayable: number,
-        contractorPayable: number, 
-        repairfindServiceFee:number, 
-        customerProcessingFee:number, 
-        contractorProcessingFee:number,
-        gstRate:number,
-        repairfindServiceFeeRate:number,
-        contractorProcessingFeeRate:number,
-        customerProcessingFeeRate:number,
-    }; 
-
+    calculateCharges: (type?: string) => ICharges; // Updated return type to match the new ICharges interface
 }
 
 // Define schema for job quotation estimates

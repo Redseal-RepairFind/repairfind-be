@@ -93,7 +93,7 @@ function saveTranslationToFile(slug, targetLang, translatedText) {
     currentTranslations[slug][targetLang] = translatedText;
     // Write the updated translations back to the general.json file
     (0, fs_1.writeFileSync)(generalTranslationsPath, JSON.stringify(currentTranslations, null, 2), 'utf8');
-    logger_1.Logger.info("New translation saved for '".concat(slug, "' in language '").concat(targetLang, "' to general.json."));
+    // Logger.info(`New translation saved for '${slug}' in language '${targetLang}' to general.json.`);
 }
 // Updated function to get translation with fallback to Google Translate API
 function getTranslation(_a) {
@@ -112,8 +112,6 @@ function getTranslation(_a) {
                     if (translations[slug] && translations[slug][targetLang]) {
                         return [2 /*return*/, translations[slug][targetLang]];
                     }
-                    // If no translation is found, fall back to Google Translate API
-                    logger_1.Logger.info("No local translation found for '".concat(phraseOrSlug, "', using Google Translate..."));
                     translatedText = phraseOrSlug;
                     if (!useGoogle) return [3 /*break*/, 2];
                     return [4 /*yield*/, google_1.GoogleServiceProvider.translate.translateText({ text: phraseOrSlug, targetLang: targetLang, format: contentType })];
@@ -154,7 +152,7 @@ function freeCloudTranslate(text, targetLang, sourceLang) {
                     return [4 /*yield*/, translate(text, { to: targetLang })];
                 case 1:
                     translatedText = _e.sent();
-                    console.log('translatedText', translatedText);
+                    // console.log('translatedText', translatedText)
                     return [2 /*return*/, translatedText];
                 case 2:
                     error_2 = _e.sent();
