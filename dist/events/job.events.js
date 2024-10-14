@@ -1829,7 +1829,7 @@ exports.JobEvent.on('JOB_COMPLETED', function (payload) {
                     referral = _c.sent();
                     if (!referral || !referral.coupon)
                         return [2 /*return*/];
-                    return [4 /*yield*/, coupon_schema_1.CouponModel.findOne({ id: referral.coupon, status: coupon_schema_1.COUPON_STATUS.PENDING })];
+                    return [4 /*yield*/, coupon_schema_1.CouponModel.findOne({ _id: referral.coupon, status: coupon_schema_1.COUPON_STATUS.PENDING })];
                 case 8:
                     coupon = _c.sent();
                     if (!coupon)
@@ -1846,7 +1846,7 @@ exports.JobEvent.on('JOB_COMPLETED', function (payload) {
                     referral = _c.sent();
                     if (!referral || !referral.coupon)
                         return [2 /*return*/];
-                    return [4 /*yield*/, coupon_schema_1.CouponModel.findOne({ id: referral.coupon, status: coupon_schema_1.COUPON_STATUS.PENDING })];
+                    return [4 /*yield*/, coupon_schema_1.CouponModel.findOne({ _id: referral.coupon, status: coupon_schema_1.COUPON_STATUS.PENDING })];
                 case 12:
                     coupon = _c.sent();
                     if (!coupon)

@@ -1893,7 +1893,7 @@ JobEvent.on('JOB_COMPLETED', async function (payload: { job: IJob }) {
         if (customer.referral) {
             const referral = await ReferralModel.findById(customer.referral)
             if (!referral || !referral.coupon) return
-            const coupon = await CouponModel.findOne({ id: referral.coupon, status: COUPON_STATUS.PENDING })
+            const coupon = await CouponModel.findOne({ _id: referral.coupon, status: COUPON_STATUS.PENDING })
             if (!coupon) return
             coupon.status = COUPON_STATUS.ACTIVE
             await coupon.save();
@@ -1902,7 +1902,7 @@ JobEvent.on('JOB_COMPLETED', async function (payload: { job: IJob }) {
         if (contractor.referral) {
             const referral = await ReferralModel.findById(contractor.referral)
             if (!referral || !referral.coupon) return
-            const coupon = await CouponModel.findOne({ id: referral.coupon, status: COUPON_STATUS.PENDING })
+            const coupon = await CouponModel.findOne({ _id: referral.coupon, status: COUPON_STATUS.PENDING })
             if (!coupon) return
             coupon.status = COUPON_STATUS.ACTIVE
             await coupon.save();
