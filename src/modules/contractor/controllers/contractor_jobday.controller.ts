@@ -11,7 +11,7 @@ import { ConversationModel } from "../../../database/common/conversations.schema
 import { ContractorProfileModel } from "../../../database/contractor/models/contractor_profile.model";
 import CustomerModel from "../../../database/customer/models/customer.model";
 import { JOB_DISPUTE_STATUS, JobDisputeModel } from "../../../database/common/job_dispute.model";
-import { JobQuotationModel } from "../../../database/common/job_quotation.model";
+import { JOB_QUOTATION_TYPE, JobQuotationModel } from "../../../database/common/job_quotation.model";
 import { ConversationUtil } from "../../../utils/conversation.util";
 
 
@@ -39,7 +39,7 @@ export const startTrip = async (
         }
 
         const jobDay = await JobDayModel.findOneAndUpdate(
-            { job: jobId, type: job.schedule.type, status: {$nin: [JOB_DAY_STATUS.DISPUTED, JOB_DAY_STATUS.COMPLETED ]} },
+            { job: jobId, type: job.schedule.type, status: { $nin: [JOB_DAY_STATUS.DISPUTED, JOB_DAY_STATUS.COMPLETED] } },
             {
                 customer: job.customer,
                 contractor: contractorId,
@@ -82,7 +82,7 @@ export const initiateJobDay = async (
             return res.status(400).json({ errors: errors.array() });
         }
 
-        
+
         // Find the job request by ID
         const job = await JobModel.findOne({ _id: jobId }).populate('assignment.contractor');
         if (!job) {
@@ -90,7 +90,7 @@ export const initiateJobDay = async (
         }
 
         let contractorId = req.contractor.id
-        if(job.isAssigned && job.assignment) contractorId = job.assignment.contractor
+        if (job.isAssigned && job.assignment) contractorId = job.assignment.contractor
         let contractorProfile = await ContractorProfileModel.findOne({ contractor: contractorId });
 
         if (!contractorProfile) {
@@ -110,7 +110,7 @@ export const initiateJobDay = async (
         }
 
 
-        const jobDay = await JobDayModel.findOne({ job: jobId, type: job.schedule.type, status: {$nin: [JOB_DAY_STATUS.DISPUTED, JOB_DAY_STATUS.COMPLETED ]} });
+        const jobDay = await JobDayModel.findOne({ job: jobId, type: job.schedule.type, status: { $nin: [JOB_DAY_STATUS.DISPUTED, JOB_DAY_STATUS.COMPLETED] } });
         // if(jobDay){
         //     return res.status(400).json({ success: false, message: 'Jobday does not exists for the current schedule, kindly start a job' });
         // }
@@ -138,15 +138,15 @@ export const initiateJobDay = async (
         // let contractorLocation = contractorProfile.location
         let contractorLocation = jobDay?.contractorLocation
         // if job is assigned show assigned contractor location
-        if(job.isAssigned){
+        if (job.isAssigned) {
             contractorProfile = await ContractorProfileModel.findOne({ contractor: job.assignment.contractor });
-            if(contractorProfile)  contractorLocation = contractorProfile?.location
+            if (contractorProfile) contractorLocation = contractorProfile?.location
         }
         const data = {
             conversation: conversation.id,
-            customer: {id: customer.id, phoneNumber: customer.phoneNumber, name: customer.name, email: customer.email, profilePhoto: customer.profilePhoto},
-            contractor: {id: contractor.id, phoneNumber: contractor.phoneNumber, name: contractor.name, email: contractor.email, profilePhoto: contractor.profilePhoto},
-            job: {id: job.id, description: job.description, title: job.title, schedule: job.schedule, type:job.type, date:job.date, location: job.location, assignment:job.assignment},
+            customer: { id: customer.id, phoneNumber: customer.phoneNumber, name: customer.name, email: customer.email, profilePhoto: customer.profilePhoto },
+            contractor: { id: contractor.id, phoneNumber: contractor.phoneNumber, name: contractor.name, email: contractor.email, profilePhoto: contractor.profilePhoto },
+            job: { id: job.id, description: job.description, title: job.title, schedule: job.schedule, type: job.type, date: job.date, location: job.location, assignment: job.assignment },
             contractorLocation: contractorLocation,
             jobDay
         }
@@ -205,7 +205,7 @@ export const confirmArrival = async (
         jobDay.status = JOB_DAY_STATUS.ARRIVED
         await jobDay.save()
 
-       
+
         JobEvent.emit('JOB_DAY_ARRIVAL', { jobDay, verificationCode })
 
         res.json({
@@ -263,13 +263,13 @@ export const createJobDispute = async (req: any, res: Response, next: NextFuncti
         const jobDayId = req.params.jobDayId; // Assuming jo
         const contractorId = req.contractor.id; // Assuming user ID from request object
 
-         // Check for validation errors
-         const errors = validationResult(req);
-         if (!errors.isEmpty()) {
-             return res.status(400).json({ errors: errors.array() });
-         }
+        // Check for validation errors
+        const errors = validationResult(req);
+        if (!errors.isEmpty()) {
+            return res.status(400).json({ errors: errors.array() });
+        }
 
-         
+
         const jobDay = await JobDayModel.findById(jobDayId);
         if (!jobDay) {
             return res.status(404).json({ success: false, message: 'Job not found' });
@@ -298,11 +298,11 @@ export const createJobDispute = async (req: any, res: Response, next: NextFuncti
             status: JOB_DISPUTE_STATUS.OPEN,
         }, { new: true, upsert: true });
 
-        
-        const customerId = job.customer
-       
 
-        if(evidence){
+        const customerId = job.customer
+
+
+        if (evidence) {
             const disputeEvidence = evidence.map((url: string) => ({
                 url,
                 addedBy: 'contractor',
@@ -311,16 +311,16 @@ export const createJobDispute = async (req: any, res: Response, next: NextFuncti
             dispute.evidence.push(...disputeEvidence);
         }
 
-       //if job was previously disputed, assign dispute to previous arbitrator
-       const previousDispute = await JobDisputeModel.findOne({job: job.id, status: JOB_DISPUTE_STATUS.REVISIT})
-       if(job.revisitEnabled && previousDispute){
-           dispute.status = JOB_DISPUTE_STATUS.ONGOING
-           dispute.arbitrator = previousDispute.arbitrator
-           dispute.status = JOB_DISPUTE_STATUS.ONGOING
-           const { customerContractor, arbitratorContractor, arbitratorCustomer } = await ConversationUtil.updateOrCreateDisputeConversations(dispute)
-           dispute.conversations = { customerContractor, arbitratorContractor, arbitratorCustomer }
-       }
-       
+        //if job was previously disputed, assign dispute to previous arbitrator
+        const previousDispute = await JobDisputeModel.findOne({ job: job.id, status: JOB_DISPUTE_STATUS.REVISIT })
+        if (job.revisitEnabled && previousDispute) {
+            dispute.status = JOB_DISPUTE_STATUS.ONGOING
+            dispute.arbitrator = previousDispute.arbitrator
+            dispute.status = JOB_DISPUTE_STATUS.ONGOING
+            const { customerContractor, arbitratorContractor, arbitratorCustomer } = await ConversationUtil.updateOrCreateDisputeConversations(dispute)
+            dispute.conversations = { customerContractor, arbitratorContractor, arbitratorCustomer }
+        }
+
         await dispute.save()
 
         job.status = JOB_STATUS.DISPUTED
@@ -328,9 +328,9 @@ export const createJobDispute = async (req: any, res: Response, next: NextFuncti
 
         JobEvent.emit('JOB_DISPUTE_CREATED', { dispute: dispute });
 
-        
+
         return res.status(201).json({ success: true, message: 'Job dispute created successfully', data: dispute });
-        
+
     } catch (error: any) {
         next(new InternalServerError('Error creating job dispute:', error));
     }
@@ -347,7 +347,7 @@ export const markJobDayComplete = async (req: any, res: Response, next: NextFunc
         if (!jobDay) {
             return res.status(404).json({ success: false, message: 'Job day not found' });
         }
-        
+
         const job = await JobModel.findById(jobDay.job);
 
         const contractor = await ContractorModel.findById(contractorId);
@@ -485,12 +485,94 @@ export const savePostJobQualityAssurance = async (
 }
 
 
+// export const submitEstimate = async (req: any, res: Response, next: NextFunction) => {
+//     try {
+//         const contractorId = req.contractor.id;
+//         const { jobDayId } = req.params;
+//         const { estimates } = req.body;
+
+
+//         const jobDay = await JobDayModel.findById(jobDayId);
+//         if (!jobDay) {
+//             return res.status(404).json({ success: false, message: 'Job Day not found' });
+//         }
+
+//         const contractor = await ContractorModel.findById(contractorId);
+//         if (!contractor) {
+//             return res.status(404).json({ success: false, message: 'Customer not found' });
+//         }
+
+//         // Find the job
+//         const job = await JobModel.findById(jobDay.job);
+
+
+//         // Check if the job exists
+//         if (!job) {
+//             return res.status(404).json({ success: false, message: 'Job not found' });
+//         }
+
+//         // Check if the contractor is the owner of the job
+
+
+//         if ( jobDay.type !== JOB_DAY_TYPE.SITE_VISIT ) {
+//             return res.status(400).json({ success: false, message: 'Estimate can only be submitted for site visit' });
+//         }
+
+//         // if (job.statusUpdate && job.statusUpdate.status == JOB_STATUS.COMPLETED_SITE_VISIT &&  job.statusUpdate.awaitingConfirmation) {
+//         //     // return res.status(400).json({ success: false, message: 'Customer has not confirmed completion of site visit' });
+//         // }
+
+//         const quotation = await JobQuotationModel.findById(job.contract)
+//         if(!quotation) return res.status(400).json({ success: false, message: 'Job quotation not found' });
+
+//         quotation.startDate = job.date ?? new Date()
+//         quotation.estimates = estimates
+
+
+
+//         job.statusUpdate = {
+//             ...job.statusUpdate,
+//             status: 'SITE_VISIT_ESTIMATE_SUBMITTED',
+//             isCustomerAccept: false,
+//             awaitingConfirmation: true
+//         }
+
+//         job.jobHistory.push({
+//             eventType: 'SITE_VISIT_ESTIMATE_SUBMITTED',
+//             timestamp: new Date(),
+//             payload: {}
+//         });
+
+
+//         // change quotation type to 'JOB_DAY'? or create a new job with quotation sent as contract, or allow jobs to hav multiple 
+//         // also change job status to pending
+
+//         job.status = JOB_STATUS.PENDING
+//         quotation.type = JOB_QUOTATION_TYPE.JOB_DAY
+
+
+//         await Promise.all([
+//             quotation.save(),
+//             job.save()
+//         ])
+//         // await quotation.save();
+//         // await job.save();
+
+//         JobEvent.emit('SITE_VISIT_ESTIMATE_SUBMITTED', { job })
+
+//         res.json({ success: true, message: 'Site visit estimate submitted successfully', data: job });
+//     } catch (error: any) {
+//         return next(new BadRequestError('An error occurred', error));
+//     }
+// };
+
+
+
 export const submitEstimate = async (req: any, res: Response, next: NextFunction) => {
     try {
         const contractorId = req.contractor.id;
         const { jobDayId } = req.params;
         const { estimates } = req.body;
-
 
         const jobDay = await JobDayModel.findById(jobDayId);
         if (!jobDay) {
@@ -499,58 +581,74 @@ export const submitEstimate = async (req: any, res: Response, next: NextFunction
 
         const contractor = await ContractorModel.findById(contractorId);
         if (!contractor) {
-            return res.status(404).json({ success: false, message: 'Customer not found' });
+            return res.status(404).json({ success: false, message: 'Contractor not found' });
         }
 
-        // Find the job
+        // Find the original job
         const job = await JobModel.findById(jobDay.job);
-
-
-        // Check if the job exists
         if (!job) {
             return res.status(404).json({ success: false, message: 'Job not found' });
         }
 
-        // Check if the contractor is the owner of the job
-       
-
-        if ( jobDay.type !== JOB_DAY_TYPE.SITE_VISIT ) {
-            return res.status(400).json({ success: false, message: 'Estimate can only be submitted for site visit' });
+        if (jobDay.type !== JOB_DAY_TYPE.SITE_VISIT) {
+            return res.status(400).json({ success: false, message: 'Estimate can only be submitted for a site visit' });
         }
 
-        // if (job.statusUpdate && job.statusUpdate.status == JOB_STATUS.COMPLETED_SITE_VISIT &&  job.statusUpdate.awaitingConfirmation) {
-        //     // return res.status(400).json({ success: false, message: 'Customer has not confirmed completion of site visit' });
-        // }
-
-        const quotation = await JobQuotationModel.findById(job.contract)
-        if(!quotation) return res.status(400).json({ success: false, message: 'Job quotation not found' });
-
-        quotation.startDate = job.date ?? new Date()
-        quotation.estimates = estimates
-
-        
-
-        job.statusUpdate = {
-            ...job.statusUpdate,
-            status: 'SITE_VISIT_ESTIMATE_SUBMITTED',
-            isCustomerAccept: false,
-            awaitingConfirmation: true
+        const quotation = await JobQuotationModel.findById(job.contract);
+        if (!quotation) {
+            return res.status(400).json({ success: false, message: 'Job quotation not found' });
         }
 
-        job.jobHistory.push({
+        // Convert the existing job to a plain object
+        const jobObject = job.toObject() as any; // Explicitly cast to a plain object
+
+        var date = new Date();
+        date.setDate(date.getDate() + 7);
+
+        // Create a new job based on the existing job
+        const newJob = new JobModel({
+            ...jobObject, // Spread the plain object
+            date: date, // can be rescheduled
+            _id: undefined, // Ensure MongoDB generates a new _id
+            status: JOB_STATUS.SUBMITTED, // Set the new status for the new job
+            jobHistory: [], // Reset job history for the new job
+            statusUpdate: {
+                status: 'SITE_VISIT_ESTIMATE_SUBMITTED',
+                isCustomerAccept: false,
+                awaitingConfirmation: true
+            }
+        });
+
+        // Create a new quotation and attach it to the new job
+        const newQuotation = new JobQuotationModel({
+            startDate: job.date ?? new Date(),
+            estimates,
+            type: JOB_QUOTATION_TYPE.JOB_DAY // Set the new quotation type
+        });
+
+        // Attach the new quotation as a contract to the new job
+        newJob.contract = newQuotation._id;
+        newJob.contractor = contractor._id;
+        newJob.siteVisitJob = job._id;
+
+        // Update job history for the new job
+        newJob.jobHistory.push({
             eventType: 'SITE_VISIT_ESTIMATE_SUBMITTED',
             timestamp: new Date(),
             payload: {}
         });
 
-       
+        // Save both the new job and new quotation
+        await Promise.all([newJob.save(), newQuotation.save(), job.save()]);
 
-        await quotation.save();
-        await job.save();
+        // Emit the event
+        JobEvent.emit('SITE_VISIT_ESTIMATE_SUBMITTED', { job: newJob });
 
-        JobEvent.emit('SITE_VISIT_ESTIMATE_SUBMITTED', { job })
-
-        res.json({ success: true, message: 'Site visit estimate submitted successfully', data: job });
+        res.json({
+            success: true,
+            message: 'Site visit estimate submitted successfully',
+            data: newJob
+        });
     } catch (error: any) {
         return next(new BadRequestError('An error occurred', error));
     }

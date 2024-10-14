@@ -459,7 +459,7 @@ export const confirmJobDayCompletion = async (req: any, res: Response, next: Nex
             payload: {}
         });
 
-
+ 
         //TODO: Set job ended date on job.schedule
         job.schedule.endDate = new Date()
 

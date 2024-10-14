@@ -162,6 +162,7 @@ var JobSchema = new mongoose_1.Schema({
     contractor: { type: mongoose_1.Schema.Types.ObjectId, ref: 'contractors' },
     quotation: { type: mongoose_1.Schema.Types.ObjectId, ref: 'job_quotations' },
     contract: { type: mongoose_1.Schema.Types.ObjectId, ref: 'job_quotations' }, // TODO: replace quotation with this
+    siteVisitJob: { type: mongoose_1.Schema.Types.ObjectId, ref: 'jobs' },
     contractorType: { type: String },
     status: { type: String, enum: Object.values(JOB_STATUS), default: JOB_STATUS.PENDING },
     statusUpdate: StatusUpdateSchema,

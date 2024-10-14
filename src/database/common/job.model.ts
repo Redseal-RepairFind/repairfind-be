@@ -117,7 +117,8 @@ export interface IJob extends Document {
     customer: ObjectId;
     contractor: ObjectId; // contractor that has been engaged
     quotation: ObjectId; // application or estimate or quatation that has been paid for
-    contract: ObjectId; // TODO: replace quotation with this
+    contract: ObjectId; 
+    siteVisitJob?: ObjectId; // TODO: replace quotation with this
     contractorType: String;
     status: JOB_STATUS;
     type: JobType;
@@ -267,6 +268,7 @@ const JobSchema = new Schema<IJob>({
     contractor: { type: Schema.Types.ObjectId, ref: 'contractors' },
     quotation: { type: Schema.Types.ObjectId, ref: 'job_quotations' },
     contract: { type: Schema.Types.ObjectId, ref: 'job_quotations' }, // TODO: replace quotation with this
+    siteVisitJob: { type: Schema.Types.ObjectId, ref: 'jobs' }, 
     contractorType: { type: String },
     status: { type: String, enum: Object.values(JOB_STATUS), default: JOB_STATUS.PENDING },
     statusUpdate: StatusUpdateSchema,

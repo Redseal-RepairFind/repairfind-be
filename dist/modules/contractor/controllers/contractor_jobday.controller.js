@@ -515,13 +515,70 @@ var savePostJobQualityAssurance = function (req, res) { return __awaiter(void 0,
     });
 }); };
 exports.savePostJobQualityAssurance = savePostJobQualityAssurance;
+// export const submitEstimate = async (req: any, res: Response, next: NextFunction) => {
+//     try {
+//         const contractorId = req.contractor.id;
+//         const { jobDayId } = req.params;
+//         const { estimates } = req.body;
+//         const jobDay = await JobDayModel.findById(jobDayId);
+//         if (!jobDay) {
+//             return res.status(404).json({ success: false, message: 'Job Day not found' });
+//         }
+//         const contractor = await ContractorModel.findById(contractorId);
+//         if (!contractor) {
+//             return res.status(404).json({ success: false, message: 'Customer not found' });
+//         }
+//         // Find the job
+//         const job = await JobModel.findById(jobDay.job);
+//         // Check if the job exists
+//         if (!job) {
+//             return res.status(404).json({ success: false, message: 'Job not found' });
+//         }
+//         // Check if the contractor is the owner of the job
+//         if ( jobDay.type !== JOB_DAY_TYPE.SITE_VISIT ) {
+//             return res.status(400).json({ success: false, message: 'Estimate can only be submitted for site visit' });
+//         }
+//         // if (job.statusUpdate && job.statusUpdate.status == JOB_STATUS.COMPLETED_SITE_VISIT &&  job.statusUpdate.awaitingConfirmation) {
+//         //     // return res.status(400).json({ success: false, message: 'Customer has not confirmed completion of site visit' });
+//         // }
+//         const quotation = await JobQuotationModel.findById(job.contract)
+//         if(!quotation) return res.status(400).json({ success: false, message: 'Job quotation not found' });
+//         quotation.startDate = job.date ?? new Date()
+//         quotation.estimates = estimates
+//         job.statusUpdate = {
+//             ...job.statusUpdate,
+//             status: 'SITE_VISIT_ESTIMATE_SUBMITTED',
+//             isCustomerAccept: false,
+//             awaitingConfirmation: true
+//         }
+//         job.jobHistory.push({
+//             eventType: 'SITE_VISIT_ESTIMATE_SUBMITTED',
+//             timestamp: new Date(),
+//             payload: {}
+//         });
+//         // change quotation type to 'JOB_DAY'? or create a new job with quotation sent as contract, or allow jobs to hav multiple 
+//         // also change job status to pending
+//         job.status = JOB_STATUS.PENDING
+//         quotation.type = JOB_QUOTATION_TYPE.JOB_DAY
+//         await Promise.all([
+//             quotation.save(),
+//             job.save()
+//         ])
+//         // await quotation.save();
+//         // await job.save();
+//         JobEvent.emit('SITE_VISIT_ESTIMATE_SUBMITTED', { job })
+//         res.json({ success: true, message: 'Site visit estimate submitted successfully', data: job });
+//     } catch (error: any) {
+//         return next(new BadRequestError('An error occurred', error));
+//     }
+// };
 var submitEstimate = function (req, res, next) { return __awaiter(void 0, void 0, void 0, function () {
-    var contractorId, jobDayId, estimates, jobDay, contractor, job, quotation, error_4;
+    var contractorId, jobDayId, estimates, jobDay, contractor, job, quotation, jobObject, date, newJob, newQuotation, error_4;
     var _a;
     return __generator(this, function (_b) {
         switch (_b.label) {
             case 0:
-                _b.trys.push([0, 7, , 8]);
+                _b.trys.push([0, 6, , 7]);
                 contractorId = req.contractor.id;
                 jobDayId = req.params.jobDayId;
                 estimates = req.body.estimates;
@@ -535,45 +592,63 @@ var submitEstimate = function (req, res, next) { return __awaiter(void 0, void 0
             case 2:
                 contractor = _b.sent();
                 if (!contractor) {
-                    return [2 /*return*/, res.status(404).json({ success: false, message: 'Customer not found' })];
+                    return [2 /*return*/, res.status(404).json({ success: false, message: 'Contractor not found' })];
                 }
                 return [4 /*yield*/, job_model_1.JobModel.findById(jobDay.job)];
             case 3:
                 job = _b.sent();
-                // Check if the job exists
                 if (!job) {
                     return [2 /*return*/, res.status(404).json({ success: false, message: 'Job not found' })];
                 }
-                // Check if the contractor is the owner of the job
                 if (jobDay.type !== job_day_model_1.JOB_DAY_TYPE.SITE_VISIT) {
-                    return [2 /*return*/, res.status(400).json({ success: false, message: 'Estimate can only be submitted for site visit' })];
+                    return [2 /*return*/, res.status(400).json({ success: false, message: 'Estimate can only be submitted for a site visit' })];
                 }
                 return [4 /*yield*/, job_quotation_model_1.JobQuotationModel.findById(job.contract)];
             case 4:
                 quotation = _b.sent();
-                if (!quotation)
+                if (!quotation) {
                     return [2 /*return*/, res.status(400).json({ success: false, message: 'Job quotation not found' })];
-                quotation.startDate = (_a = job.date) !== null && _a !== void 0 ? _a : new Date();
-                quotation.estimates = estimates;
-                job.statusUpdate = __assign(__assign({}, job.statusUpdate), { status: 'SITE_VISIT_ESTIMATE_SUBMITTED', isCustomerAccept: false, awaitingConfirmation: true });
-                job.jobHistory.push({
+                }
+                jobObject = job.toObject();
+                date = new Date();
+                date.setDate(date.getDate() + 7);
+                newJob = new job_model_1.JobModel(__assign(__assign({}, jobObject), { date: date, _id: undefined, status: job_model_1.JOB_STATUS.SUBMITTED, jobHistory: [], statusUpdate: {
+                        status: 'SITE_VISIT_ESTIMATE_SUBMITTED',
+                        isCustomerAccept: false,
+                        awaitingConfirmation: true
+                    } }));
+                newQuotation = new job_quotation_model_1.JobQuotationModel({
+                    startDate: (_a = job.date) !== null && _a !== void 0 ? _a : new Date(),
+                    estimates: estimates,
+                    type: job_quotation_model_1.JOB_QUOTATION_TYPE.JOB_DAY // Set the new quotation type
+                });
+                // Attach the new quotation as a contract to the new job
+                newJob.contract = newQuotation._id;
+                newJob.contractor = contractor._id;
+                newJob.siteVisitJob = job._id;
+                // Update job history for the new job
+                newJob.jobHistory.push({
                     eventType: 'SITE_VISIT_ESTIMATE_SUBMITTED',
                     timestamp: new Date(),
                     payload: {}
                 });
-                return [4 /*yield*/, quotation.save()];
+                // Save both the new job and new quotation
+                return [4 /*yield*/, Promise.all([newJob.save(), newQuotation.save(), job.save()])];
             case 5:
+                // Save both the new job and new quotation
                 _b.sent();
-                return [4 /*yield*/, job.save()];
+                // Emit the event
+                events_1.JobEvent.emit('SITE_VISIT_ESTIMATE_SUBMITTED', { job: newJob });
+                res.json({
+                    success: true,
+                    message: 'Site visit estimate submitted successfully',
+                    data: newJob
+                });
+                return [3 /*break*/, 7];
             case 6:
-                _b.sent();
-                events_1.JobEvent.emit('SITE_VISIT_ESTIMATE_SUBMITTED', { job: job });
-                res.json({ success: true, message: 'Site visit estimate submitted successfully', data: job });
-                return [3 /*break*/, 8];
-            case 7:
                 error_4 = _b.sent();
                 return [2 /*return*/, next(new custom_errors_1.BadRequestError('An error occurred', error_4))];
-            case 8: return [2 /*return*/];
+            case 7: return [2 /*return*/];
         }
     });
 }); };
