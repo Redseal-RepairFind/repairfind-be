@@ -62,6 +62,7 @@ var fcm_1 = require("./services/notifications/fcm");
 var config_1 = require("./config");
 var paypal_payment_template_1 = require("./templates/common/paypal_payment.template");
 var job_model_1 = require("./database/common/job.model");
+var job_quotation_model_1 = require("./database/common/job_quotation.model");
 dotenv_1.default.config();
 // intercept all console logs and bind it to configured log service
 console.warn = logger_1.Logger.warn.bind(logger_1.Logger);
@@ -76,7 +77,7 @@ app.get("/api/v1/customer/paypal/payment-method-checkout-view", function (req, r
     return res.send(html);
 });
 app.get("/api/v1/customer/paypal/create-checkout-view", function (req, res) { return __awaiter(void 0, void 0, void 0, function () {
-    var _a, token, quotationId, jobId, _b, isChangeOrder, job, paypalClientId, html;
+    var _a, token, quotationId, jobId, _b, isChangeOrder, job, quotation, changeOrderEstimate, paypalClientId, html;
     return __generator(this, function (_c) {
         switch (_c.label) {
             case 0:
@@ -84,11 +85,22 @@ app.get("/api/v1/customer/paypal/create-checkout-view", function (req, res) { re
                 return [4 /*yield*/, job_model_1.JobModel.findById(jobId)];
             case 1:
                 job = _c.sent();
-                if (!job) {
+                if (!job)
                     return [2 /*return*/, res.status(400).json({ success: false, message: 'Job not found' })];
+                return [4 /*yield*/, job_quotation_model_1.JobQuotationModel.findById(quotationId)];
+            case 2:
+                quotation = _c.sent();
+                if (!quotation)
+                    return [2 /*return*/, res.status(400).json({ success: false, message: 'Job not found' })];
+                if (isChangeOrder === "true") {
+                    changeOrderEstimate = quotation.changeOrderEstimate;
+                    if (!changeOrderEstimate)
+                        return [2 /*return*/, res.status(400).json({ success: false, message: 'No  changeOrder estimate for this job' })];
+                    if (changeOrderEstimate.isPaid)
+                        return [2 /*return*/, res.status(400).json({ success: false, message: 'Change order estimate already paid' })];
                 }
                 logger_1.Logger.info("Checkout View Loaded", { token: token, quotationId: quotationId, jobId: jobId, isChangeOrder: isChangeOrder });
-                if (!isChangeOrder && (job.status === job_model_1.JOB_STATUS.BOOKED)) {
+                if (!isChangeOrder && (job.status !== job_model_1.JOB_STATUS.PENDING)) {
                     return [2 /*return*/, res.status(400).json({ success: false, message: 'Job is not pending, so new payment is not possible' })];
                 }
                 paypalClientId = config_1.config.paypal.clientId;

@@ -1223,44 +1223,39 @@ exports.JobEvent.on('NEW_JOB_RESCHEDULE_REQUEST', function (payload) {
     });
 });
 exports.JobEvent.on('JOB_BOOKED', function (payload) {
-    var _a, _b, _c, _d, _e, _f, _g, _h, _j, _k, _l, _m, _o, _p, _q;
+    var _a, _b, _c, _d, _e, _f, _g, _h, _j, _k, _l, _m, _o, _p;
     return __awaiter(this, void 0, void 0, function () {
         var customer, contractor, job, quotation, paymentType, charges, contractorProfile, paymentReceipt, estimates, dateTimeOptions, jobDateContractor, currentDate, emailSubject, emailContent, receipthtmlContent, html, translatedHtml, translatedSubject, receipthtml, translatedReceiptHtml, translatedReceiptSubject, dateTimeOptions, jobDateCustomer, currentDate, emailSubject, emailContent, receiptContent, html, translatedHtml, translatedSubject, receipthtml, translatedReceiptHtml, translatedReceiptSubject, customerLang, nTitle, nMessage, contractorLang, error_13;
-        return __generator(this, function (_r) {
-            switch (_r.label) {
+        return __generator(this, function (_q) {
+            switch (_q.label) {
                 case 0:
-                    _r.trys.push([0, 22, , 23]);
+                    _q.trys.push([0, 22, , 23]);
                     logger_1.Logger.info('handling alert JOB_BOOKED event');
                     return [4 /*yield*/, customer_model_1.default.findById(payload.customerId)];
                 case 1:
-                    customer = _r.sent();
+                    customer = _q.sent();
                     return [4 /*yield*/, contractor_model_1.ContractorModel.findById(payload.contractorId)];
                 case 2:
-                    contractor = _r.sent();
+                    contractor = _q.sent();
                     return [4 /*yield*/, job_model_1.JobModel.findById(payload.jobId)];
                 case 3:
-                    job = _r.sent();
+                    job = _q.sent();
                     return [4 /*yield*/, job_quotation_model_1.JobQuotationModel.findById(payload.quotationId)];
                 case 4:
-                    quotation = _r.sent();
+                    quotation = _q.sent();
                     paymentType = (_a = payload.paymentType) !== null && _a !== void 0 ? _a : null;
                     if (!(job && contractor && customer && quotation)) return [3 /*break*/, 21];
                     return [4 /*yield*/, quotation.calculateCharges(paymentType)];
                 case 5:
-                    charges = _r.sent();
+                    charges = _q.sent();
                     return [4 /*yield*/, contractor_profile_model_1.ContractorProfileModel.findOne({ contractor: contractor.id })];
                 case 6:
-                    contractorProfile = _r.sent();
+                    contractorProfile = _q.sent();
                     paymentReceipt = quotation.payment;
                     estimates = quotation.estimates;
-                    console.log('receiot', charges);
                     if (paymentType == payment_schema_1.PAYMENT_TYPE.SITE_VISIT_PAYMENT) {
                         paymentReceipt = (_b = quotation === null || quotation === void 0 ? void 0 : quotation.siteVisitEstimate) === null || _b === void 0 ? void 0 : _b.payment;
                         estimates = paymentReceipt = (_c = quotation === null || quotation === void 0 ? void 0 : quotation.siteVisitEstimate) === null || _c === void 0 ? void 0 : _c.estimates;
-                    }
-                    if (paymentType == payment_schema_1.PAYMENT_TYPE.SITE_VISIT_PAYMENT) {
-                        paymentReceipt = (_d = quotation.siteVisitEstimate) === null || _d === void 0 ? void 0 : _d.payment;
-                        estimates = (_e = quotation.siteVisitEstimate) === null || _e === void 0 ? void 0 : _e.estimates;
                     }
                     if (!(contractor && contractorProfile)) return [3 /*break*/, 11];
                     dateTimeOptions = {
@@ -1278,26 +1273,26 @@ exports.JobEvent.on('JOB_BOOKED', function (payload) {
                     currentDate = new Intl.DateTimeFormat('en-GB', dateTimeOptions).format(new Date(new Date));
                     emailSubject = 'Job Escrow Payment';
                     emailContent = "\n                    <h2>".concat(emailSubject, "</h2>\n                    <p style=\"color: #333333;\">Hello ").concat(contractor.name, ",</p>\n                    <p style=\"color: #333333;\">You have received escrow payment for a job on RepairFind. The money is securely held in Escrow, and will be released to your paypal email once job is done</p>\n                    <p><strong>Job Title:</strong> ").concat(job.description, "</p>\n                    <p><strong>Scheduled Date:</strong>").concat(jobDateContractor, "</p>\n                    <hr>\n                    <p style=\"color: #333333;\">Thank you for your service!</p>\n                    <p style=\"color: #333333;\">Kindly open the App for more information.</p>\n                ");
-                    receipthtmlContent = "\n                <h3>Escrow Payment Receipt</h3>\n                <p><strong>RepairFind</strong><br>\n                Phone: (604) 568-6378<br>\n                Email: info@repairfind.ca</p>\n                <hr>\n            \n                <p>Date: ".concat(currentDate, "<br>\n                Receipt Number: RFP").concat(paymentReceipt, "</p>\n            \n                <p><strong>Contractor:</strong><br>\n                ").concat(contractor.name, "<br>\n                ").concat((_f = contractorProfile === null || contractorProfile === void 0 ? void 0 : contractorProfile.location) === null || _f === void 0 ? void 0 : _f.address, "<br>\n                </p>\n            \n                <hr>\n                <strong>Description:</strong>\n                <strong>Job Title:</strong> ").concat(job.description, "<br>\n                <strong>Scheduled Date:</strong> ").concat(jobDateContractor, "\n            \n                <p><strong>Invoice Items:</strong></p>\n                <table style=\"width: 100%; border-collapse: collapse; border: 1px solid lightgray;\">\n                ").concat(estimates.map(function (estimate) { return "\n                    <tr>\n                      <td style=\"border: 1px solid lightgray; padding: 8px;\"><strong>".concat(estimate.description, "</strong></td>\n                      <td style=\"border: 1px solid lightgray; padding: 8px; text-align: right;\">$").concat((estimate.rate * estimate.quantity).toFixed(2), "</td>\n                    </tr>\n                  "); }).join(''), "   \n                    <tr>\n                        <td style=\"border: 1px solid lightgray; padding: 8px;\"><strong>Subtotal</strong></td>\n                        <td style=\"border: 1px solid lightgray; padding: 8px; text-align: right;\">$").concat((charges.subtotal).toFixed(2), "</td>\n                    </tr>\n                </table>\n                \n                <p><strong>Deduction/Charges:</strong></p>\n                <table style=\"width: 100%; border-collapse: collapse; border: 1px solid lightgray;\">\n                    <tr>\n                        <td style=\"border: 1px solid lightgray; padding: 8px;\">Payment Processing Fee ($").concat(charges.customerProcessingFeeRate, "%)</td>\n                        <td style=\"border: 1px solid lightgray; padding: 8px; text-align: right;\">$").concat(charges.contractorProcessingFee, "</td>\n                    </tr>\n                    <tr>\n                        <td style=\"border: 1px solid lightgray; padding: 8px;\">Service Fee (").concat(charges.repairfindServiceFeeRate, "%)</td>\n                        <td style=\"border: 1px solid lightgray; padding: 8px; text-align: right;\">$").concat(charges.repairfindServiceFee, "</td>\n                    </tr>\n            \n                    <tr>\n                        <td style=\"border: 1px solid lightgray; padding: 8px;\"><strong>Total Deductions</strong></td>\n                        <td style=\"border: 1px solid lightgray; padding: 8px; text-align: right;\"><strong>$").concat(charges.contractorSummary.deductions.total, "</strong></td>\n                    </tr>\n                </table>\n            \n                ").concat(charges.contractorDiscount && charges.contractorDiscount.coupon
-                        ? "\n                    <p>\n                        <strong>Discount Applied:</strong> ".concat((_h = (_g = charges.contractorDiscount) === null || _g === void 0 ? void 0 : _g.coupon) === null || _h === void 0 ? void 0 : _h.name, " <br> \n                        <strong>Discount Applied On:</strong> ").concat((_j = charges.contractorDiscount) === null || _j === void 0 ? void 0 : _j.appliedOn, "\n                    </p>\n                    ")
+                    receipthtmlContent = "\n                <h3>Escrow Payment Receipt</h3>\n                <p><strong>RepairFind</strong><br>\n                Phone: (604) 568-6378<br>\n                Email: info@repairfind.ca</p>\n                <hr>\n            \n                <p>Date: ".concat(currentDate, "<br>\n                Receipt Number: RFP").concat(paymentReceipt, "</p>\n            \n                <p><strong>Contractor:</strong><br>\n                ").concat(contractor.name, "<br>\n                ").concat((_d = contractorProfile === null || contractorProfile === void 0 ? void 0 : contractorProfile.location) === null || _d === void 0 ? void 0 : _d.address, "<br>\n                </p>\n            \n                <hr>\n                <strong>Description:</strong>\n                <strong>Job Title:</strong> ").concat(job.description, "<br>\n                <strong>Scheduled Date:</strong> ").concat(jobDateContractor, "\n            \n                <p><strong>Invoice Items:</strong></p>\n                <table style=\"width: 100%; border-collapse: collapse; border: 1px solid lightgray;\">\n                ").concat(estimates.map(function (estimate) { return "\n                    <tr>\n                      <td style=\"border: 1px solid lightgray; padding: 8px;\"><strong>".concat(estimate.description, "</strong></td>\n                      <td style=\"border: 1px solid lightgray; padding: 8px; text-align: right;\">$").concat((estimate.rate * estimate.quantity).toFixed(2), "</td>\n                    </tr>\n                  "); }).join(''), "   \n                    <tr>\n                        <td style=\"border: 1px solid lightgray; padding: 8px;\"><strong>Subtotal</strong></td>\n                        <td style=\"border: 1px solid lightgray; padding: 8px; text-align: right;\">$").concat((charges.subtotal).toFixed(2), "</td>\n                    </tr>\n                </table>\n                \n                <p><strong>Deduction/Charges:</strong></p>\n                <table style=\"width: 100%; border-collapse: collapse; border: 1px solid lightgray;\">\n                    <tr>\n                        <td style=\"border: 1px solid lightgray; padding: 8px;\">Payment Processing Fee ($").concat(charges.customerProcessingFeeRate, "%)</td>\n                        <td style=\"border: 1px solid lightgray; padding: 8px; text-align: right;\">$").concat(charges.contractorProcessingFee, "</td>\n                    </tr>\n                    <tr>\n                        <td style=\"border: 1px solid lightgray; padding: 8px;\">Service Fee (").concat(charges.repairfindServiceFeeRate, "%)</td>\n                        <td style=\"border: 1px solid lightgray; padding: 8px; text-align: right;\">$").concat(charges.repairfindServiceFee, "</td>\n                    </tr>\n            \n                    <tr>\n                        <td style=\"border: 1px solid lightgray; padding: 8px;\"><strong>Total Deductions</strong></td>\n                        <td style=\"border: 1px solid lightgray; padding: 8px; text-align: right;\"><strong>$").concat(charges.contractorSummary.deductions.total, "</strong></td>\n                    </tr>\n                </table>\n            \n                ").concat(charges.contractorDiscount && charges.contractorDiscount.coupon
+                        ? "\n                    <p>\n                        <strong>Discount Applied:</strong> ".concat((_f = (_e = charges.contractorDiscount) === null || _e === void 0 ? void 0 : _e.coupon) === null || _f === void 0 ? void 0 : _f.name, " <br> \n                        <strong>Discount Applied On:</strong> ").concat((_g = charges.contractorDiscount) === null || _g === void 0 ? void 0 : _g.appliedOn, "\n                    </p>\n                    ")
                         : '', "\n\n                <p><strong>Net Amount to Contractor:</strong> ").concat(charges.contractorSummary.payable.totalLabel, " = $").concat(charges.contractorPayable, "</p>\n                <p><strong>Payment Method:</strong> Card Payment<br>\n                <strong>Transaction ID:</strong> RFT").concat(quotation.id, "</p>\n            ");
                     html = (0, generic_email_1.GenericEmailTemplate)({ name: contractor.name, subject: emailSubject, content: emailContent });
                     return [4 /*yield*/, i18n_1.i18n.getTranslation({ phraseOrSlug: html, targetLang: contractor.language, saveToFile: false, useGoogle: true, contentType: 'html' })];
                 case 7:
-                    translatedHtml = (_r.sent()) || html;
+                    translatedHtml = (_q.sent()) || html;
                     return [4 /*yield*/, i18n_1.i18n.getTranslation({ phraseOrSlug: emailSubject, targetLang: contractor.language })];
                 case 8:
-                    translatedSubject = (_r.sent()) || emailSubject;
+                    translatedSubject = (_q.sent()) || emailSubject;
                     services_1.EmailService.send(contractor.email, translatedSubject, translatedHtml);
                     receipthtml = (0, generic_email_1.GenericEmailTemplate)({ name: contractor.name, subject: 'Escrow Payment Receipt', content: receipthtmlContent });
                     return [4 /*yield*/, i18n_1.i18n.getTranslation({ phraseOrSlug: receipthtml, targetLang: contractor.language, saveToFile: false, useGoogle: true, contentType: 'html' })];
                 case 9:
-                    translatedReceiptHtml = (_r.sent()) || receipthtml;
+                    translatedReceiptHtml = (_q.sent()) || receipthtml;
                     return [4 /*yield*/, i18n_1.i18n.getTranslation({ phraseOrSlug: 'Escrow Payment Receipt', targetLang: contractor.language })];
                 case 10:
-                    translatedReceiptSubject = (_r.sent()) || 'Escrow Payment Receipt';
+                    translatedReceiptSubject = (_q.sent()) || 'Escrow Payment Receipt';
                     services_1.EmailService.send(contractor.email, translatedReceiptSubject, translatedReceiptHtml);
-                    _r.label = 11;
+                    _q.label = 11;
                 case 11:
                     if (!customer) return [3 /*break*/, 16];
                     dateTimeOptions = {
@@ -1315,39 +1310,39 @@ exports.JobEvent.on('JOB_BOOKED', function (payload) {
                     currentDate = new Intl.DateTimeFormat('en-GB', dateTimeOptions).format(new Date(new Date));
                     emailSubject = 'Job Payment';
                     emailContent = "\n                 <h2>".concat(emailSubject, "</h2>\n                  <p style=\"color: #333333;\">Hello ").concat(customer.name, ",</p>\n                  <p style=\"color: #333333;\">You have made a payment for a job on RepairFind. The money is held securely in Escrow until job is is complete</p>\n                  <p><strong>Job Title:</strong> ").concat(job.description, "</p>\n                  <p><strong>Proposed Date:</strong>").concat(jobDateCustomer, "</p>\n                  <p style=\"color: #333333;\">Thank you for your payment!</p>\n                  <p style=\"color: #333333;\">If you did not initiate this payment, kindly reach out to us via support.</p>\n                ");
-                    receiptContent = "\n                    <p><strong>RepairFind</strong><br>\n                    Phone: (604) 568-6378<br>\n                    Email: info@repairfind.ca</p>\n                    <hr>\n\n                    <p><strong>Receipt</strong></p>\n                    <p>Date: ".concat(currentDate, "<br>\n                    Receipt Number: RFP").concat(paymentReceipt, "</p>\n                    <p><strong>Customer:</strong><br>\n                    ").concat(customer.name, "<br>\n                    ").concat((_k = customer === null || customer === void 0 ? void 0 : customer.location) === null || _k === void 0 ? void 0 : _k.address, "<br>\n\n                    <hr>\n                    <strong>Description:</strong>\n                    <strong>Job Title:</strong> ").concat(job.description, " <br>\n                    <strong>Scheduled Date:</strong> ").concat(jobDateCustomer, "\n\n                    <p><strong>Services/Charges:</strong></p>\n                    <table style=\"width: 100%; border-collapse: collapse; border: 1px solid lightgray; margin-bottom: 10px;\">\n                        ").concat(estimates.map(function (estimate) { return "\n                        <tr>\n                            <td style=\"border: 1px solid lightgray; padding: 8px;\"><strong>".concat(estimate.description, "</strong></td>\n                            <td style=\"border: 1px solid lightgray; padding: 8px; text-align: right;\">$").concat((estimate.rate * estimate.quantity).toFixed(2), "</td>\n                        </tr>\n                        "); }).join(''), "   \n                        <tr>\n                        <td style=\"border: 1px solid lightgray; padding: 8px;\"><strong>Subtotal</strong></td>\n                        <td style=\"border: 1px solid lightgray; padding: 8px; text-align: right;\"><strong>$").concat((charges.subtotal).toFixed(2), "</strong></td>\n                        </tr>\n                        <tr>\n                        <td style=\"border: 1px solid lightgray; padding: 8px;\">GST (").concat(charges.gstRate, "%)</td>\n                        <td style=\"border: 1px solid lightgray; padding: 8px; text-align: right;\">$").concat(charges.gstAmount, "</td>\n                        </tr>\n                        <tr>\n                        <td style=\"border: 1px solid lightgray; padding: 8px;\">Payment Processing Fee (").concat(charges.customerProcessingFeeRate, "%)</td>\n                        <td style=\"border: 1px solid lightgray; padding: 8px; text-align: right;\">$").concat(charges.customerProcessingFee, "</td>\n                        </tr>\n                        \n                        ").concat(charges.customerDiscount ? "\n                        <tr>\n                            <td style=\"border: 1px solid lightgray; padding: 8px;\"><strong>Discount (".concat((_m = (_l = charges === null || charges === void 0 ? void 0 : charges.customerDiscount) === null || _l === void 0 ? void 0 : _l.coupon) === null || _m === void 0 ? void 0 : _m.name, ")</strong></td>\n                            <td style=\"border: 1px solid lightgray; padding: 8px; text-align: right;\">-$").concat((_o = charges === null || charges === void 0 ? void 0 : charges.customerDiscount) === null || _o === void 0 ? void 0 : _o.amount.toFixed(2), "</td>\n                        </tr>\n                        ") : "", "\n                        \n                        <tr>\n                        <td style=\"border: 1px solid lightgray; padding: 8px;\"><strong>Total Amount Due</strong> <br> ").concat(charges.customerSummary.payable.totalLabel, "</td>\n                        <td style=\"border: 1px solid lightgray; padding: 8px; text-align: right;\"><strong>$").concat(charges.customerPayable, "</strong></td>\n                        </tr>\n                    </table>\n                    <p><strong>Payment Method:</strong> Credit/Debit Card<br>\n                    <strong>Transaction ID:</strong> RPT").concat(quotation.id, "</p>\n                    <p style=\"color: #333333;\">Thank you for your payment!</p>\n                    <p style=\"color: #333333;\">If you did not initiate this payment, kindly reach out to us via support.</p>\n                ");
+                    receiptContent = "\n                    <p><strong>RepairFind</strong><br>\n                    Phone: (604) 568-6378<br>\n                    Email: info@repairfind.ca</p>\n                    <hr>\n\n                    <p><strong>Receipt</strong></p>\n                    <p>Date: ".concat(currentDate, "<br>\n                    Receipt Number: RFP").concat(paymentReceipt, "</p>\n                    <p><strong>Customer:</strong><br>\n                    ").concat(customer.name, "<br>\n                    ").concat((_j = (_h = customer === null || customer === void 0 ? void 0 : customer.location) === null || _h === void 0 ? void 0 : _h.address) !== null && _j !== void 0 ? _j : '', "<br>\n\n                    <hr>\n                    <strong>Description:</strong>\n                    <strong>Job Title:</strong> ").concat(job.description, " <br>\n                    <strong>Scheduled Date:</strong> ").concat(jobDateCustomer, "\n\n                    <p><strong>Services/Charges:</strong></p>\n                    <table style=\"width: 100%; border-collapse: collapse; border: 1px solid lightgray; margin-bottom: 10px;\">\n                        ").concat(estimates.map(function (estimate) { return "\n                        <tr>\n                            <td style=\"border: 1px solid lightgray; padding: 8px;\"><strong>".concat(estimate.description, "</strong></td>\n                            <td style=\"border: 1px solid lightgray; padding: 8px; text-align: right;\">$").concat((estimate.rate * estimate.quantity).toFixed(2), "</td>\n                        </tr>\n                        "); }).join(''), "   \n                        <tr>\n                        <td style=\"border: 1px solid lightgray; padding: 8px;\"><strong>Subtotal</strong></td>\n                        <td style=\"border: 1px solid lightgray; padding: 8px; text-align: right;\"><strong>$").concat((charges.subtotal).toFixed(2), "</strong></td>\n                        </tr>\n                        <tr>\n                        <td style=\"border: 1px solid lightgray; padding: 8px;\">GST (").concat(charges.gstRate, "%)</td>\n                        <td style=\"border: 1px solid lightgray; padding: 8px; text-align: right;\">$").concat(charges.gstAmount, "</td>\n                        </tr>\n                        <tr>\n                        <td style=\"border: 1px solid lightgray; padding: 8px;\">Payment Processing Fee (").concat(charges.customerProcessingFeeRate, "%)</td>\n                        <td style=\"border: 1px solid lightgray; padding: 8px; text-align: right;\">$").concat(charges.customerProcessingFee, "</td>\n                        </tr>\n                        \n                        ").concat(charges.customerDiscount ? "\n                        <tr>\n                            <td style=\"border: 1px solid lightgray; padding: 8px;\"><strong>Discount (".concat((_l = (_k = charges === null || charges === void 0 ? void 0 : charges.customerDiscount) === null || _k === void 0 ? void 0 : _k.coupon) === null || _l === void 0 ? void 0 : _l.name, ")</strong></td>\n                            <td style=\"border: 1px solid lightgray; padding: 8px; text-align: right;\">-$").concat((_m = charges === null || charges === void 0 ? void 0 : charges.customerDiscount) === null || _m === void 0 ? void 0 : _m.amount.toFixed(2), "</td>\n                        </tr>\n                        ") : "", "\n                        \n                        <tr>\n                        <td style=\"border: 1px solid lightgray; padding: 8px;\"><strong>Total Amount Due</strong> <br> ").concat(charges.customerSummary.payable.totalLabel, "</td>\n                        <td style=\"border: 1px solid lightgray; padding: 8px; text-align: right;\"><strong>$").concat(charges.customerPayable, "</strong></td>\n                        </tr>\n                    </table>\n                    <p><strong>Payment Method:</strong> Credit/Debit Card<br>\n                    <strong>Transaction ID:</strong> RPT").concat(quotation.id, "</p>\n                    <p style=\"color: #333333;\">Thank you for your payment!</p>\n                    <p style=\"color: #333333;\">If you did not initiate this payment, kindly reach out to us via support.</p>\n                ");
                     html = (0, generic_email_1.GenericEmailTemplate)({ name: customer.name, subject: emailSubject, content: emailContent });
                     return [4 /*yield*/, i18n_1.i18n.getTranslation({ phraseOrSlug: html, targetLang: customer.language, saveToFile: false, useGoogle: true, contentType: 'html' })];
                 case 12:
-                    translatedHtml = (_r.sent()) || html;
+                    translatedHtml = (_q.sent()) || html;
                     return [4 /*yield*/, i18n_1.i18n.getTranslation({ phraseOrSlug: emailSubject, targetLang: customer.language })];
                 case 13:
-                    translatedSubject = (_r.sent()) || emailSubject;
+                    translatedSubject = (_q.sent()) || emailSubject;
                     services_1.EmailService.send(customer.email, translatedSubject, translatedHtml);
                     receipthtml = (0, generic_email_1.GenericEmailTemplate)({ name: customer.name, subject: 'Payment Receipt', content: receiptContent });
                     return [4 /*yield*/, i18n_1.i18n.getTranslation({ phraseOrSlug: receipthtml, targetLang: customer.language, saveToFile: false, useGoogle: true, contentType: 'html' })];
                 case 14:
-                    translatedReceiptHtml = (_r.sent()) || receipthtml;
+                    translatedReceiptHtml = (_q.sent()) || receipthtml;
                     return [4 /*yield*/, i18n_1.i18n.getTranslation({ phraseOrSlug: 'Payment Receipt', targetLang: customer.language })];
                 case 15:
-                    translatedReceiptSubject = (_r.sent()) || 'Payment Receipt';
+                    translatedReceiptSubject = (_q.sent()) || 'Payment Receipt';
                     services_1.EmailService.send(customer.email, translatedReceiptSubject, translatedReceiptHtml);
-                    _r.label = 16;
+                    _q.label = 16;
                 case 16:
                     customerLang = customer.language;
                     return [4 /*yield*/, i18n_1.i18n.getTranslation({ phraseOrSlug: 'Job Booked', targetLang: customerLang })];
                 case 17:
-                    nTitle = _r.sent();
+                    nTitle = _q.sent();
                     return [4 /*yield*/, i18n_1.i18n.getTranslation({ phraseOrSlug: 'You have booked a job on Repairfind', targetLang: customerLang })];
                 case 18:
-                    nMessage = _r.sent();
+                    nMessage = _q.sent();
                     services_1.NotificationService.sendNotification({
                         user: customer.id,
                         userType: 'customers',
                         title: nTitle,
                         type: 'JOB_BOOKED',
                         message: nMessage,
-                        heading: { name: "".concat(contractor.name), image: (_p = contractor.profilePhoto) === null || _p === void 0 ? void 0 : _p.url },
+                        heading: { name: "".concat(contractor.name), image: (_o = contractor.profilePhoto) === null || _o === void 0 ? void 0 : _o.url },
                         payload: {
                             entity: job.id,
                             entityType: 'jobs',
@@ -1360,17 +1355,17 @@ exports.JobEvent.on('JOB_BOOKED', function (payload) {
                     contractorLang = contractor.language;
                     return [4 /*yield*/, i18n_1.i18n.getTranslation({ phraseOrSlug: 'Job Booked', targetLang: contractorLang })];
                 case 19:
-                    nTitle = _r.sent();
+                    nTitle = _q.sent();
                     return [4 /*yield*/, i18n_1.i18n.getTranslation({ phraseOrSlug: 'You have a booked job on Repairfind', targetLang: contractorLang })];
                 case 20:
-                    nMessage = _r.sent();
+                    nMessage = _q.sent();
                     services_1.NotificationService.sendNotification({
                         user: contractor.id,
                         userType: 'contractors',
                         title: nTitle,
                         type: 'JOB_BOOKED',
                         message: nMessage,
-                        heading: { name: "".concat(customer.firstName, " ").concat(customer.lastName), image: (_q = customer.profilePhoto) === null || _q === void 0 ? void 0 : _q.url },
+                        heading: { name: "".concat(customer.firstName, " ").concat(customer.lastName), image: (_p = customer.profilePhoto) === null || _p === void 0 ? void 0 : _p.url },
                         payload: {
                             entity: job.id,
                             entityType: 'jobs',
@@ -1380,10 +1375,10 @@ exports.JobEvent.on('JOB_BOOKED', function (payload) {
                             event: 'JOB_BOOKED',
                         }
                     }, { push: true, socket: true, database: true });
-                    _r.label = 21;
+                    _q.label = 21;
                 case 21: return [3 /*break*/, 23];
                 case 22:
-                    error_13 = _r.sent();
+                    error_13 = _q.sent();
                     logger_1.Logger.error("Error handling JOB_BOOKED event: ".concat(error_13));
                     return [3 /*break*/, 23];
                 case 23: return [2 /*return*/];
@@ -1391,10 +1386,175 @@ exports.JobEvent.on('JOB_BOOKED', function (payload) {
         });
     });
 });
+exports.JobEvent.on('CHANGE_ORDER_ESTIMATE_PAID', function (payload) {
+    var _a, _b, _c, _d, _e, _f, _g, _h, _j, _k, _l;
+    return __awaiter(this, void 0, void 0, function () {
+        var job, jobDay, customer, contractor, quotation, paymentType, contractorLang, nTitle, nMessage, customerLang, charges, contractorProfile, estimates, paymentReceipt, dateTimeOptions, jobDateContractor, currentDate, emailSubject, emailContent, receipthtmlContent, html, translatedHtml, translatedSubject, receipthtml, translatedReceiptHtml, translatedReceiptSubject, dateTimeOptions, jobDateCustomer, currentDate, emailSubject, emailContent, receiptContent, html, translatedHtml, translatedSubject, receipthtml, translatedReceiptHtml, translatedReceiptSubject, error_14;
+        return __generator(this, function (_m) {
+            switch (_m.label) {
+                case 0:
+                    _m.trys.push([0, 21, , 22]);
+                    logger_1.Logger.info('handling CHANGE_ORDER_ESTIMATE_PAID event', payload.job.id);
+                    job = payload.job;
+                    if (!job)
+                        return [2 /*return*/];
+                    return [4 /*yield*/, job_day_model_1.JobDayModel.findOne({ job: job.id })];
+                case 1:
+                    jobDay = _m.sent();
+                    return [4 /*yield*/, customer_model_1.default.findById(job.customer)];
+                case 2:
+                    customer = _m.sent();
+                    return [4 /*yield*/, contractor_model_1.ContractorModel.findById(job.contractor)];
+                case 3:
+                    contractor = _m.sent();
+                    return [4 /*yield*/, payload.quotation];
+                case 4:
+                    quotation = _m.sent();
+                    paymentType = payment_schema_1.PAYMENT_TYPE.CHANGE_ORDER_PAYMENT;
+                    if (!customer || !contractor)
+                        return [2 /*return*/];
+                    contractorLang = contractor.language;
+                    return [4 /*yield*/, i18n_1.i18n.getTranslation({ phraseOrSlug: 'Change Order Estimate Paid', targetLang: contractorLang })];
+                case 5:
+                    nTitle = _m.sent();
+                    return [4 /*yield*/, i18n_1.i18n.getTranslation({ phraseOrSlug: 'Change order estimate has been paid', targetLang: contractorLang })];
+                case 6:
+                    nMessage = _m.sent();
+                    services_1.NotificationService.sendNotification({
+                        user: contractor.id,
+                        userType: 'contractors',
+                        title: nTitle,
+                        type: 'CHANGE_ORDER_ESTIMATE_PAID',
+                        message: nMessage,
+                        heading: { name: "".concat(customer.name), image: (_a = customer.profilePhoto) === null || _a === void 0 ? void 0 : _a.url },
+                        payload: {
+                            entity: job.id,
+                            entityType: 'jobs',
+                            message: nMessage,
+                            customer: customer.id,
+                            event: 'CHANGE_ORDER_ESTIMATE_PAID',
+                            jobId: job.id,
+                            jobDayId: jobDay === null || jobDay === void 0 ? void 0 : jobDay.id
+                        }
+                    }, { push: true, socket: true, database: true });
+                    customerLang = contractor.language;
+                    return [4 /*yield*/, i18n_1.i18n.getTranslation({ phraseOrSlug: 'Change Order Estimate Paid', targetLang: customerLang })];
+                case 7:
+                    nTitle = _m.sent();
+                    return [4 /*yield*/, i18n_1.i18n.getTranslation({ phraseOrSlug: 'Change order estimate has been paid', targetLang: customerLang })];
+                case 8:
+                    nMessage = _m.sent();
+                    services_1.NotificationService.sendNotification({
+                        user: customer.id,
+                        userType: 'customers',
+                        title: nTitle,
+                        type: 'CHANGE_ORDER_ESTIMATE_PAID',
+                        message: nMessage,
+                        heading: { name: "".concat(contractor.name), image: (_b = contractor.profilePhoto) === null || _b === void 0 ? void 0 : _b.url },
+                        payload: {
+                            entity: job.id,
+                            entityType: 'jobs',
+                            message: nMessage,
+                            customer: customer.id,
+                            event: 'CHANGE_ORDER_ESTIMATE_PAID',
+                            jobId: job.id,
+                            jobDayId: jobDay === null || jobDay === void 0 ? void 0 : jobDay.id
+                        }
+                    }, { push: true, socket: true, database: true });
+                    if (!(job && contractor && customer && quotation)) return [3 /*break*/, 20];
+                    return [4 /*yield*/, quotation.calculateCharges(paymentType)];
+                case 9:
+                    charges = _m.sent();
+                    return [4 /*yield*/, contractor_profile_model_1.ContractorProfileModel.findOne({ contractor: contractor.id })];
+                case 10:
+                    contractorProfile = _m.sent();
+                    estimates = quotation.changeOrderEstimate.estimates;
+                    paymentReceipt = (_c = quotation === null || quotation === void 0 ? void 0 : quotation.changeOrderEstimate) === null || _c === void 0 ? void 0 : _c.payment;
+                    if (!(contractor && contractorProfile)) return [3 /*break*/, 15];
+                    dateTimeOptions = {
+                        weekday: 'short',
+                        day: 'numeric',
+                        month: 'long',
+                        year: 'numeric',
+                        hour: 'numeric',
+                        minute: 'numeric',
+                        hour12: true,
+                        timeZone: contractor.currentTimezone,
+                        timeZoneName: 'long'
+                    };
+                    jobDateContractor = new Intl.DateTimeFormat('en-GB', dateTimeOptions).format(new Date(job.schedule.startDate));
+                    currentDate = new Intl.DateTimeFormat('en-GB', dateTimeOptions).format(new Date(new Date));
+                    emailSubject = 'Job Escrow  Change Order Payment';
+                    emailContent = "\n                    <h2>".concat(emailSubject, "</h2>\n                    <p style=\"color: #333333;\">Hello ").concat(contractor.name, ",</p>\n                    <p style=\"color: #333333;\">You have received escrow payment for a job on RepairFind. The money is securely held in Escrow, and will be released to your paypal email once job is done</p>\n                    <p><strong>Job Title:</strong> ").concat(job.description, "</p>\n                    <p><strong>Scheduled Date:</strong>").concat(jobDateContractor, "</p>\n                    <hr>\n                    <p style=\"color: #333333;\">Thank you for your service!</p>\n                    <p style=\"color: #333333;\">Kindly open the App for more information.</p>\n                ");
+                    receipthtmlContent = "\n                <h3>Escrow Change Order Payment Receipt</h3>\n                <p><strong>RepairFind</strong><br>\n                Phone: (604) 568-6378<br>\n                Email: info@repairfind.ca</p>\n                <hr>\n            \n                <p>Date: ".concat(currentDate, "<br>\n                Receipt Number: RFP").concat(paymentReceipt, "</p>\n            \n                <p><strong>Contractor:</strong><br>\n                ").concat(contractor.name, "<br>\n                ").concat((_d = contractorProfile === null || contractorProfile === void 0 ? void 0 : contractorProfile.location) === null || _d === void 0 ? void 0 : _d.address, "<br>\n                </p>\n            \n                <hr>\n                <strong>Description:</strong>\n                <strong>Job Title:</strong> ").concat(job.description, "<br>\n                <strong>Scheduled Date:</strong> ").concat(jobDateContractor, "\n            \n                <p><strong>Invoice Items:</strong></p>\n                <table style=\"width: 100%; border-collapse: collapse; border: 1px solid lightgray;\">\n                ").concat(estimates.map(function (estimate) { return "\n                    <tr>\n                      <td style=\"border: 1px solid lightgray; padding: 8px;\"><strong>".concat(estimate.description, "</strong></td>\n                      <td style=\"border: 1px solid lightgray; padding: 8px; text-align: right;\">$").concat((estimate.rate * estimate.quantity).toFixed(2), "</td>\n                    </tr>\n                  "); }).join(''), "   \n                    <tr>\n                        <td style=\"border: 1px solid lightgray; padding: 8px;\"><strong>Subtotal</strong></td>\n                        <td style=\"border: 1px solid lightgray; padding: 8px; text-align: right;\">$").concat((charges.subtotal).toFixed(2), "</td>\n                    </tr>\n                </table>\n                \n                <p><strong>Deduction/Charges:</strong></p>\n                <table style=\"width: 100%; border-collapse: collapse; border: 1px solid lightgray;\">\n                    <tr>\n                        <td style=\"border: 1px solid lightgray; padding: 8px;\">Payment Processing Fee ($").concat(charges.customerProcessingFeeRate, "%)</td>\n                        <td style=\"border: 1px solid lightgray; padding: 8px; text-align: right;\">$").concat(charges.contractorProcessingFee, "</td>\n                    </tr>\n                    <tr>\n                        <td style=\"border: 1px solid lightgray; padding: 8px;\">Service Fee (").concat(charges.repairfindServiceFeeRate, "%)</td>\n                        <td style=\"border: 1px solid lightgray; padding: 8px; text-align: right;\">$").concat(charges.repairfindServiceFee, "</td>\n                    </tr>\n            \n                    <tr>\n                        <td style=\"border: 1px solid lightgray; padding: 8px;\"><strong>Total Deductions</strong></td>\n                        <td style=\"border: 1px solid lightgray; padding: 8px; text-align: right;\"><strong>$").concat(charges.contractorSummary.deductions.total, "</strong></td>\n                    </tr>\n                </table>\n            \n                ").concat(charges.contractorDiscount && charges.contractorDiscount.coupon
+                        ? "\n                    <p>\n                        <strong>Discount Applied:</strong> ".concat((_f = (_e = charges.contractorDiscount) === null || _e === void 0 ? void 0 : _e.coupon) === null || _f === void 0 ? void 0 : _f.name, " <br> \n                        <strong>Discount Applied On:</strong> ").concat((_g = charges.contractorDiscount) === null || _g === void 0 ? void 0 : _g.appliedOn, "\n                    </p>\n                    ")
+                        : '', "\n\n                <p><strong>Net Amount to Contractor:</strong> ").concat(charges.contractorSummary.payable.totalLabel, " = $").concat(charges.contractorPayable, "</p>\n                <p><strong>Payment Method:</strong> Card Payment<br>\n                <strong>Transaction ID:</strong> RFT").concat(quotation.id, "</p>\n            ");
+                    html = (0, generic_email_1.GenericEmailTemplate)({ name: contractor.name, subject: emailSubject, content: emailContent });
+                    return [4 /*yield*/, i18n_1.i18n.getTranslation({ phraseOrSlug: html, targetLang: contractor.language, saveToFile: false, useGoogle: true, contentType: 'html' })];
+                case 11:
+                    translatedHtml = (_m.sent()) || html;
+                    return [4 /*yield*/, i18n_1.i18n.getTranslation({ phraseOrSlug: emailSubject, targetLang: contractor.language })];
+                case 12:
+                    translatedSubject = (_m.sent()) || emailSubject;
+                    services_1.EmailService.send(contractor.email, translatedSubject, translatedHtml);
+                    receipthtml = (0, generic_email_1.GenericEmailTemplate)({ name: contractor.name, subject: 'Escrow Payment Receipt', content: receipthtmlContent });
+                    return [4 /*yield*/, i18n_1.i18n.getTranslation({ phraseOrSlug: receipthtml, targetLang: contractor.language, saveToFile: false, useGoogle: true, contentType: 'html' })];
+                case 13:
+                    translatedReceiptHtml = (_m.sent()) || receipthtml;
+                    return [4 /*yield*/, i18n_1.i18n.getTranslation({ phraseOrSlug: 'Escrow Payment Receipt', targetLang: contractor.language })];
+                case 14:
+                    translatedReceiptSubject = (_m.sent()) || 'Escrow Payment Receipt';
+                    services_1.EmailService.send(contractor.email, translatedReceiptSubject, translatedReceiptHtml);
+                    _m.label = 15;
+                case 15:
+                    if (!customer) return [3 /*break*/, 20];
+                    dateTimeOptions = {
+                        weekday: 'short',
+                        day: 'numeric',
+                        month: 'long',
+                        year: 'numeric',
+                        hour: 'numeric',
+                        minute: 'numeric',
+                        hour12: true,
+                        timeZone: customer.currentTimezone,
+                        timeZoneName: 'long'
+                    };
+                    jobDateCustomer = new Intl.DateTimeFormat('en-GB', dateTimeOptions).format(new Date(job.schedule.startDate));
+                    currentDate = new Intl.DateTimeFormat('en-GB', dateTimeOptions).format(new Date(new Date));
+                    emailSubject = 'Job Change Order Payment ';
+                    emailContent = "\n                 <h2>".concat(emailSubject, "</h2>\n                  <p style=\"color: #333333;\">Hello ").concat(customer.name, ",</p>\n                  <p style=\"color: #333333;\">You have made a payment for a job on RepairFind. The money is held securely in Escrow until job is is complete</p>\n                  <p><strong>Job Title:</strong> ").concat(job.description, "</p>\n                  <p><strong>Proposed Date:</strong>").concat(jobDateCustomer, "</p>\n                  <p style=\"color: #333333;\">Thank you for your payment!</p>\n                  <p style=\"color: #333333;\">If you did not initiate this payment, kindly reach out to us via support.</p>\n                ");
+                    receiptContent = "\n                    <p><strong>RepairFind</strong><br>\n                    Phone: (604) 568-6378<br>\n                    Email: info@repairfind.ca</p>\n                    <hr>\n\n                    <p><strong>Receipt</strong></p>\n                    <p>Date: ".concat(currentDate, "<br>\n                    Receipt Number: RFP").concat(paymentReceipt, "</p>\n                    <p><strong>Customer:</strong><br>\n                    ").concat(customer.name, "<br>\n                    ").concat((_h = customer === null || customer === void 0 ? void 0 : customer.location) === null || _h === void 0 ? void 0 : _h.address, "<br>\n\n                    <hr>\n                    <strong>Description:</strong>\n                    <strong>Job Title:</strong> ").concat(job.description, " <br>\n                    <strong>Scheduled Date:</strong> ").concat(jobDateCustomer, "\n\n                    <p><strong>Services/Charges:</strong></p>\n                    <table style=\"width: 100%; border-collapse: collapse; border: 1px solid lightgray; margin-bottom: 10px;\">\n                        ").concat(estimates.map(function (estimate) { return "\n                        <tr>\n                            <td style=\"border: 1px solid lightgray; padding: 8px;\"><strong>".concat(estimate.description, "</strong></td>\n                            <td style=\"border: 1px solid lightgray; padding: 8px; text-align: right;\">$").concat((estimate.rate * estimate.quantity).toFixed(2), "</td>\n                        </tr>\n                        "); }).join(''), "   \n                        <tr>\n                        <td style=\"border: 1px solid lightgray; padding: 8px;\"><strong>Subtotal</strong></td>\n                        <td style=\"border: 1px solid lightgray; padding: 8px; text-align: right;\"><strong>$").concat((charges.subtotal).toFixed(2), "</strong></td>\n                        </tr>\n                        <tr>\n                        <td style=\"border: 1px solid lightgray; padding: 8px;\">GST (").concat(charges.gstRate, "%)</td>\n                        <td style=\"border: 1px solid lightgray; padding: 8px; text-align: right;\">$").concat(charges.gstAmount, "</td>\n                        </tr>\n                        <tr>\n                        <td style=\"border: 1px solid lightgray; padding: 8px;\">Payment Processing Fee (").concat(charges.customerProcessingFeeRate, "%)</td>\n                        <td style=\"border: 1px solid lightgray; padding: 8px; text-align: right;\">$").concat(charges.customerProcessingFee, "</td>\n                        </tr>\n                        \n                        ").concat(charges.customerDiscount ? "\n                        <tr>\n                            <td style=\"border: 1px solid lightgray; padding: 8px;\"><strong>Discount (".concat((_k = (_j = charges === null || charges === void 0 ? void 0 : charges.customerDiscount) === null || _j === void 0 ? void 0 : _j.coupon) === null || _k === void 0 ? void 0 : _k.name, ")</strong></td>\n                            <td style=\"border: 1px solid lightgray; padding: 8px; text-align: right;\">-$").concat((_l = charges === null || charges === void 0 ? void 0 : charges.customerDiscount) === null || _l === void 0 ? void 0 : _l.amount.toFixed(2), "</td>\n                        </tr>\n                        ") : "", "\n                        \n                        <tr>\n                        <td style=\"border: 1px solid lightgray; padding: 8px;\"><strong>Total Amount Due</strong> <br> ").concat(charges.customerSummary.payable.totalLabel, "</td>\n                        <td style=\"border: 1px solid lightgray; padding: 8px; text-align: right;\"><strong>$").concat(charges.customerPayable, "</strong></td>\n                        </tr>\n                    </table>\n                    <p><strong>Payment Method:</strong> Credit/Debit Card<br>\n                    <strong>Transaction ID:</strong> RPT").concat(quotation.id, "</p>\n                    <p style=\"color: #333333;\">Thank you for your payment!</p>\n                    <p style=\"color: #333333;\">If you did not initiate this payment, kindly reach out to us via support.</p>\n                ");
+                    html = (0, generic_email_1.GenericEmailTemplate)({ name: customer.name, subject: emailSubject, content: emailContent });
+                    return [4 /*yield*/, i18n_1.i18n.getTranslation({ phraseOrSlug: html, targetLang: customer.language, saveToFile: false, useGoogle: true, contentType: 'html' })];
+                case 16:
+                    translatedHtml = (_m.sent()) || html;
+                    return [4 /*yield*/, i18n_1.i18n.getTranslation({ phraseOrSlug: emailSubject, targetLang: customer.language })];
+                case 17:
+                    translatedSubject = (_m.sent()) || emailSubject;
+                    services_1.EmailService.send(customer.email, translatedSubject, translatedHtml);
+                    receipthtml = (0, generic_email_1.GenericEmailTemplate)({ name: customer.name, subject: ' Change Order Payment Receipt', content: receiptContent });
+                    return [4 /*yield*/, i18n_1.i18n.getTranslation({ phraseOrSlug: receipthtml, targetLang: customer.language, saveToFile: false, useGoogle: true, contentType: 'html' })];
+                case 18:
+                    translatedReceiptHtml = (_m.sent()) || receipthtml;
+                    return [4 /*yield*/, i18n_1.i18n.getTranslation({ phraseOrSlug: 'Change Order Payment Receipt', targetLang: customer.language })];
+                case 19:
+                    translatedReceiptSubject = (_m.sent()) || 'Payment Receipt';
+                    services_1.EmailService.send(customer.email, translatedReceiptSubject, translatedReceiptHtml);
+                    _m.label = 20;
+                case 20: return [3 /*break*/, 22];
+                case 21:
+                    error_14 = _m.sent();
+                    logger_1.Logger.error("Error handling CHANGE_ORDER_ESTIMATE_PAID event: ".concat(error_14));
+                    return [3 /*break*/, 22];
+                case 22: return [2 /*return*/];
+            }
+        });
+    });
+});
 exports.JobEvent.on('JOB_DISPUTE_CREATED', function (payload) {
     var _a, _b;
     return __awaiter(this, void 0, void 0, function () {
-        var dispute, job, customer, contractor, customerLang, nTitle, nMessage, contractorLang, error_14;
+        var dispute, job, customer, contractor, customerLang, nTitle, nMessage, contractorLang, error_15;
         return __generator(this, function (_c) {
             switch (_c.label) {
                 case 0:
@@ -1496,8 +1656,8 @@ exports.JobEvent.on('JOB_DISPUTE_CREATED', function (payload) {
                     });
                     return [3 /*break*/, 9];
                 case 8:
-                    error_14 = _c.sent();
-                    logger_1.Logger.error("Error handling JOB_DISPUTE_CREATED event: ".concat(error_14));
+                    error_15 = _c.sent();
+                    logger_1.Logger.error("Error handling JOB_DISPUTE_CREATED event: ".concat(error_15));
                     return [3 /*break*/, 9];
                 case 9: return [2 /*return*/];
             }
@@ -1507,7 +1667,7 @@ exports.JobEvent.on('JOB_DISPUTE_CREATED', function (payload) {
 exports.JobEvent.on('JOB_MARKED_COMPLETE_BY_CONTRACTOR', function (payload) {
     var _a, _b;
     return __awaiter(this, void 0, void 0, function () {
-        var job, customer, contractor, event_2, customerLang, nTitle, nMessage, contractorLang, error_15;
+        var job, customer, contractor, event_2, customerLang, nTitle, nMessage, contractorLang, error_16;
         return __generator(this, function (_c) {
             switch (_c.label) {
                 case 0:
@@ -1601,8 +1761,8 @@ exports.JobEvent.on('JOB_MARKED_COMPLETE_BY_CONTRACTOR', function (payload) {
                     }
                     return [3 /*break*/, 9];
                 case 8:
-                    error_15 = _c.sent();
-                    logger_1.Logger.error("Error handling JOB_MARKED_COMPLETE_BY_CONTRACTOR event: ".concat(error_15));
+                    error_16 = _c.sent();
+                    logger_1.Logger.error("Error handling JOB_MARKED_COMPLETE_BY_CONTRACTOR event: ".concat(error_16));
                     return [3 /*break*/, 9];
                 case 9: return [2 /*return*/];
             }
@@ -1612,7 +1772,7 @@ exports.JobEvent.on('JOB_MARKED_COMPLETE_BY_CONTRACTOR', function (payload) {
 exports.JobEvent.on('JOB_COMPLETED', function (payload) {
     var _a, _b;
     return __awaiter(this, void 0, void 0, function () {
-        var job, customer, contractor, event_3, contractorLang, nTitle, nMessage, transaction, metadata, referral, coupon, referral, coupon, error_16;
+        var job, customer, contractor, event_3, contractorLang, nTitle, nMessage, transaction, metadata, referral, coupon, referral, coupon, error_17;
         return __generator(this, function (_c) {
             switch (_c.label) {
                 case 0:
@@ -1698,8 +1858,8 @@ exports.JobEvent.on('JOB_COMPLETED', function (payload) {
                     _c.label = 14;
                 case 14: return [3 /*break*/, 16];
                 case 15:
-                    error_16 = _c.sent();
-                    logger_1.Logger.error("Error handling JOB_COMPLETED event: ".concat(error_16));
+                    error_17 = _c.sent();
+                    logger_1.Logger.error("Error handling JOB_COMPLETED event: ".concat(error_17));
                     return [3 /*break*/, 16];
                 case 16: return [2 /*return*/];
             }
@@ -1709,7 +1869,7 @@ exports.JobEvent.on('JOB_COMPLETED', function (payload) {
 exports.JobEvent.on('JOB_CHANGE_ORDER', function (payload) {
     var _a;
     return __awaiter(this, void 0, void 0, function () {
-        var job, jobDay, customer, contractor, state, event_4, contractorLang, nTitle, nMessage, error_17;
+        var job, jobDay, customer, contractor, state, event_4, contractorLang, nTitle, nMessage, error_18;
         return __generator(this, function (_b) {
             switch (_b.label) {
                 case 0:
@@ -1736,7 +1896,7 @@ exports.JobEvent.on('JOB_CHANGE_ORDER', function (payload) {
                     event_4 = job.isChangeOrder ? 'JOB_CHANGE_ORDER_ENABLED' : 'JOB_CHANGE_ORDER_DISABLED';
                     contractorLang = contractor.language;
                     return [4 /*yield*/, i18n_1.i18n.getTranslation({
-                            phraseOrSlug: 'Job Completed',
+                            phraseOrSlug: 'Job Change Order',
                             targetLang: contractorLang
                         })];
                 case 5:
@@ -1765,8 +1925,8 @@ exports.JobEvent.on('JOB_CHANGE_ORDER', function (payload) {
                     }, { push: true, socket: true, database: true });
                     return [3 /*break*/, 8];
                 case 7:
-                    error_17 = _b.sent();
-                    logger_1.Logger.error("Error handling JOB_CHANGE_ORDER event: ".concat(error_17));
+                    error_18 = _b.sent();
+                    logger_1.Logger.error("Error handling JOB_CHANGE_ORDER event: ".concat(error_18));
                     return [3 /*break*/, 8];
                 case 8: return [2 /*return*/];
             }
@@ -1776,7 +1936,7 @@ exports.JobEvent.on('JOB_CHANGE_ORDER', function (payload) {
 exports.JobEvent.on('SITE_VISIT_ESTIMATE_SUBMITTED', function (payload) {
     var _a, _b;
     return __awaiter(this, void 0, void 0, function () {
-        var job, quotation, customer, contractor, jobDay, customerLang, nTitle, nMessage, contractorLang, error_18;
+        var job, quotation, customer, contractor, jobDay, customerLang, nTitle, nMessage, contractorLang, error_19;
         return __generator(this, function (_c) {
             switch (_c.label) {
                 case 0:
@@ -1864,8 +2024,8 @@ exports.JobEvent.on('SITE_VISIT_ESTIMATE_SUBMITTED', function (payload) {
                     }, { push: true, socket: true, database: true });
                     return [3 /*break*/, 10];
                 case 9:
-                    error_18 = _c.sent();
-                    logger_1.Logger.error("Error handling SITE_VISIT_ESTIMATE_SUBMITTED event: ".concat(error_18));
+                    error_19 = _c.sent();
+                    logger_1.Logger.error("Error handling SITE_VISIT_ESTIMATE_SUBMITTED event: ".concat(error_19));
                     return [3 /*break*/, 10];
                 case 10: return [2 /*return*/];
             }
@@ -1875,7 +2035,7 @@ exports.JobEvent.on('SITE_VISIT_ESTIMATE_SUBMITTED', function (payload) {
 exports.JobEvent.on('CHANGE_ORDER_ESTIMATE_SUBMITTED', function (payload) {
     var _a;
     return __awaiter(this, void 0, void 0, function () {
-        var job, quotation, customer, contractor, jobDay, customerLang, nTitle, nMessage, error_19;
+        var job, quotation, customer, contractor, jobDay, customerLang, nTitle, nMessage, error_20;
         return __generator(this, function (_b) {
             switch (_b.label) {
                 case 0:
@@ -1932,8 +2092,8 @@ exports.JobEvent.on('CHANGE_ORDER_ESTIMATE_SUBMITTED', function (payload) {
                     }, { push: true, socket: true, database: true });
                     return [3 /*break*/, 8];
                 case 7:
-                    error_19 = _b.sent();
-                    logger_1.Logger.error("Error handling CHANGE_ORDER_ESTIMATE_SUBMITTED event: ".concat(error_19));
+                    error_20 = _b.sent();
+                    logger_1.Logger.error("Error handling CHANGE_ORDER_ESTIMATE_SUBMITTED event: ".concat(error_20));
                     return [3 /*break*/, 8];
                 case 8: return [2 /*return*/];
             }
@@ -1943,7 +2103,7 @@ exports.JobEvent.on('CHANGE_ORDER_ESTIMATE_SUBMITTED', function (payload) {
 exports.JobEvent.on('NEW_JOB_QUOTATION', function (payload) {
     var _a;
     return __awaiter(this, void 0, void 0, function () {
-        var job, quotation, customer, contractor, conversation, customerLang, nTitle, nMessage, error_20;
+        var job, quotation, customer, contractor, conversation, customerLang, nTitle, nMessage, error_21;
         return __generator(this, function (_b) {
             switch (_b.label) {
                 case 0:
@@ -1995,8 +2155,8 @@ exports.JobEvent.on('NEW_JOB_QUOTATION', function (payload) {
                     }, { push: true, socket: true, database: true });
                     return [3 /*break*/, 7];
                 case 6:
-                    error_20 = _b.sent();
-                    logger_1.Logger.error("Error handling NEW_JOB_QUOTATION event: ".concat(error_20));
+                    error_21 = _b.sent();
+                    logger_1.Logger.error("Error handling NEW_JOB_QUOTATION event: ".concat(error_21));
                     return [3 /*break*/, 7];
                 case 7: return [2 /*return*/];
             }
@@ -2006,7 +2166,7 @@ exports.JobEvent.on('NEW_JOB_QUOTATION', function (payload) {
 exports.JobEvent.on('JOB_QUOTATION_EDITED', function (payload) {
     var _a;
     return __awaiter(this, void 0, void 0, function () {
-        var job, quotation, customer, contractor, customerLang, nTitle, nMessage, error_21;
+        var job, quotation, customer, contractor, customerLang, nTitle, nMessage, error_22;
         return __generator(this, function (_b) {
             switch (_b.label) {
                 case 0:
@@ -2053,91 +2213,10 @@ exports.JobEvent.on('JOB_QUOTATION_EDITED', function (payload) {
                     }, { push: true, socket: true, database: true });
                     return [3 /*break*/, 6];
                 case 5:
-                    error_21 = _b.sent();
-                    logger_1.Logger.error("Error handling JOB_QUOTATION_EDITED event: ".concat(error_21));
+                    error_22 = _b.sent();
+                    logger_1.Logger.error("Error handling JOB_QUOTATION_EDITED event: ".concat(error_22));
                     return [3 /*break*/, 6];
                 case 6: return [2 /*return*/];
-            }
-        });
-    });
-});
-exports.JobEvent.on('CHANGE_ORDER_ESTIMATE_PAID', function (payload) {
-    var _a, _b;
-    return __awaiter(this, void 0, void 0, function () {
-        var job, jobDay, customer, contractor, contractorLang, nTitle, nMessage, customerLang, error_22;
-        return __generator(this, function (_c) {
-            switch (_c.label) {
-                case 0:
-                    _c.trys.push([0, 8, , 9]);
-                    logger_1.Logger.info('handling CHANGE_ORDER_ESTIMATE_PAID event', payload.job.id);
-                    job = payload.job;
-                    if (!job)
-                        return [2 /*return*/];
-                    return [4 /*yield*/, job_day_model_1.JobDayModel.findOne({ job: job.id })];
-                case 1:
-                    jobDay = _c.sent();
-                    return [4 /*yield*/, customer_model_1.default.findById(job.customer)];
-                case 2:
-                    customer = _c.sent();
-                    return [4 /*yield*/, contractor_model_1.ContractorModel.findById(job.contractor)];
-                case 3:
-                    contractor = _c.sent();
-                    if (!customer || !contractor)
-                        return [2 /*return*/];
-                    contractorLang = contractor.language;
-                    return [4 /*yield*/, i18n_1.i18n.getTranslation({ phraseOrSlug: 'Change Order Estimate Paid', targetLang: contractorLang })];
-                case 4:
-                    nTitle = _c.sent();
-                    return [4 /*yield*/, i18n_1.i18n.getTranslation({ phraseOrSlug: 'Change order estimate has been paid', targetLang: contractorLang })];
-                case 5:
-                    nMessage = _c.sent();
-                    services_1.NotificationService.sendNotification({
-                        user: contractor.id,
-                        userType: 'contractors',
-                        title: nTitle,
-                        type: 'CHANGE_ORDER_ESTIMATE_PAID',
-                        message: nMessage,
-                        heading: { name: "".concat(customer.name), image: (_a = customer.profilePhoto) === null || _a === void 0 ? void 0 : _a.url },
-                        payload: {
-                            entity: job.id,
-                            entityType: 'jobs',
-                            message: nMessage,
-                            customer: customer.id,
-                            event: 'CHANGE_ORDER_ESTIMATE_PAID',
-                            jobId: job.id,
-                            jobDayId: jobDay === null || jobDay === void 0 ? void 0 : jobDay.id
-                        }
-                    }, { push: true, socket: true, database: true });
-                    customerLang = contractor.language;
-                    return [4 /*yield*/, i18n_1.i18n.getTranslation({ phraseOrSlug: 'Change Order Estimate Paid', targetLang: customerLang })];
-                case 6:
-                    nTitle = _c.sent();
-                    return [4 /*yield*/, i18n_1.i18n.getTranslation({ phraseOrSlug: 'Change order estimate has been paid', targetLang: customerLang })];
-                case 7:
-                    nMessage = _c.sent();
-                    services_1.NotificationService.sendNotification({
-                        user: customer.id,
-                        userType: 'customers',
-                        title: nTitle,
-                        type: 'CHANGE_ORDER_ESTIMATE_PAID',
-                        message: nMessage,
-                        heading: { name: "".concat(contractor.name), image: (_b = contractor.profilePhoto) === null || _b === void 0 ? void 0 : _b.url },
-                        payload: {
-                            entity: job.id,
-                            entityType: 'jobs',
-                            message: nMessage,
-                            customer: customer.id,
-                            event: 'CHANGE_ORDER_ESTIMATE_PAID',
-                            jobId: job.id,
-                            jobDayId: jobDay === null || jobDay === void 0 ? void 0 : jobDay.id
-                        }
-                    }, { push: true, socket: true, database: true });
-                    return [3 /*break*/, 9];
-                case 8:
-                    error_22 = _c.sent();
-                    logger_1.Logger.error("Error handling CHANGE_ORDER_ESTIMATE_PAID event: ".concat(error_22));
-                    return [3 /*break*/, 9];
-                case 9: return [2 /*return*/];
             }
         });
     });

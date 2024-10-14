@@ -80,7 +80,6 @@ export const createCheckoutOrder = async (req: any, res: Response, next: NextFun
         if( isChangeOrder === "true") {
             const changeOrderEstimate: any = quotation.changeOrderEstimate
             if (!changeOrderEstimate) throw new Error('No  changeOrder estimate for this job');
-
             if (changeOrderEstimate.isPaid) throw new Error('Extra estimate already paid');
 
             let paymentType = PAYMENT_TYPE.CHANGE_ORDER_PAYMENT

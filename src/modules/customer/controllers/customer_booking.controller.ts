@@ -505,10 +505,12 @@ export const toggleChangeOrder = async (req: any, res: Response, next: NextFunct
         job.isChangeOrder = !job.isChangeOrder;
         await job.save();
 
-        //send notification
-        JobEvent.emit('JOB_CHANGED_ORDER', { job })
-
         const state = job.isChangeOrder ? 'enabled' : 'disabled'
+
+        
+        //send notification
+        JobEvent.emit('JOB_CHANGE_ORDER', { job })
+
         res.json({ success: true, message: `Job change order ${state} successfully`, data: job });
     } catch (error: any) {
         return next(new BadRequestError('An error occurred', error));

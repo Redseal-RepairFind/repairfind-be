@@ -525,9 +525,9 @@ var toggleChangeOrder = function (req, res, next) { return __awaiter(void 0, voi
                 return [4 /*yield*/, job.save()];
             case 4:
                 _a.sent();
-                //send notification
-                events_1.JobEvent.emit('JOB_CHANGED_ORDER', { job: job });
                 state = job.isChangeOrder ? 'enabled' : 'disabled';
+                //send notification
+                events_1.JobEvent.emit('JOB_CHANGE_ORDER', { job: job });
                 res.json({ success: true, message: "Job change order ".concat(state, " successfully"), data: job });
                 return [3 /*break*/, 6];
             case 5:

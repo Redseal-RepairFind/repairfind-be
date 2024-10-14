@@ -25,6 +25,7 @@ import { FCMNotification } from "./services/notifications/fcm";
 import { config } from "./config";
 import { PaypalPaymentCheckoutTemplate } from "./templates/common/paypal_payment.template";
 import { JOB_STATUS, JobModel } from "./database/common/job.model";
+import { JobQuotationModel } from "./database/common/job_quotation.model";
 
 
 dotenv.config();
@@ -50,14 +51,23 @@ app.get("/api/v1/customer/paypal/payment-method-checkout-view", (req: any, res) 
 app.get("/api/v1/customer/paypal/create-checkout-view", async(req: any, res) => {
   const {token, quotationId, jobId, isChangeOrder = false} =req.query;
 
+
   const job = await JobModel.findById(jobId)
-  if (!job) {
-    return res.status(400).json({ success: false, message: 'Job not found' });
+  if (!job) return res.status(400).json({ success: false, message: 'Job not found' });
+
+  const quotation = await JobQuotationModel.findById(quotationId);
+  if (!quotation) return res.status(400).json({ success: false, message: 'Job not found' });
+  
+
+  if( isChangeOrder === "true") {
+    const changeOrderEstimate: any = quotation.changeOrderEstimate
+    if (!changeOrderEstimate) return res.status(400).json({ success: false, message: 'No  changeOrder estimate for this job' });
+    if (changeOrderEstimate.isPaid) return res.status(400).json({ success: false, message: 'Change order estimate already paid' });
   }
 
   Logger.info("Checkout View Loaded", {token, quotationId, jobId, isChangeOrder})
   
-  if (!isChangeOrder && (job.status === JOB_STATUS.BOOKED)) {
+  if (!isChangeOrder && (job.status !== JOB_STATUS.PENDING)) {
     return res.status(400).json({ success: false, message: 'Job is not pending, so new payment is not possible' });
   }
 

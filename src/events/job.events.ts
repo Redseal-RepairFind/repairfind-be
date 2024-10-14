@@ -1061,15 +1061,12 @@ JobEvent.on('JOB_BOOKED', async function (payload: { jobId: ObjectId, contractor
             let paymentReceipt: any = quotation.payment
             let estimates = quotation.estimates
 
-            console.log('receiot', charges)
             if (paymentType == PAYMENT_TYPE.SITE_VISIT_PAYMENT) {
                 paymentReceipt = quotation?.siteVisitEstimate?.payment
                 estimates = paymentReceipt = quotation?.siteVisitEstimate?.estimates
             }
-            if (paymentType == PAYMENT_TYPE.SITE_VISIT_PAYMENT) {
-                paymentReceipt = quotation.siteVisitEstimate?.payment
-                estimates = quotation.siteVisitEstimate?.estimates
-            }
+
+
             if (contractor && contractorProfile) {
                 const dateTimeOptions: any = {
                     weekday: 'short',
@@ -1153,24 +1150,23 @@ JobEvent.on('JOB_BOOKED', async function (payload: { jobId: ObjectId, contractor
                     </tr>
                 </table>
             
-                ${
-                    charges.contractorDiscount && charges.contractorDiscount.coupon
-                    ? `
+                ${charges.contractorDiscount && charges.contractorDiscount.coupon
+                        ? `
                     <p>
                         <strong>Discount Applied:</strong> ${charges.contractorDiscount?.coupon?.name} <br> 
                         <strong>Discount Applied On:</strong> ${charges.contractorDiscount?.appliedOn}
                     </p>
                     `
-                    : ''
-                }
+                        : ''
+                    }
 
                 <p><strong>Net Amount to Contractor:</strong> ${charges.contractorSummary.payable.totalLabel} = $${charges.contractorPayable}</p>
                 <p><strong>Payment Method:</strong> Card Payment<br>
                 <strong>Transaction ID:</strong> RFT${quotation.id}</p>
             `;
-            
-            // Now you can send or display `receipthtmlContent` as needed
-            
+
+                // Now you can send or display `receipthtmlContent` as needed
+
 
 
                 let html = GenericEmailTemplate({ name: contractor.name, subject: emailSubject, content: emailContent });
@@ -1184,8 +1180,6 @@ JobEvent.on('JOB_BOOKED', async function (payload: { jobId: ObjectId, contractor
                 EmailService.send(contractor.email, translatedReceiptSubject, translatedReceiptHtml);
 
             }
-
-
 
             if (customer) {
 
@@ -1227,7 +1221,7 @@ JobEvent.on('JOB_BOOKED', async function (payload: { jobId: ObjectId, contractor
                     Receipt Number: RFP${paymentReceipt}</p>
                     <p><strong>Customer:</strong><br>
                     ${customer.name}<br>
-                    ${customer?.location?.address}<br>
+                    ${customer?.location?.address ?? ''}<br>
 
                     <hr>
                     <strong>Description:</strong>
@@ -1341,6 +1335,293 @@ JobEvent.on('JOB_BOOKED', async function (payload: { jobId: ObjectId, contractor
         Logger.error(`Error handling JOB_BOOKED event: ${error}`);
     }
 });
+
+
+JobEvent.on('CHANGE_ORDER_ESTIMATE_PAID', async function (payload: { job: IJob, quotation: IJobQuotation, extraEstimate: IExtraEstimate }) {
+    try {
+        Logger.info('handling CHANGE_ORDER_ESTIMATE_PAID event', payload.job.id)
+
+        const job = payload.job
+        if (!job) return
+
+        const jobDay = await JobDayModel.findOne({ job: job.id })
+        const customer = await CustomerModel.findById(job.customer)
+        const contractor = await ContractorModel.findById(job.contractor)
+
+        const quotation = await payload.quotation
+        const paymentType = PAYMENT_TYPE.CHANGE_ORDER_PAYMENT
+
+        if (!customer || !contractor) return
+
+
+        const contractorLang = contractor.language;
+        let nTitle = await i18n.getTranslation({ phraseOrSlug: 'Change Order Estimate Paid', targetLang: contractorLang });
+        let nMessage = await i18n.getTranslation({ phraseOrSlug: 'Change order estimate has been paid', targetLang: contractorLang });
+
+        NotificationService.sendNotification({
+            user: contractor.id,
+            userType: 'contractors',
+            title: nTitle,
+            type: 'CHANGE_ORDER_ESTIMATE_PAID',
+            message: nMessage,
+            heading: { name: `${customer.name}`, image: customer.profilePhoto?.url },
+            payload: {
+                entity: job.id,
+                entityType: 'jobs',
+                message: nMessage,
+                customer: customer.id,
+                event: 'CHANGE_ORDER_ESTIMATE_PAID',
+                jobId: job.id,
+                jobDayId: jobDay?.id
+            }
+        }, { push: true, socket: true, database: true });
+
+
+        const customerLang = contractor.language;
+        nTitle = await i18n.getTranslation({ phraseOrSlug: 'Change Order Estimate Paid', targetLang: customerLang });
+        nMessage = await i18n.getTranslation({ phraseOrSlug: 'Change order estimate has been paid', targetLang: customerLang });
+
+        NotificationService.sendNotification({
+            user: customer.id,
+            userType: 'customers',
+            title: nTitle,
+            type: 'CHANGE_ORDER_ESTIMATE_PAID',
+            message: nMessage,
+            heading: { name: `${contractor.name}`, image: contractor.profilePhoto?.url },
+            payload: {
+                entity: job.id,
+                entityType: 'jobs',
+                message: nMessage,
+                customer: customer.id,
+                event: 'CHANGE_ORDER_ESTIMATE_PAID',
+                jobId: job.id,
+                jobDayId: jobDay?.id
+            }
+        }, { push: true, socket: true, database: true });
+
+
+
+        if (job && contractor && customer && quotation) {
+            const charges = await quotation.calculateCharges(paymentType);
+            const contractorProfile = await ContractorProfileModel.findOne({ contractor: contractor.id })
+            let estimates = quotation.changeOrderEstimate.estimates
+            let paymentReceipt = quotation?.changeOrderEstimate?.payment
+
+            if (contractor && contractorProfile) {
+                const dateTimeOptions: any = {
+                    weekday: 'short',
+                    day: 'numeric',
+                    month: 'long',
+                    year: 'numeric',
+                    hour: 'numeric',
+                    minute: 'numeric',
+                    hour12: true,
+                    timeZone: contractor.currentTimezone,
+                    timeZoneName: 'long'
+                }
+                const jobDateContractor = new Intl.DateTimeFormat('en-GB', dateTimeOptions).format(new Date(job.schedule.startDate));
+                const currentDate = new Intl.DateTimeFormat('en-GB', dateTimeOptions).format(new Date(new Date));
+
+
+                let emailSubject = 'Job Escrow  Change Order Payment';
+                let emailContent = `
+                    <h2>${emailSubject}</h2>
+                    <p style="color: #333333;">Hello ${contractor.name},</p>
+                    <p style="color: #333333;">You have received escrow payment for a job on RepairFind. The money is securely held in Escrow, and will be released to your paypal email once job is done</p>
+                    <p><strong>Job Title:</strong> ${job.description}</p>
+                    <p><strong>Scheduled Date:</strong>${jobDateContractor}</p>
+                    <hr>
+                    <p style="color: #333333;">Thank you for your service!</p>
+                    <p style="color: #333333;">Kindly open the App for more information.</p>
+                `;
+
+
+
+
+                // HTML content for the receipt
+                const receipthtmlContent = `
+                <h3>Escrow Change Order Payment Receipt</h3>
+                <p><strong>RepairFind</strong><br>
+                Phone: (604) 568-6378<br>
+                Email: info@repairfind.ca</p>
+                <hr>
+            
+                <p>Date: ${currentDate}<br>
+                Receipt Number: RFP${paymentReceipt}</p>
+            
+                <p><strong>Contractor:</strong><br>
+                ${contractor.name}<br>
+                ${contractorProfile?.location?.address}<br>
+                </p>
+            
+                <hr>
+                <strong>Description:</strong>
+                <strong>Job Title:</strong> ${job.description}<br>
+                <strong>Scheduled Date:</strong> ${jobDateContractor}
+            
+                <p><strong>Invoice Items:</strong></p>
+                <table style="width: 100%; border-collapse: collapse; border: 1px solid lightgray;">
+                ${estimates.map(estimate => `
+                    <tr>
+                      <td style="border: 1px solid lightgray; padding: 8px;"><strong>${estimate.description}</strong></td>
+                      <td style="border: 1px solid lightgray; padding: 8px; text-align: right;">$${(estimate.rate * estimate.quantity).toFixed(2)}</td>
+                    </tr>
+                  `).join('')}   
+                    <tr>
+                        <td style="border: 1px solid lightgray; padding: 8px;"><strong>Subtotal</strong></td>
+                        <td style="border: 1px solid lightgray; padding: 8px; text-align: right;">$${(charges.subtotal).toFixed(2)}</td>
+                    </tr>
+                </table>
+                
+                <p><strong>Deduction/Charges:</strong></p>
+                <table style="width: 100%; border-collapse: collapse; border: 1px solid lightgray;">
+                    <tr>
+                        <td style="border: 1px solid lightgray; padding: 8px;">Payment Processing Fee ($${charges.customerProcessingFeeRate}%)</td>
+                        <td style="border: 1px solid lightgray; padding: 8px; text-align: right;">$${charges.contractorProcessingFee}</td>
+                    </tr>
+                    <tr>
+                        <td style="border: 1px solid lightgray; padding: 8px;">Service Fee (${charges.repairfindServiceFeeRate}%)</td>
+                        <td style="border: 1px solid lightgray; padding: 8px; text-align: right;">$${charges.repairfindServiceFee}</td>
+                    </tr>
+            
+                    <tr>
+                        <td style="border: 1px solid lightgray; padding: 8px;"><strong>Total Deductions</strong></td>
+                        <td style="border: 1px solid lightgray; padding: 8px; text-align: right;"><strong>$${charges.contractorSummary.deductions.total}</strong></td>
+                    </tr>
+                </table>
+            
+                ${charges.contractorDiscount && charges.contractorDiscount.coupon
+                        ? `
+                    <p>
+                        <strong>Discount Applied:</strong> ${charges.contractorDiscount?.coupon?.name} <br> 
+                        <strong>Discount Applied On:</strong> ${charges.contractorDiscount?.appliedOn}
+                    </p>
+                    `
+                        : ''
+                    }
+
+                <p><strong>Net Amount to Contractor:</strong> ${charges.contractorSummary.payable.totalLabel} = $${charges.contractorPayable}</p>
+                <p><strong>Payment Method:</strong> Card Payment<br>
+                <strong>Transaction ID:</strong> RFT${quotation.id}</p>
+            `;
+
+                let html = GenericEmailTemplate({ name: contractor.name, subject: emailSubject, content: emailContent });
+                const translatedHtml = await i18n.getTranslation({ phraseOrSlug: html, targetLang: contractor.language, saveToFile: false, useGoogle: true, contentType: 'html' }) || html;
+                const translatedSubject = await i18n.getTranslation({ phraseOrSlug: emailSubject, targetLang: contractor.language }) || emailSubject;
+                EmailService.send(contractor.email, translatedSubject, translatedHtml);
+
+                let receipthtml = GenericEmailTemplate({ name: contractor.name, subject: 'Escrow Payment Receipt', content: receipthtmlContent });
+                const translatedReceiptHtml = await i18n.getTranslation({ phraseOrSlug: receipthtml, targetLang: contractor.language, saveToFile: false, useGoogle: true, contentType: 'html' }) || receipthtml;
+                const translatedReceiptSubject = await i18n.getTranslation({ phraseOrSlug: 'Escrow Payment Receipt', targetLang: contractor.language }) || 'Escrow Payment Receipt';
+                EmailService.send(contractor.email, translatedReceiptSubject, translatedReceiptHtml);
+
+            }
+
+            if (customer) {
+
+                const dateTimeOptions: any = {
+                    weekday: 'short',
+                    day: 'numeric',
+                    month: 'long',
+                    year: 'numeric',
+                    hour: 'numeric',
+                    minute: 'numeric',
+                    hour12: true,
+                    timeZone: customer.currentTimezone,
+                    timeZoneName: 'long'
+                }
+                const jobDateCustomer = new Intl.DateTimeFormat('en-GB', dateTimeOptions).format(new Date(job.schedule.startDate));
+                const currentDate = new Intl.DateTimeFormat('en-GB', dateTimeOptions).format(new Date(new Date));
+
+
+                let emailSubject = 'Job Change Order Payment ';
+                let emailContent = `
+                 <h2>${emailSubject}</h2>
+                  <p style="color: #333333;">Hello ${customer.name},</p>
+                  <p style="color: #333333;">You have made a payment for a job on RepairFind. The money is held securely in Escrow until job is is complete</p>
+                  <p><strong>Job Title:</strong> ${job.description}</p>
+                  <p><strong>Proposed Date:</strong>${jobDateCustomer}</p>
+                  <p style="color: #333333;">Thank you for your payment!</p>
+                  <p style="color: #333333;">If you did not initiate this payment, kindly reach out to us via support.</p>
+                `;
+
+                let receiptContent = `
+                    <p><strong>RepairFind</strong><br>
+                    Phone: (604) 568-6378<br>
+                    Email: info@repairfind.ca</p>
+                    <hr>
+
+                    <p><strong>Receipt</strong></p>
+                    <p>Date: ${currentDate}<br>
+                    Receipt Number: RFP${paymentReceipt}</p>
+                    <p><strong>Customer:</strong><br>
+                    ${customer.name}<br>
+                    ${customer?.location?.address}<br>
+
+                    <hr>
+                    <strong>Description:</strong>
+                    <strong>Job Title:</strong> ${job.description} <br>
+                    <strong>Scheduled Date:</strong> ${jobDateCustomer}
+
+                    <p><strong>Services/Charges:</strong></p>
+                    <table style="width: 100%; border-collapse: collapse; border: 1px solid lightgray; margin-bottom: 10px;">
+                        ${estimates.map(estimate => `
+                        <tr>
+                            <td style="border: 1px solid lightgray; padding: 8px;"><strong>${estimate.description}</strong></td>
+                            <td style="border: 1px solid lightgray; padding: 8px; text-align: right;">$${(estimate.rate * estimate.quantity).toFixed(2)}</td>
+                        </tr>
+                        `).join('')}   
+                        <tr>
+                        <td style="border: 1px solid lightgray; padding: 8px;"><strong>Subtotal</strong></td>
+                        <td style="border: 1px solid lightgray; padding: 8px; text-align: right;"><strong>$${(charges.subtotal).toFixed(2)}</strong></td>
+                        </tr>
+                        <tr>
+                        <td style="border: 1px solid lightgray; padding: 8px;">GST (${charges.gstRate}%)</td>
+                        <td style="border: 1px solid lightgray; padding: 8px; text-align: right;">$${charges.gstAmount}</td>
+                        </tr>
+                        <tr>
+                        <td style="border: 1px solid lightgray; padding: 8px;">Payment Processing Fee (${charges.customerProcessingFeeRate}%)</td>
+                        <td style="border: 1px solid lightgray; padding: 8px; text-align: right;">$${charges.customerProcessingFee}</td>
+                        </tr>
+                        
+                        ${charges.customerDiscount ? `
+                        <tr>
+                            <td style="border: 1px solid lightgray; padding: 8px;"><strong>Discount (${charges?.customerDiscount?.coupon?.name})</strong></td>
+                            <td style="border: 1px solid lightgray; padding: 8px; text-align: right;">-$${charges?.customerDiscount?.amount.toFixed(2)}</td>
+                        </tr>
+                        ` : ``}
+                        
+                        <tr>
+                        <td style="border: 1px solid lightgray; padding: 8px;"><strong>Total Amount Due</strong> <br> ${charges.customerSummary.payable.totalLabel}</td>
+                        <td style="border: 1px solid lightgray; padding: 8px; text-align: right;"><strong>$${charges.customerPayable}</strong></td>
+                        </tr>
+                    </table>
+                    <p><strong>Payment Method:</strong> Credit/Debit Card<br>
+                    <strong>Transaction ID:</strong> RPT${quotation.id}</p>
+                    <p style="color: #333333;">Thank you for your payment!</p>
+                    <p style="color: #333333;">If you did not initiate this payment, kindly reach out to us via support.</p>
+                `;
+
+                let html = GenericEmailTemplate({ name: customer.name, subject: emailSubject, content: emailContent });
+                const translatedHtml = await i18n.getTranslation({ phraseOrSlug: html, targetLang: customer.language, saveToFile: false, useGoogle: true, contentType: 'html' }) || html;
+                const translatedSubject = await i18n.getTranslation({ phraseOrSlug: emailSubject, targetLang: customer.language }) || emailSubject;
+                EmailService.send(customer.email, translatedSubject, translatedHtml);
+
+
+                let receipthtml = GenericEmailTemplate({ name: customer.name, subject: ' Change Order Payment Receipt', content: receiptContent });
+                const translatedReceiptHtml = await i18n.getTranslation({ phraseOrSlug: receipthtml, targetLang: customer.language, saveToFile: false, useGoogle: true, contentType: 'html' }) || receipthtml;
+                const translatedReceiptSubject = await i18n.getTranslation({ phraseOrSlug: 'Change Order Payment Receipt', targetLang: customer.language }) || 'Payment Receipt';
+                EmailService.send(customer.email, translatedReceiptSubject, translatedReceiptHtml);
+
+
+            }
+        }
+
+    } catch (error) {
+        Logger.error(`Error handling CHANGE_ORDER_ESTIMATE_PAID event: ${error}`);
+    }
+});
+
 
 
 JobEvent.on('JOB_DISPUTE_CREATED', async function (payload: { dispute: IJobDispute }) {
@@ -1655,7 +1936,7 @@ JobEvent.on('JOB_CHANGE_ORDER', async function (payload: { job: IJob }) {
 
         const contractorLang = contractor.language;
         let nTitle = await i18n.getTranslation({
-            phraseOrSlug: 'Job Completed',
+            phraseOrSlug: 'Job Change Order',
             targetLang: contractorLang
         });
         let nMessage = await i18n.getTranslation({
@@ -1986,72 +2267,6 @@ JobEvent.on('JOB_QUOTATION_EDITED', async function (payload: { job: IJob, quotat
 });
 
 
-JobEvent.on('CHANGE_ORDER_ESTIMATE_PAID', async function (payload: { job: IJob, quotation: IJobQuotation, extraEstimate: IExtraEstimate }) {
-    try {
-        Logger.info('handling CHANGE_ORDER_ESTIMATE_PAID event', payload.job.id)
-
-        const job = payload.job
-        if (!job) return
-
-        const jobDay = await JobDayModel.findOne({ job: job.id })
-        const customer = await CustomerModel.findById(job.customer)
-        const contractor = await ContractorModel.findById(job.contractor)
-
-        if (!customer || !contractor) return
-
-
-        const contractorLang = contractor.language;
-        let nTitle = await i18n.getTranslation({ phraseOrSlug: 'Change Order Estimate Paid', targetLang: contractorLang });
-        let nMessage = await i18n.getTranslation({ phraseOrSlug: 'Change order estimate has been paid', targetLang: contractorLang });
-
-        NotificationService.sendNotification({
-            user: contractor.id,
-            userType: 'contractors',
-            title: nTitle,
-            type: 'CHANGE_ORDER_ESTIMATE_PAID',
-            message: nMessage,
-            heading: { name: `${customer.name}`, image: customer.profilePhoto?.url },
-            payload: {
-                entity: job.id,
-                entityType: 'jobs',
-                message: nMessage,
-                customer: customer.id,
-                event: 'CHANGE_ORDER_ESTIMATE_PAID',
-                jobId: job.id,
-                jobDayId: jobDay?.id
-            }
-        }, { push: true, socket: true, database: true });
-
-
-
-        const customerLang = contractor.language;
-        nTitle = await i18n.getTranslation({ phraseOrSlug: 'Change Order Estimate Paid', targetLang: customerLang });
-        nMessage = await i18n.getTranslation({ phraseOrSlug: 'Change order estimate has been paid', targetLang: customerLang });
-
-        NotificationService.sendNotification({
-            user: customer.id,
-            userType: 'customers',
-            title: nTitle,
-            type: 'CHANGE_ORDER_ESTIMATE_PAID',
-            message: nMessage,
-            heading: { name: `${contractor.name}`, image: contractor.profilePhoto?.url },
-            payload: {
-                entity: job.id,
-                entityType: 'jobs',
-                message: nMessage,
-                customer: customer.id,
-                event: 'CHANGE_ORDER_ESTIMATE_PAID',
-                jobId: job.id,
-                jobDayId: jobDay?.id
-            }
-        }, { push: true, socket: true, database: true });
-
-
-
-    } catch (error) {
-        Logger.error(`Error handling CHANGE_ORDER_ESTIMATE_PAID event: ${error}`);
-    }
-});
 
 
 // JOB DAY
