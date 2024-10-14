@@ -68,7 +68,7 @@ app.get("/api/v1/customer/paypal/create-checkout-view", async(req: any, res) => 
   Logger.info("Checkout View Loaded", {token, quotationId, jobId, isChangeOrder})
   
 
-  if (!isChangeOrder && ![JOB_STATUS.PENDING, JOB_STATUS.SUBMITTED].includes(job.status)) {
+  if (!isChangeOrder && ![JOB_STATUS.PENDING, JOB_STATUS.SUBMITTED, JOB_STATUS.COMPLETED_SITE_VISIT].includes(job.status)) {
     return res.status(400).json({ success: false, message: 'Job is not pending, so new payment is not possible' });
   }
 
