@@ -2,7 +2,7 @@ import axios from 'axios';
 import { BadRequestError } from '../../utils/custom.errors';
 import { config } from '../../config';
 import { v4 as uuidv4 } from 'uuid';
-import { IPaypalPaymentMethod, PaypalPaymentMethodSchema } from '../../database/common/paypal_paymentmethod.schema';
+import { IPaypalPaymentMethod } from '../../database/common/paypal_paymentmethod.schema';
 import { Logger } from '../logger';
 
 
@@ -57,38 +57,38 @@ export const createOrder = async (payload: any) => {
                 store_in_vault: "ON_SUCCESS"
               }
             },
-            experience_context: {
-              shipping_preference: "NO_SHIPPING",
-            }
+            // experience_context: {
+            //   shipping_preference: "NO_SHIPPING",
+            // }
           }
         },
         application_context: {
           return_url: payload.returnUrl ?? 'https://repairfind.ca/payment-success',
           cancel_url: 'https://repairfind.ca/action-cancelled-successfully',
-          shipping_preference: "NO_SHIPPING" // Set to NO_SHIPPING
+          // shipping_preference: "NO_SHIPPING" // Set to NO_SHIPPING
           
         },
 
         
-        payer: {
-          name: {
-            given_name: payload.payer.firstName, // Payer's first name
-            surname: payload.payer.lastName, // Payer's last name
-          },
-          phone: payload.payer.phoneNumber ? {
-            phone_number: {
-                national_number: payload.payer.phoneNumber,
-            }
-          } : null,
-          email_address: payload.payer.email, // Payer's email address
-          // address: {
-          //   address_line_1: payload.payer.address ?? '123 ABC Street',
-          //   admin_area_2: payload.payer.city ?? 'San Jose',
-          //   admin_area_1:  payload.payer.state ?? 'CA',
-          //   postal_code: payload.payer.zip ?? 95121,
-          //   country_code: payload.payer.country ?? 'US'
-          // },
-        },
+        // payer: {
+        //   name: {
+        //     given_name: payload.payer.firstName, // Payer's first name
+        //     surname: payload.payer.lastName, // Payer's last name
+        //   },
+        //   phone: payload.payer.phoneNumber ? {
+        //     phone_number: {
+        //         national_number: payload.payer.phoneNumber,
+        //     }
+        //   } : null,
+        //   email_address: payload.payer.email, // Payer's email address
+        //   // address: {
+        //   //   address_line_1: payload.payer.address ?? '123 ABC Street',
+        //   //   admin_area_2: payload.payer.city ?? 'San Jose',
+        //   //   admin_area_1:  payload.payer.state ?? 'CA',
+        //   //   postal_code: payload.payer.zip ?? 95121,
+        //   //   country_code: payload.payer.country ?? 'US'
+        //   // },
+        // },
       },
       {
         headers: {

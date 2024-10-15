@@ -98,35 +98,35 @@ var createOrder = function (payload) { return __awaiter(void 0, void 0, void 0, 
                                         store_in_vault: "ON_SUCCESS"
                                     }
                                 },
-                                experience_context: {
-                                    shipping_preference: "NO_SHIPPING",
-                                }
+                                // experience_context: {
+                                //   shipping_preference: "NO_SHIPPING",
+                                // }
                             }
                         },
                         application_context: {
                             return_url: (_a = payload.returnUrl) !== null && _a !== void 0 ? _a : 'https://repairfind.ca/payment-success',
                             cancel_url: 'https://repairfind.ca/action-cancelled-successfully',
-                            shipping_preference: "NO_SHIPPING" // Set to NO_SHIPPING
+                            // shipping_preference: "NO_SHIPPING" // Set to NO_SHIPPING
                         },
-                        payer: {
-                            name: {
-                                given_name: payload.payer.firstName, // Payer's first name
-                                surname: payload.payer.lastName, // Payer's last name
-                            },
-                            phone: payload.payer.phoneNumber ? {
-                                phone_number: {
-                                    national_number: payload.payer.phoneNumber,
-                                }
-                            } : null,
-                            email_address: payload.payer.email, // Payer's email address
-                            // address: {
-                            //   address_line_1: payload.payer.address ?? '123 ABC Street',
-                            //   admin_area_2: payload.payer.city ?? 'San Jose',
-                            //   admin_area_1:  payload.payer.state ?? 'CA',
-                            //   postal_code: payload.payer.zip ?? 95121,
-                            //   country_code: payload.payer.country ?? 'US'
-                            // },
-                        },
+                        // payer: {
+                        //   name: {
+                        //     given_name: payload.payer.firstName, // Payer's first name
+                        //     surname: payload.payer.lastName, // Payer's last name
+                        //   },
+                        //   phone: payload.payer.phoneNumber ? {
+                        //     phone_number: {
+                        //         national_number: payload.payer.phoneNumber,
+                        //     }
+                        //   } : null,
+                        //   email_address: payload.payer.email, // Payer's email address
+                        //   // address: {
+                        //   //   address_line_1: payload.payer.address ?? '123 ABC Street',
+                        //   //   admin_area_2: payload.payer.city ?? 'San Jose',
+                        //   //   admin_area_1:  payload.payer.state ?? 'CA',
+                        //   //   postal_code: payload.payer.zip ?? 95121,
+                        //   //   country_code: payload.payer.country ?? 'US'
+                        //   // },
+                        // },
                     }, {
                         headers: {
                             Authorization: "Bearer ".concat(accessToken),
