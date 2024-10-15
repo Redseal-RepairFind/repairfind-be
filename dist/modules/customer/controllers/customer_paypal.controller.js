@@ -67,8 +67,8 @@ var createPaymentMethodOrder = function (req, res) { return __awaiter(void 0, vo
                     payer: {
                         firstName: customer.firstName,
                         lastName: customer.lastName,
-                        email: customer.email
-                        // No billing address included because, NO_SHIPPING is configured in application context
+                        email: customer.email,
+                        phoneNumber: customer.phoneNumber.number
                     }
                 };
                 return [4 /*yield*/, paypal_1.PayPalService.payment.createOrder(payload)];

@@ -1,4 +1,4 @@
-export const PaypalPaymentCheckoutTemplate = (payload: {token: string, paypalClientId: string, quotationId: any, jobId: any, isChangeOrder: false }) => `
+export const PaypalPaymentCheckoutTemplate = ({token, paypalClientId, quotationId, jobId, isChangeOrder = false, enableCardField=false}: {token: string, paypalClientId: string, quotationId: any, jobId: any, isChangeOrder: boolean, enableCardField?: boolean }) => `
 <!DOCTYPE html>
 <html lang="en">
 
@@ -36,6 +36,9 @@ export const PaypalPaymentCheckoutTemplate = (payload: {token: string, paypalCli
       pointer-events: none;
       opacity: 0.7;
     }
+    #card-form{
+      display:none
+    }
   </style>
 
 
@@ -56,17 +59,17 @@ export const PaypalPaymentCheckoutTemplate = (payload: {token: string, paypalCli
   <p id="result-message"></p>
 
   <script
-    src="https://www.paypal.com/sdk/js?components=buttons,card-fields&client-id=${payload.paypalClientId}&currency=CAD"></script>
+    src="https://www.paypal.com/sdk/js?components=buttons,card-fields&client-id=${paypalClientId}&currency=CAD"></script>
   <script>
     async function createOrderCallback() {
       try {
-        const response = await fetch('/api/v1/customer/jobs/${payload.jobId}/paypal/create-checkout-order', {
+        const response = await fetch('/api/v1/customer/jobs/${jobId}/paypal/create-checkout-order', {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
-            'Authorization': 'Bearer ${payload.token}'
+            'Authorization': 'Bearer ${token}'
           },
-          body: JSON.stringify({ quotationId: '${payload.quotationId}', isChangeOrder: '${payload.isChangeOrder}' })
+          body: JSON.stringify({ quotationId: '${quotationId}', isChangeOrder: '${isChangeOrder}' })
         });
         const orderData = await response.json();
         console.log('orderData', orderData);
@@ -79,13 +82,13 @@ export const PaypalPaymentCheckoutTemplate = (payload: {token: string, paypalCli
 
           async function onApproveCallback(data, actions) {
             try {
-              const response = await fetch('/api/v1/customer/jobs/${payload.jobId}/paypal/capture-checkout-order', {
+              const response = await fetch('/api/v1/customer/jobs/${jobId}/paypal/capture-checkout-order', {
                 method: 'POST',
                 headers: {
                   'Content-Type': 'application/json',
-                  'Authorization': 'Bearer ${payload.token}'
+                  'Authorization': 'Bearer ${token}'
                 },
-                body: JSON.stringify({ orderId: data.orderID, quotationId:'${payload.quotationId}' }) 
+                body: JSON.stringify({ orderId: data.orderID, quotationId:'${quotationId}' }) 
               });
 
               const res = await response.json();
@@ -115,7 +118,10 @@ export const PaypalPaymentCheckoutTemplate = (payload: {token: string, paypalCli
             onApprove: onApproveCallback,
           });
 
-          if (cardField.isEligible()) {
+          if (cardField.isEligible() && ${enableCardField}) {
+
+            document.getElementById('card-form').style.display = 'block'
+
             const nameField = cardField.NameField();
             nameField.render('#card-name-field-container');
             

@@ -33,8 +33,8 @@ export const createPaymentMethodOrder = async (
             payer: {
                 firstName: customer.firstName,
                 lastName: customer.lastName,
-                email: customer.email
-                // No billing address included because, NO_SHIPPING is configured in application context
+                email: customer.email,
+                phoneNumber: customer.phoneNumber.number
             }
           }
         const response = await PayPalService.payment.createOrder(payload)

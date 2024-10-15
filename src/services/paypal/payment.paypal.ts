@@ -68,16 +68,26 @@ export const createOrder = async (payload: any) => {
           shipping_preference: "NO_SHIPPING" // Set to NO_SHIPPING
           
         },
+
+        
         payer: {
           name: {
             given_name: payload.payer.firstName, // Payer's first name
             surname: payload.payer.lastName, // Payer's last name
           },
+          phone: payload.payer.phoneNumber ? {
+            phone_number: {
+                national_number: payload.payer.phoneNumber,
+            }
+          } : null,
           email_address: payload.payer.email, // Payer's email address
-          // address_line_1: "2211 N First Street",
-          // address_line_2: "17.3.160",
-          // postal_code: "95131",
-          // country_code: "US"
+          // address: {
+          //   address_line_1: payload.payer.address ?? '123 ABC Street',
+          //   admin_area_2: payload.payer.city ?? 'San Jose',
+          //   admin_area_1:  payload.payer.state ?? 'CA',
+          //   postal_code: payload.payer.zip ?? 95121,
+          //   country_code: payload.payer.country ?? 'US'
+          // },
         },
       },
       {

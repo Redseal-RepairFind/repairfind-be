@@ -60,7 +60,8 @@ var contractors = [
         password: '$2b$10$34E1yhh/3Z/O1cBn/5seAuyHOBuy/U6uZUH10rhFfAjdJKXehpN2y',
         phoneNumber: {
             code: "+367",
-            number: "2344252"
+            number: "2344252",
+            verifiedAt: new Date()
         },
         profilePhoto: {
             url: "https://dsfds"
@@ -90,7 +91,6 @@ var contractors = [
                 latitude: 43.65107,
                 longitude: -79.347015
             },
-            phoneNumber: "3234234",
             previousJobPhotos: [
                 { url: "https://repairfindbucket.s3-eu-west-3.amazonaws.com/39f0663f-b29f-40ec-9ce5-7b7fa3fbd7c0.jpeg" }
             ],
@@ -102,7 +102,8 @@ var contractors = [
             skill: "Plumber",
             website: "https://skdjfjkfdsjk.com",
             certnId: "5d1aabc8-e9c9-4e99-8b2f-14ac6995f13f"
-        }
+        },
+        certnId: "ebc86274-7d0b-4490-ad8e-060d05e71a95"
     },
 ];
 var ContractorSeeder = function (options) { return __awaiter(void 0, void 0, void 0, function () {
@@ -120,7 +121,6 @@ var ContractorSeeder = function (options) { return __awaiter(void 0, void 0, voi
                             return [4 /*yield*/, contractor_model_1.ContractorModel.findOneAndUpdate({ email: contractor.email }, contractor, { upsert: true, new: true, setDefaultsOnInsert: true })];
                         case 2:
                             newContractor = _a.sent();
-                            console.log('newContractor', newContractor);
                             if (!newContractor) return [3 /*break*/, 5];
                             return [4 /*yield*/, contractor_profile_model_1.ContractorProfileModel.findOneAndUpdate({ contractor: newContractor.id }, __assign({ contractor: newContractor.id }, contractor.profileData), { upsert: true, new: true, setDefaultsOnInsert: true })];
                         case 3:

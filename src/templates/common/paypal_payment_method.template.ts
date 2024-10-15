@@ -1,4 +1,4 @@
-export const PaypalPaymentMethodTemplate = (payload: {token: string, paypalClientId: string}) =>  `
+export const PaypalPaymentMethodTemplate = ({token, paypalClientId, enableCardField=false}: {token: string, paypalClientId: string, enableCardField?: boolean }) =>  `
     <!DOCTYPE html>
     <html lang="en">
       <head>
@@ -27,6 +27,9 @@ export const PaypalPaymentMethodTemplate = (payload: {token: string, paypalClien
           pointer-events: none;
           opacity: 0.7;
         }
+        #card-form{
+          display:none
+        }
       </style>
 
 
@@ -45,7 +48,7 @@ export const PaypalPaymentMethodTemplate = (payload: {token: string, paypalClien
         </div>
         <p id="result-message"></p>
         
-        <script src="https://www.paypal.com/sdk/js?components=buttons,card-fields&client-id=${payload.paypalClientId}&intent=authorize&currency=CAD"></script>
+        <script src="https://www.paypal.com/sdk/js?components=buttons,card-fields&client-id=${paypalClientId}&intent=authorize&currency=CAD"></script>
         <script>
           async function createOrderCallback() {
             try {
@@ -53,7 +56,7 @@ export const PaypalPaymentMethodTemplate = (payload: {token: string, paypalClien
                 method: 'POST',
                 headers: {
                   'Content-Type': 'application/json',
-                  'Authorization': 'Bearer ${payload.token}'
+                  'Authorization': 'Bearer ${token}'
                 }
               });
               const orderData = await response.json();
@@ -71,14 +74,14 @@ export const PaypalPaymentMethodTemplate = (payload: {token: string, paypalClien
                 method: 'POST',
                 headers: {
                   'Content-Type': 'application/json',
-                  'Authorization': 'Bearer ${payload.token}'
+                  'Authorization': 'Bearer ${token}'
                 },
                 body: JSON.stringify({ orderID: data.orderID }) 
               });
 
               const res = await response.json();
               if (res.success) {
-                window.location.href = 'https://repairfind.ca/payment-success/';
+                window.location.href = 'https://repairfind.ca/card-connected-successfully';
               }else{
                 alert("Sorry, your payment method could not be added...");
                 window.history.back();
@@ -92,6 +95,7 @@ export const PaypalPaymentMethodTemplate = (payload: {token: string, paypalClien
 
           window.paypal
             .Buttons({
+              fundingSource: paypal.FUNDING.CARD,
               createOrder: createOrderCallback,
               onApprove: onApproveCallback,
             })
@@ -102,7 +106,9 @@ export const PaypalPaymentMethodTemplate = (payload: {token: string, paypalClien
             onApprove: onApproveCallback,
           });
 
-          if (cardField.isEligible()) {
+          if (cardField.isEligible() && ${enableCardField}) {
+
+            document.getElementById('card-form').style.display = 'block'
             const nameField = cardField.NameField();
             nameField.render('#card-name-field-container');
             
@@ -122,10 +128,8 @@ export const PaypalPaymentMethodTemplate = (payload: {token: string, paypalClien
               submitButton.classList.add('disabled');
               loader.style.display = 'inline-block';
 
-
               cardField
                 .submit({
-                 
                 })
                 .catch((error) => {
                   loader.style.display = 'none';
