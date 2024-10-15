@@ -26,6 +26,7 @@ import { config } from "./config";
 import { PaypalPaymentCheckoutTemplate } from "./templates/common/paypal_payment.template";
 import { JOB_STATUS, JobModel } from "./database/common/job.model";
 import { JobQuotationModel } from "./database/common/job_quotation.model";
+import { PaypalPaymentMethodTemplate } from "./templates/common/paypal_payment_method.template";
 
 
 dotenv.config();
@@ -43,7 +44,7 @@ const server = http.createServer(app);
 app.get("/api/v1/customer/paypal/payment-method-checkout-view", (req: any, res) => {
   const {token} =req.query;
   const paypalClientId = config.paypal.clientId
-  let html = PaypalPaymentMethodCheckoutTemplate({token, paypalClientId})
+  let html = PaypalPaymentMethodTemplate({token, paypalClientId})
   return res.send(html);
 });
 
@@ -172,6 +173,4 @@ server.listen(port, () => {
   Logger.info(`Server listening on port ${port} - Timezone::: ${timeZone}`);
 });
 
-function PaypalPaymentMethodCheckoutTemplate(arg0: { token: any; paypalClientId: string; }) {
-  throw new Error("Function not implemented.");
-}
+

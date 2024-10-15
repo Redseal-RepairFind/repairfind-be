@@ -63,6 +63,7 @@ var config_1 = require("./config");
 var paypal_payment_template_1 = require("./templates/common/paypal_payment.template");
 var job_model_1 = require("./database/common/job.model");
 var job_quotation_model_1 = require("./database/common/job_quotation.model");
+var paypal_payment_method_template_1 = require("./templates/common/paypal_payment_method.template");
 dotenv_1.default.config();
 // intercept all console logs and bind it to configured log service
 console.warn = logger_1.Logger.warn.bind(logger_1.Logger);
@@ -73,7 +74,7 @@ var server = http_1.default.createServer(app);
 app.get("/api/v1/customer/paypal/payment-method-checkout-view", function (req, res) {
     var token = req.query.token;
     var paypalClientId = config_1.config.paypal.clientId;
-    var html = PaypalPaymentMethodCheckoutTemplate({ token: token, paypalClientId: paypalClientId });
+    var html = (0, paypal_payment_method_template_1.PaypalPaymentMethodTemplate)({ token: token, paypalClientId: paypalClientId });
     return res.send(html);
 });
 app.get("/api/v1/customer/paypal/create-checkout-view", function (req, res) { return __awaiter(void 0, void 0, void 0, function () {
@@ -180,6 +181,3 @@ logger_1.Logger.info("Current server timezone: ".concat(timeZone));
 server.listen(port, function () {
     logger_1.Logger.info("Server listening on port ".concat(port, " - Timezone::: ").concat(timeZone));
 });
-function PaypalPaymentMethodCheckoutTemplate(arg0) {
-    throw new Error("Function not implemented.");
-}
