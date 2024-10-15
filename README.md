@@ -28,3 +28,4 @@
 
 <!-- npx copyfiles src/i18n/translations/* -u 1 dist/ &&  -->
 <!-- "translate": "^1.4.1", -->
+    <!-- "copy-files": "npx copyfiles .env package.json package-lock.json ecosystem.config.js cli.js dist/", -->

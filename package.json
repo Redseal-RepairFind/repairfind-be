@@ -7,9 +7,8 @@
     "test": "echo \"Error: no test specified\" && exit 1",
     "dev": "ts-node-dev src/index.ts",
     "js-dev": "ts-node-dev dist/index.js",
-    "build": "npm run clean && tsc && npm run copy-files",
+    "build": "npm run clean && tsc",
     "clean": "rimraf ./dist",
-    "copy-files": "npx copyfiles .env package.json package-lock.json ecosystem.config.js cli.js dist/",
     "build-start": "npm run build && npm run start",
     "start": "node dist/index.js"
   },
