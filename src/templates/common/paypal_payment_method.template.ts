@@ -30,12 +30,21 @@ export const PaypalPaymentMethodTemplate = ({token, paypalClientId, enableCardFi
         #card-form{
           display:none
         }
+          .notice {
+            font-size: 0.9rem;
+            color: #555;
+            margin-top: 10px;
+          }
       </style>
 
 
       </head>
       <body>
-        <div id="paypal-button-container" class="paypal-button-container"></div>
+        
+        <div id="paypal-button-container" class="paypal-button-container">
+                <p class="notice">Please note: A temporary $1 charge will be made to your card to confirm its validity. This amount will not be charged and will be refunded automatically.</p>
+
+        </div>
         <div id="card-form" class="card_container">
           <div id="card-name-field-container"></div>
           <div id="card-number-field-container"></div>
@@ -149,40 +158,3 @@ export const PaypalPaymentMethodTemplate = ({token, paypalClientId, enableCardFi
       </body>
     </html>
   `;
-
-
-
-
-
-  // <div>
-  //           <label for="card-billing-address-line-1">Billing Address</label>
-  //           <input type="text" id="card-billing-address-line-1" name="card-billing-address-line-1" autocomplete="off" placeholder="Address line 1" />
-  //         </div>
-  //         <div>
-  //           <input type="text" id="card-billing-address-line-2" name="card-billing-address-line-2" autocomplete="off" placeholder="Address line 2" />
-  //         </div>
-  //         <div>
-  //           <input type="text" id="card-billing-address-admin-area-line-1" name="card-billing-address-admin-area-line-1" autocomplete="off" placeholder="Admin area line 1" />
-  //         </div>
-  //         <div>
-  //           <input type="text" id="card-billing-address-admin-area-line-2" name="card-billing-address-admin-area-line-2" autocomplete="off" placeholder="Admin area line 2" />
-  //         </div>
-  //         <div>
-  //           <input type="text" id="card-billing-address-country-code" name="card-billing-address-country-code" autocomplete="off" placeholder="Country code" />
-  //         </div>
-  //         <div>
-  //           <input type="text" id="card-billing-address-postal-code" name="card-billing-address-postal-code" autocomplete="off" placeholder="Postal/zip code" />
-  //         </div>
-
-
-
-
-
-  // billingAddress: {
-  //   addressLine1: document.getElementById('card-billing-address-line-1').value,
-  //   addressLine2: document.getElementById('card-billing-address-line-2').value,
-  //   adminArea1: document.getElementById('card-billing-address-admin-area-line-1').value,
-  //   adminArea2: document.getElementById('card-billing-address-admin-area-line-2').value,
-  //   countryCode: document.getElementById('card-billing-address-country-code').value,
-  //   postalCode: document.getElementById('card-billing-address-postal-code').value,
-  // },

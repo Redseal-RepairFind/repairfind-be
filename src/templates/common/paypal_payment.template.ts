@@ -59,7 +59,7 @@ export const PaypalPaymentCheckoutTemplate = ({token, paypalClientId, quotationI
   <p id="result-message"></p>
 
   <script
-    src="https://www.paypal.com/sdk/js?components=buttons,card-fields&client-id=${paypalClientId}&currency=CAD"></script>
+    src="https://www.paypal.com/sdk/js?components=buttons,card-fields&client-id=${paypalClientId}></script>
   <script>
     async function createOrderCallback() {
       try {
