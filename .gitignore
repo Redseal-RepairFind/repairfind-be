@@ -6,5 +6,6 @@
 /.clinic
 # fcm.json
 prod.env
+dev.env
 staging.env
 /locale/general.json
