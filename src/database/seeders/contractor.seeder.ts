@@ -52,7 +52,7 @@ const contractors = [
           url: "string",
         }
       ],
-      skill: "Plumber",
+      skill: "Plumbing",
       website: "https://skdjfjkfdsjk.com",
       certnId: "5d1aabc8-e9c9-4e99-8b2f-14ac6995f13f"
     },
