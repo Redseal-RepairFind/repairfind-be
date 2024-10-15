@@ -45,7 +45,7 @@ var contractor_devices_model_1 = __importDefault(require("../../../database/cont
 var blacklisted_tokens_schema_1 = __importDefault(require("../../../database/common/blacklisted_tokens.schema"));
 var express_validator_1 = require("express-validator");
 var clearAuthSession = function (req, res) { return __awaiter(void 0, void 0, void 0, function () {
-    var errors, _a, deviceToken, accessToken, userId, userType, error_1;
+    var errors, _a, deviceToken, accessToken, userId, userType, deviceId, error_1;
     return __generator(this, function (_b) {
         switch (_b.label) {
             case 0:
@@ -54,11 +54,11 @@ var clearAuthSession = function (req, res) { return __awaiter(void 0, void 0, vo
                 if (!errors.isEmpty()) {
                     return [2 /*return*/, res.status(400).json({ success: false, errors: errors.array() })];
                 }
-                _a = req.body, deviceToken = _a.deviceToken, accessToken = _a.accessToken, userId = _a.userId, userType = _a.userType;
+                _a = req.body, deviceToken = _a.deviceToken, accessToken = _a.accessToken, userId = _a.userId, userType = _a.userType, deviceId = _a.deviceId;
                 if (!(userType == 'customers')) return [3 /*break*/, 2];
                 return [4 /*yield*/, customer_devices_model_1.default.deleteMany({
                         $or: [
-                            { expoToken: deviceToken },
+                            { deviceId: deviceId },
                             { deviceToken: deviceToken }
                         ]
                     })];
@@ -69,7 +69,7 @@ var clearAuthSession = function (req, res) { return __awaiter(void 0, void 0, vo
                 if (!(userType == 'contractors')) return [3 /*break*/, 4];
                 return [4 /*yield*/, contractor_devices_model_1.default.deleteMany({
                         $or: [
-                            { expoToken: deviceToken },
+                            { deviceId: deviceId },
                             { deviceToken: deviceToken }
                         ]
                     })];

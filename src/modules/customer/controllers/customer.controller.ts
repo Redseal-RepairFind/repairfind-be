@@ -70,7 +70,6 @@ export const updateAccount = async (
 
 
 
-
 export const getAccount = async (req: any, res: Response) => {
   try {
     const customerId = req.customer.id;
@@ -213,8 +212,8 @@ export const updateOrCreateDevice = async (
 
     // Find the customer device with the provided device ID and type
     let customerDevice = await CustomerDeviceModel.findOneAndUpdate(
-      { customer: customerId, deviceToken },
-      { $set: { deviceToken, deviceType, expoToken, appVersion, customer: customerId } },
+      { customer: customerId, deviceId },
+      { $set: { deviceToken, deviceType, expoToken, appVersion, customer: customerId, deviceId } },
       { new: true, upsert: true }
     );
 

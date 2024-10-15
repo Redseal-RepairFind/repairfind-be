@@ -17,12 +17,12 @@ export const clearAuthSession = async (
              return res.status(400).json({success:false, errors: errors.array() });
          }
 
-        const { deviceToken, accessToken, userId, userType } = req.body
+        const { deviceToken, accessToken, userId, userType , deviceId} = req.body
 
         if(userType == 'customers'){
             await CustomerDeviceModel.deleteMany({
                 $or: [
-                    { expoToken: deviceToken }, 
+                    { deviceId: deviceId }, 
                     { deviceToken: deviceToken }
                 ]
             })
@@ -31,7 +31,7 @@ export const clearAuthSession = async (
         if(userType == 'contractors'){
             await ContractorDeviceModel.deleteMany({
                 $or: [
-                  { expoToken: deviceToken }, 
+                  { deviceId: deviceId }, 
                   { deviceToken: deviceToken }
                 ]
               });

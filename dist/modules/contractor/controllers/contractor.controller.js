@@ -1003,7 +1003,7 @@ var ProfileHandler = /** @class */ (function (_super) {
                         if (!contractor) {
                             return [2 /*return*/, res.status(404).json({ success: false, message: 'User not found' })];
                         }
-                        return [4 /*yield*/, contractor_devices_model_1.default.findOneAndUpdate({ contractor: contractorId, deviceToken: deviceToken }, { deviceToken: deviceToken, expoToken: expoToken, deviceType: deviceType, appVersion: appVersion, contractor: contractorId }, { new: true, upsert: true })];
+                        return [4 /*yield*/, contractor_devices_model_1.default.findOneAndUpdate({ contractor: contractorId, deviceId: deviceId }, { deviceToken: deviceToken, expoToken: expoToken, deviceType: deviceType, appVersion: appVersion, contractor: contractorId, deviceId: deviceId }, { new: true, upsert: true })];
                     case 3:
                         contractorDevice = _c.sent();
                         return [2 /*return*/, res.json({ success: true, message: 'Contractor device updated', data: contractorDevice })];
