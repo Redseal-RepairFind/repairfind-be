@@ -144,13 +144,7 @@ var signUp = function (req, res) { return __awaiter(void 0, void 0, void 0, func
                 res.json({
                     success: true,
                     message: "Signup successful",
-                    data: {
-                        id: customerSaved._id,
-                        firstName: customerSaved.firstName,
-                        lastName: customerSaved.lastName,
-                        phoneNumber: customerSaved.phoneNumber,
-                        email: customerSaved.email,
-                    },
+                    data: customerSaved,
                 });
                 return [3 /*break*/, 13];
             case 12:

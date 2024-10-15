@@ -118,13 +118,7 @@ export const signUp = async (
     res.json({
       success: true,
       message: "Signup successful",
-      data: {
-        id: customerSaved._id,
-        firstName: customerSaved.firstName,
-        lastName: customerSaved.lastName,
-        phoneNumber: customerSaved.phoneNumber,
-        email: customerSaved.email,
-      },
+      data: customerSaved,
 
     });
 
