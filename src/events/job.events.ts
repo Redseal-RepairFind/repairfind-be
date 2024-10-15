@@ -28,6 +28,7 @@ import { i18n } from '../i18n';
 import { PAYMENT_TYPE } from '../database/common/payment.schema';
 import { ReferralModel } from '../database/common/referral.schema';
 import { COUPON_STATUS, CouponModel } from '../database/common/coupon.schema';
+import { PromotionEvent } from './promotion.events';
 
 export const JobEvent: EventEmitter = new EventEmitter();
 
@@ -1137,16 +1138,16 @@ JobEvent.on('JOB_BOOKED', async function (payload: { jobId: ObjectId, contractor
                 <table style="width: 100%; border-collapse: collapse; border: 1px solid lightgray;">
                     <tr>
                         <td style="border: 1px solid lightgray; padding: 8px;">Payment Processing Fee ($${charges.customerProcessingFeeRate}%)</td>
-                        <td style="border: 1px solid lightgray; padding: 8px; text-align: right;">$${ (charges.contractorProcessingFee).toFixed(2) }</td>
+                        <td style="border: 1px solid lightgray; padding: 8px; text-align: right;">$${(charges.contractorProcessingFee).toFixed(2)}</td>
                     </tr>
                     <tr>
                         <td style="border: 1px solid lightgray; padding: 8px;">Service Fee (${charges.repairfindServiceFeeRate}%)</td>
-                        <td style="border: 1px solid lightgray; padding: 8px; text-align: right;">$${ (charges.repairfindServiceFee).toFixed(2) }</td>
+                        <td style="border: 1px solid lightgray; padding: 8px; text-align: right;">$${(charges.repairfindServiceFee).toFixed(2)}</td>
                     </tr>
             
                     <tr>
                         <td style="border: 1px solid lightgray; padding: 8px;"><strong>Total Deductions</strong></td>
-                        <td style="border: 1px solid lightgray; padding: 8px; text-align: right;"><strong>$${ (charges.contractorSummary.deductions.total).toFixed(2) }</strong></td>
+                        <td style="border: 1px solid lightgray; padding: 8px; text-align: right;"><strong>$${(charges.contractorSummary.deductions.total).toFixed(2)}</strong></td>
                     </tr>
                 </table>
             
@@ -1160,7 +1161,7 @@ JobEvent.on('JOB_BOOKED', async function (payload: { jobId: ObjectId, contractor
                         : ''
                     }
 
-                <p><strong>Net Amount to Contractor:</strong> ${charges.contractorSummary.payable.totalLabel} = $${ (charges.contractorPayable).toFixed(2) }</p>
+                <p><strong>Net Amount to Contractor:</strong> ${charges.contractorSummary.payable.totalLabel} = $${(charges.contractorPayable).toFixed(2)}</p>
                 <p><strong>Payment Method:</strong> Card Payment<br>
                 <strong>Transaction ID:</strong> RFT${quotation.id}</p>
             `;
@@ -1242,11 +1243,11 @@ JobEvent.on('JOB_BOOKED', async function (payload: { jobId: ObjectId, contractor
                         </tr>
                         <tr>
                         <td style="border: 1px solid lightgray; padding: 8px;">GST (${charges.gstRate}%)</td>
-                        <td style="border: 1px solid lightgray; padding: 8px; text-align: right;">$${ (charges.gstAmount).toFixed(2) }</td>
+                        <td style="border: 1px solid lightgray; padding: 8px; text-align: right;">$${(charges.gstAmount).toFixed(2)}</td>
                         </tr>
                         <tr>
                         <td style="border: 1px solid lightgray; padding: 8px;">Payment Processing Fee (${charges.customerProcessingFeeRate}%)</td>
-                        <td style="border: 1px solid lightgray; padding: 8px; text-align: right;">$${ (charges.customerProcessingFee).toFixed(2) }</td>
+                        <td style="border: 1px solid lightgray; padding: 8px; text-align: right;">$${(charges.customerProcessingFee).toFixed(2)}</td>
                         </tr>
                         
                         ${charges.customerDiscount ? `
@@ -1258,7 +1259,7 @@ JobEvent.on('JOB_BOOKED', async function (payload: { jobId: ObjectId, contractor
                         
                         <tr>
                         <td style="border: 1px solid lightgray; padding: 8px;"><strong>Total Amount Due</strong> <br> ${charges.customerSummary.payable.totalLabel}</td>
-                        <td style="border: 1px solid lightgray; padding: 8px; text-align: right;"><strong>$${ (charges.customerPayable).toFixed(2) }</strong></td>
+                        <td style="border: 1px solid lightgray; padding: 8px; text-align: right;"><strong>$${(charges.customerPayable).toFixed(2)}</strong></td>
                         </tr>
                     </table>
                     <p><strong>Payment Method:</strong> Credit/Debit Card<br>
@@ -1893,44 +1894,45 @@ JobEvent.on('JOB_COMPLETED', async function (payload: { job: IJob }) {
         // Enable pending referral bonuses here
         if (customer.referral) {
             const referral = await ReferralModel.findById(customer.referral)
-            if (referral && referral.coupon){
+            if (referral && referral.coupon) {
                 const coupon = await CouponModel.findOne({ _id: referral.coupon, status: COUPON_STATUS.PENDING })
-                if (coupon){
+                if (coupon) {
                     coupon.status = COUPON_STATUS.ACTIVE
                     await coupon.save();
+                    PromotionEvent.emit('REFERRAL_COUPON_ACTIVATED', { coupon, user: customer, userType: 'customers' })
                 }
-                
             }
-           
+
         }
 
         if (contractor.referral) {
             const referral = await ReferralModel.findById(contractor.referral)
-            if (referral && referral.coupon){
+            if (referral && referral.coupon) {
                 const coupon = await CouponModel.findOne({ _id: referral.coupon, status: COUPON_STATUS.PENDING })
-               if(coupon){
-                coupon.status = COUPON_STATUS.ACTIVE
-                await coupon.save();
-               }
+                if (coupon) {
+                    coupon.status = COUPON_STATUS.ACTIVE
+                    await coupon.save();
+                    PromotionEvent.emit('REFERRAL_COUPON_ACTIVATED', { coupon, user: contractor, userType: 'contractors' })
+                }
             }
-           
+
         }
 
         //check if job had coupon applied  and mark it as redeemed
-        if(quotation){
-            if(quotation.customerDiscount){
+        if (quotation) {
+            if (quotation.customerDiscount) {
                 const couponId = quotation.customerDiscount.coupon
                 const coupon = await CouponModel.findById(couponId)
-                if(coupon){
+                if (coupon) {
                     coupon.status = COUPON_STATUS.REDEEMED
                     await coupon.save()
                 }
             }
 
-            if(quotation.contractorDiscount){
+            if (quotation.contractorDiscount) {
                 const couponId = quotation.contractorDiscount.coupon
                 const coupon = await CouponModel.findById(couponId)
-                if(coupon){
+                if (coupon) {
                     coupon.status = COUPON_STATUS.REDEEMED
                     await coupon.save()
                 }

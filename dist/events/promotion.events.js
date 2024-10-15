@@ -57,7 +57,7 @@ exports.PromotionEvent.on('NEW_REFERRAL', function (payload) {
         return __generator(this, function (_b) {
             switch (_b.label) {
                 case 0:
-                    _b.trys.push([0, 12, , 13]);
+                    _b.trys.push([0, 10, , 11]);
                     logger_1.Logger.info("Handling NEW_REFERRAL event");
                     referral = payload.referral;
                     if (!(referral.referrerType === 'customers')) return [3 /*break*/, 2];
@@ -112,20 +112,47 @@ exports.PromotionEvent.on('NEW_REFERRAL', function (payload) {
                     return [4 /*yield*/, referralPromotion.save()];
                 case 9:
                     _b.sent();
-                    if (!referrer) return [3 /*break*/, 11];
-                    bonusActivation = (referral.referrerType === 'customers')
-                        ? 'when the referred customer books their first job.'
-                        : 'when the referred contractor completes their first job';
-                    return [4 /*yield*/, sendReferralEmail(referrer, couponCode, referralPromotion, bonusActivation)];
+                    if (referrer) {
+                        bonusActivation = (referral.referrerType === 'customers')
+                            ? 'when the referred customer books their first job.'
+                            : 'when the referred contractor completes their first job';
+                        //Do not sen out email, wait until coupon becomes active
+                        // await sendReferralEmail(referrer, couponCode, referralPromotion, bonusActivation);
+                    }
+                    return [3 /*break*/, 11];
                 case 10:
-                    _b.sent();
-                    _b.label = 11;
-                case 11: return [3 /*break*/, 13];
-                case 12:
                     error_1 = _b.sent();
                     logger_1.Logger.error("Error handling NEW_REFERRAL event: ".concat(error_1));
-                    return [3 /*break*/, 13];
-                case 13: return [2 /*return*/];
+                    return [3 /*break*/, 11];
+                case 11: return [2 /*return*/];
+            }
+        });
+    });
+});
+exports.PromotionEvent.on('REFERRAL_COUPON_ACTIVATED', function (payload) {
+    return __awaiter(this, void 0, void 0, function () {
+        var coupon, user, userType, error_2;
+        return __generator(this, function (_a) {
+            switch (_a.label) {
+                case 0:
+                    _a.trys.push([0, 3, , 4]);
+                    logger_1.Logger.info("Handling NEW_REFERRAL event");
+                    coupon = payload.coupon;
+                    user = payload.user;
+                    userType = payload.userType;
+                    if (!coupon) return [3 /*break*/, 2];
+                    //Do not sen out email, wait until coupon becomes active
+                    return [4 /*yield*/, sendReferralCouponActivatedEmail(coupon, user, userType)];
+                case 1:
+                    //Do not sen out email, wait until coupon becomes active
+                    _a.sent();
+                    _a.label = 2;
+                case 2: return [3 /*break*/, 4];
+                case 3:
+                    error_2 = _a.sent();
+                    logger_1.Logger.error("Error handling NEW_REFERRAL event: ".concat(error_2));
+                    return [3 /*break*/, 4];
+                case 4: return [2 /*return*/];
             }
         });
     });
@@ -146,6 +173,44 @@ var sendReferralEmail = function (referrer, couponCode, referralPromotion, bonus
                 translatedSubject = (_a.sent()) || emailSubject;
                 return [4 /*yield*/, services_1.EmailService.send(referrer.email, translatedSubject, translatedHtml)];
             case 3:
+                _a.sent();
+                return [2 /*return*/];
+        }
+    });
+}); };
+var sendReferralCouponActivatedEmail = function (coupon, user, userType) { return __awaiter(void 0, void 0, void 0, function () {
+    var couponCode, emailSubject, emailContent, html, translatedHtml, translatedSubject;
+    return __generator(this, function (_a) {
+        switch (_a.label) {
+            case 0:
+                couponCode = coupon.code;
+                emailSubject = 'Congratulations! You’ve Earned a Referral Bonus!';
+                if (userType === 'customers') {
+                    emailContent = "\n            <h2>".concat(emailSubject, "</h2>\n            <p>Hello ").concat(user.firstName, ",</p>\n            <p style=\"color: #333333;\">Great news! You have successfully referred a user to Repairfind!</p>\n            <p style=\"color: #333333;\">Your referral coupon code is <strong>").concat(couponCode, "</strong>, and it's now activated.</p>\n            <p style=\"color: #333333;\">This bonus of <strong>$").concat(coupon.value, "</strong> can be applied when booking your next job.</p>\n            <p style=\"color: #333333;\">Thank you for spreading the word and helping us grow our community!</p>\n            <p style=\"color: #333333;\">Best regards,<br>Your Repairfind Team</p>\n        ");
+                }
+                else if (userType === 'contractors') {
+                    emailContent = "\n            <h2>".concat(emailSubject, "</h2>\n            <p>Hello ").concat(user.firstName, ",</p>\n            <p style=\"color: #333333;\">Great news! You have successfully referred a user to Repairfind!</p>\n            <p style=\"color: #333333;\">Your referral coupon code is <strong>").concat(couponCode, "</strong>, and it's now activated.</p>\n            <p style=\"color: #333333;\">This bonus of <strong>$").concat(coupon.value, "</strong> will be paid out in your next payout.</p>\n            <p style=\"color: #333333;\">Thank you for spreading the word and helping us grow our community!</p>\n            <p style=\"color: #333333;\">Best regards,<br>Your Repairfind Team</p>\n        ");
+                }
+                html = (0, generic_email_1.GenericEmailTemplate)({ name: user.firstName, subject: emailSubject, content: emailContent });
+                return [4 /*yield*/, i18n_1.i18n.getTranslation({
+                        phraseOrSlug: html,
+                        targetLang: user.language,
+                        saveToFile: false,
+                        useGoogle: true,
+                        contentType: 'html'
+                    })];
+            case 1:
+                translatedHtml = (_a.sent()) || html;
+                return [4 /*yield*/, i18n_1.i18n.getTranslation({
+                        phraseOrSlug: emailSubject,
+                        targetLang: user.language
+                    })];
+            case 2:
+                translatedSubject = (_a.sent()) || emailSubject;
+                // Send the email
+                return [4 /*yield*/, services_1.EmailService.send(user.email, translatedSubject, translatedHtml)];
+            case 3:
+                // Send the email
                 _a.sent();
                 return [2 /*return*/];
         }

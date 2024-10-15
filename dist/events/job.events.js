@@ -99,6 +99,7 @@ var i18n_1 = require("../i18n");
 var payment_schema_1 = require("../database/common/payment.schema");
 var referral_schema_1 = require("../database/common/referral.schema");
 var coupon_schema_1 = require("../database/common/coupon.schema");
+var promotion_events_1 = require("./promotion.events");
 exports.JobEvent = new events_1.EventEmitter();
 exports.JobEvent.on('NEW_JOB_REQUEST', function (payload) {
     var _a, _b;
@@ -1839,6 +1840,7 @@ exports.JobEvent.on('JOB_COMPLETED', function (payload) {
                     return [4 /*yield*/, coupon.save()];
                 case 10:
                     _c.sent();
+                    promotion_events_1.PromotionEvent.emit('REFERRAL_COUPON_ACTIVATED', { coupon: coupon, user: customer, userType: 'customers' });
                     _c.label = 11;
                 case 11:
                     if (!contractor.referral) return [3 /*break*/, 15];
@@ -1854,6 +1856,7 @@ exports.JobEvent.on('JOB_COMPLETED', function (payload) {
                     return [4 /*yield*/, coupon.save()];
                 case 14:
                     _c.sent();
+                    promotion_events_1.PromotionEvent.emit('REFERRAL_COUPON_ACTIVATED', { coupon: coupon, user: contractor, userType: 'contractors' });
                     _c.label = 15;
                 case 15:
                     if (!quotation) return [3 /*break*/, 21];
