@@ -902,13 +902,13 @@ export const getJobListings = async (req: any, res: Response, next: NextFunction
             ]
           },
           isSaved: { $gt: [{ $size: "$savedJobs" }, 0] },
-          expiresIn: {
-            $dateDiff: {
-              unit: "day", // Change to "hour", "minute", etc. if needed
-              startDate: "$createdAt",
-              endDate: "$expiryDate",
-            },
-          },
+          // expiresIn: {
+          //   $dateDiff: {
+          //     unit: "day", // Change to "hour", "minute", etc. if needed
+          //     startDate: "$createdAt",
+          //     endDate: "$expiryDate",
+          //   },
+          // },
           distance: {
             $round: [
               {
