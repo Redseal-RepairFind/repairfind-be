@@ -73,12 +73,16 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.AdminAnalyticsController = exports.getStats = void 0;
+exports.AdminAnalyticsController = exports.getJobStats = exports.getJobEmergencyStats = exports.getDisputeStats = exports.getContractorStats = exports.getCustomerStats = exports.getStats = void 0;
 var express_validator_1 = require("express-validator");
 var job_model_1 = require("../../../database/common/job.model");
 var contractor_model_1 = require("../../../database/contractor/models/contractor.model");
 var customer_model_1 = __importDefault(require("../../../database/customer/models/customer.model"));
 var transaction_model_1 = __importStar(require("../../../database/common/transaction.model"));
+var api_feature_1 = require("../../../utils/api.feature");
+var job_dispute_model_1 = require("../../../database/common/job_dispute.model");
+var job_emergency_model_1 = require("../../../database/common/job_emergency.model");
+// import { getJobStats } from "./admin_job.controller";
 var getStats = function (req, res) { return __awaiter(void 0, void 0, void 0, function () {
     var _a, startDate, endDate, errors, dateFilter, start, end, totalJob, totalCustomers, totalContractors, totalRevenue, allJobs, totalCanceled, totalCompleted, totalPending, totalBooked, totalDisputed, totalOngoing, totalExpired, jobPieChartData, completedPercentage, pendingPercentage, disputedPercentage, ongoingPercentage, bookedPercentage, expiredPercentage, months_1, monthlyRevenuePlot_1, monthlyJobPlot_1, monthlyRevenue, monthlyJobs, err_1;
     return __generator(this, function (_b) {
@@ -226,6 +230,202 @@ var getStats = function (req, res) { return __awaiter(void 0, void 0, void 0, fu
     });
 }); };
 exports.getStats = getStats;
+var getCustomerStats = function (req, res) { return __awaiter(void 0, void 0, void 0, function () {
+    var _a, data, filter, customersWithBooking, err_2;
+    return __generator(this, function (_b) {
+        switch (_b.label) {
+            case 0:
+                _b.trys.push([0, 3, , 4]);
+                return [4 /*yield*/, (0, api_feature_1.applyAPIFeature)(customer_model_1.default.find(), req.query)];
+            case 1:
+                _a = _b.sent(), data = _a.data, filter = _a.filter;
+                return [4 /*yield*/, customer_model_1.default.countDocuments(__assign({}, filter))];
+            case 2:
+                customersWithBooking = _b.sent();
+                return [2 /*return*/, res.json({
+                        success: true,
+                        message: "Customer stats retrieved",
+                        data: __assign(__assign({}, data), { stats: {
+                                customersWithBooking: customersWithBooking
+                            } }),
+                    })];
+            case 3:
+                err_2 = _b.sent();
+                return [2 /*return*/, res.status(500).json({ success: false, message: err_2.message })];
+            case 4: return [2 /*return*/];
+        }
+    });
+}); };
+exports.getCustomerStats = getCustomerStats;
+var getContractorStats = function (req, res) { return __awaiter(void 0, void 0, void 0, function () {
+    var _a, data, filter, verifiedContractors, unVerifiedContractors, err_3;
+    return __generator(this, function (_b) {
+        switch (_b.label) {
+            case 0:
+                _b.trys.push([0, 4, , 5]);
+                return [4 /*yield*/, (0, api_feature_1.applyAPIFeature)(contractor_model_1.ContractorModel.find(), req.query)];
+            case 1:
+                _a = _b.sent(), data = _a.data, filter = _a.filter;
+                return [4 /*yield*/, contractor_model_1.ContractorModel.countDocuments(__assign(__assign({}, filter), { isVerified: true }))];
+            case 2:
+                verifiedContractors = _b.sent();
+                return [4 /*yield*/, contractor_model_1.ContractorModel.countDocuments(__assign(__assign({}, filter), { isVerified: false }))];
+            case 3:
+                unVerifiedContractors = _b.sent();
+                return [2 /*return*/, res.json({
+                        success: true,
+                        message: "Contractor stats retrieved",
+                        data: __assign(__assign({}, data), { stats: {
+                                verifiedContractors: verifiedContractors,
+                                unVerifiedContractors: unVerifiedContractors
+                            } }),
+                    })];
+            case 4:
+                err_3 = _b.sent();
+                return [2 /*return*/, res.status(500).json({ success: false, message: err_3.message })];
+            case 5: return [2 /*return*/];
+        }
+    });
+}); };
+exports.getContractorStats = getContractorStats;
+var getDisputeStats = function (req, res) { return __awaiter(void 0, void 0, void 0, function () {
+    var _a, data, filter, totalOpen, totalOngoing, totalResolved, err_4;
+    return __generator(this, function (_b) {
+        switch (_b.label) {
+            case 0:
+                _b.trys.push([0, 5, , 6]);
+                return [4 /*yield*/, (0, api_feature_1.applyAPIFeature)(job_dispute_model_1.JobDisputeModel.find(), req.query)];
+            case 1:
+                _a = _b.sent(), data = _a.data, filter = _a.filter;
+                return [4 /*yield*/, job_dispute_model_1.JobDisputeModel.countDocuments(__assign(__assign({}, filter), { status: job_dispute_model_1.JOB_DISPUTE_STATUS.OPEN }))];
+            case 2:
+                totalOpen = _b.sent();
+                return [4 /*yield*/, job_dispute_model_1.JobDisputeModel.countDocuments(__assign(__assign({}, filter), { status: job_dispute_model_1.JOB_DISPUTE_STATUS.ONGOING }))];
+            case 3:
+                totalOngoing = _b.sent();
+                return [4 /*yield*/, job_dispute_model_1.JobDisputeModel.countDocuments(__assign(__assign({}, filter), { status: job_dispute_model_1.JOB_DISPUTE_STATUS.RESOLVED }))];
+            case 4:
+                totalResolved = _b.sent();
+                return [2 /*return*/, res.json({
+                        success: true,
+                        message: "Dispute stats retrieved",
+                        data: __assign(__assign({}, data), { stats: {
+                                totalOpen: totalOpen,
+                                totalOngoing: totalOngoing,
+                                totalResolved: totalResolved
+                            } }),
+                    })];
+            case 5:
+                err_4 = _b.sent();
+                return [2 /*return*/, res.status(500).json({ success: false, message: err_4.message })];
+            case 6: return [2 /*return*/];
+        }
+    });
+}); };
+exports.getDisputeStats = getDisputeStats;
+var getJobEmergencyStats = function (req, res) { return __awaiter(void 0, void 0, void 0, function () {
+    var _a, data, filter, allEmergencies, totalResolved, totalPending, totalInProgress, err_5;
+    return __generator(this, function (_b) {
+        switch (_b.label) {
+            case 0:
+                _b.trys.push([0, 6, , 7]);
+                return [4 /*yield*/, (0, api_feature_1.applyAPIFeature)(job_model_1.JobModel.find(), req.query)];
+            case 1:
+                _a = _b.sent(), data = _a.data, filter = _a.filter;
+                return [4 /*yield*/, job_model_1.JobModel.countDocuments(filter)];
+            case 2:
+                allEmergencies = _b.sent();
+                return [4 /*yield*/, job_emergency_model_1.JobEmergencyModel.countDocuments(__assign(__assign({}, filter), { status: job_emergency_model_1.EMERGENCY_STATUS.RESOLVED }))];
+            case 3:
+                totalResolved = _b.sent();
+                return [4 /*yield*/, job_emergency_model_1.JobEmergencyModel.countDocuments(__assign(__assign({}, filter), { status: job_emergency_model_1.EMERGENCY_STATUS.PENDING }))];
+            case 4:
+                totalPending = _b.sent();
+                return [4 /*yield*/, job_emergency_model_1.JobEmergencyModel.countDocuments(__assign(__assign({}, filter), { status: job_emergency_model_1.EMERGENCY_STATUS.IN_PROGRESS }))];
+            case 5:
+                totalInProgress = _b.sent();
+                return [2 /*return*/, res.json({
+                        success: true,
+                        message: "Jobs stats retrieved",
+                        data: __assign(__assign({}, data), { stats: {
+                                allEmergencies: allEmergencies,
+                                totalResolved: totalResolved,
+                                totalPending: totalPending,
+                                totalInProgress: totalInProgress,
+                            } }),
+                    })];
+            case 6:
+                err_5 = _b.sent();
+                return [2 /*return*/, res.status(500).json({ success: false, message: err_5.message })];
+            case 7: return [2 /*return*/];
+        }
+    });
+}); };
+exports.getJobEmergencyStats = getJobEmergencyStats;
+var getJobStats = function (req, res) { return __awaiter(void 0, void 0, void 0, function () {
+    var _a, data, filter, allJobs, totalCanceled, totalCompleted, totalPending, totalBooked, totalDisputed, totalNotStarted, totalOngoing, totalExpired, err_6;
+    return __generator(this, function (_b) {
+        switch (_b.label) {
+            case 0:
+                _b.trys.push([0, 11, , 12]);
+                return [4 /*yield*/, (0, api_feature_1.applyAPIFeature)(job_model_1.JobModel.find(), req.query)];
+            case 1:
+                _a = _b.sent(), data = _a.data, filter = _a.filter;
+                return [4 /*yield*/, job_model_1.JobModel.countDocuments(filter)];
+            case 2:
+                allJobs = _b.sent();
+                return [4 /*yield*/, job_model_1.JobModel.countDocuments(__assign(__assign({}, filter), { status: job_model_1.JOB_STATUS.CANCELED }))];
+            case 3:
+                totalCanceled = _b.sent();
+                return [4 /*yield*/, job_model_1.JobModel.countDocuments(__assign(__assign({}, filter), { status: job_model_1.JOB_STATUS.COMPLETED }))];
+            case 4:
+                totalCompleted = _b.sent();
+                return [4 /*yield*/, job_model_1.JobModel.countDocuments(__assign(__assign({}, filter), { status: job_model_1.JOB_STATUS.PENDING }))];
+            case 5:
+                totalPending = _b.sent();
+                return [4 /*yield*/, job_model_1.JobModel.countDocuments(__assign(__assign({}, filter), { status: job_model_1.JOB_STATUS.BOOKED }))];
+            case 6:
+                totalBooked = _b.sent();
+                return [4 /*yield*/, job_model_1.JobModel.countDocuments(__assign(__assign({}, filter), { status: job_model_1.JOB_STATUS.DISPUTED }))];
+            case 7:
+                totalDisputed = _b.sent();
+                return [4 /*yield*/, job_model_1.JobModel.countDocuments(__assign(__assign({}, filter), { status: job_model_1.JOB_STATUS.NOT_STARTED }))];
+            case 8:
+                totalNotStarted = _b.sent();
+                return [4 /*yield*/, job_model_1.JobModel.countDocuments(__assign(__assign({}, filter), { status: job_model_1.JOB_STATUS.ONGOING }))];
+            case 9:
+                totalOngoing = _b.sent();
+                return [4 /*yield*/, job_model_1.JobModel.countDocuments(__assign(__assign({}, filter), { status: job_model_1.JOB_STATUS.EXPIRED }))];
+            case 10:
+                totalExpired = _b.sent();
+                return [2 /*return*/, res.json({
+                        success: true,
+                        message: "Jobs stats retrieved",
+                        data: __assign(__assign({}, data), { stats: {
+                                allJobs: allJobs,
+                                totalCanceled: totalCanceled,
+                                totalCompleted: totalCompleted,
+                                totalPending: totalPending,
+                                totalBooked: totalBooked,
+                                totalDisputed: totalDisputed,
+                                totalNotStarted: totalNotStarted,
+                                totalOngoing: totalOngoing,
+                                totalExpired: totalExpired,
+                            } }),
+                    })];
+            case 11:
+                err_6 = _b.sent();
+                return [2 /*return*/, res.status(500).json({ success: false, message: err_6.message })];
+            case 12: return [2 /*return*/];
+        }
+    });
+}); };
+exports.getJobStats = getJobStats;
 exports.AdminAnalyticsController = {
     getStats: exports.getStats,
+    getCustomerStats: exports.getCustomerStats,
+    getContractorStats: exports.getContractorStats,
+    getDisputeStats: exports.getDisputeStats,
+    getJobEmergencyStats: exports.getJobEmergencyStats,
+    getJobStats: exports.getJobStats,
 };

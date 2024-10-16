@@ -27,7 +27,6 @@ import { PaypalPaymentCheckoutTemplate } from "./templates/common/paypal_payment
 import { JOB_STATUS, JobModel } from "./database/common/job.model";
 import { JobQuotationModel } from "./database/common/job_quotation.model";
 import { PaypalPaymentMethodTemplate } from "./templates/common/paypal_payment_method.template";
-import { POCWEPAY } from "./templates/common/pocwepay.template";
 
 
 dotenv.config();
@@ -46,15 +45,6 @@ app.get("/api/v1/customer/paypal/payment-method-checkout-view", (req: any, res) 
   const {token} =req.query;
   const paypalClientId = config.paypal.clientId
   let html = PaypalPaymentMethodTemplate({token, paypalClientId})
-  return res.send(html);
-});
-
-
-
-app.get("/api/v1/customer/pocwepay", (req: any, res) => {
-  const {token} =req.query;
-  const paypalClientId = config.paypal.clientId
-  let html = POCWEPAY({token, paypalClientId})
   return res.send(html);
 });
 
@@ -96,11 +86,11 @@ app.get("/api/v1/customer/paypal/create-checkout-view", async(req: any, res) => 
 
 
 // Apply security-related middleware
-// securityMiddleware(app);
+securityMiddleware(app);
 
 
 // Apply CSRF protection middleware
-// csrfMiddleware(app);
+csrfMiddleware(app);
 
 
 // Apply sentry middleware
@@ -108,14 +98,14 @@ app.get("/api/v1/customer/paypal/create-checkout-view", async(req: any, res) => 
 
 
 // Apply cors middleware
-// corsMiddleware(app)
+corsMiddleware(app)
 
 
 // Api rate limit
 // configureRateLimit(app)
 
 // Parsers
-// configureParsers(app);
+configureParsers(app);
 
 
 
