@@ -105,7 +105,7 @@ export const PaypalPaymentCheckoutTemplate = ({token, paypalClientId, quotationI
 
           window.paypal
             .Buttons({
-              fundingSource: paypal.FUNDING.CARD,
+              fundingSource: paypal.FUNDING.PAYPAL,
               createOrder: createOrderCallback,
               onApprove: onApproveCallback,
               onError: function(err) {
