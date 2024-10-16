@@ -1,18 +1,20 @@
-import mongoose, { Model } from 'mongoose';
+import mongoose from 'mongoose';
 
 export class APIFeatures {
 
     public query;
     public queryString;
+    public filters;
 
     constructor(query: any, queryString: any) {
         this.query = query;
         this.queryString = queryString;
+        this.filters = {};
     }
 
     filter() {
         const queryObj = { ...this.queryString };
-        const excludedFields = ['page', 'sort', 'limit', 'fields'];
+        const excludedFields = ['page', 'sort', 'limit', 'fields', 'startDate', 'endDate'];
         excludedFields.forEach(el => delete queryObj[el]);
 
         // 1B) Advanced filtering
@@ -20,6 +22,34 @@ export class APIFeatures {
         queryStr = queryStr.replace(/\b(gte|gt|lte|lt)\b/g, match => `$${match}`);
 
         this.query = this.query.find(JSON.parse(queryStr));
+
+        // Filtering by date range
+        if (this.queryString.startDate) {
+            const dateFilter: any = {}
+
+            if (this.queryString.startDate) {
+                const startDate = new Date(this.queryString.startDate);
+                startDate.setUTCHours(0, 0, 0, 0);
+                dateFilter.$gte = startDate
+            }
+            if (this.queryString.endDate) {
+                const endDate = new Date(this.queryString.endDate);
+                endDate.setUTCHours(23, 59, 59, 999);
+                dateFilter.$lte = endDate
+            }
+
+            // If no end date is provided, set it to the end of the day
+            if (!this.queryString.endDate) {
+                const endDate = new Date(this.queryString.startDate);
+                endDate.setUTCHours(23, 59, 59, 999);
+                dateFilter.$lte = endDate
+            }
+
+            this.query = this.query.find({ createdAt: dateFilter });
+
+            // Pass the date filter to the filters object
+            this.filters = { ...JSON.parse(queryStr), createdAt: dateFilter }
+        }
 
         return this;
     }
@@ -141,7 +171,7 @@ export const applyAPIFeature = async (model: any, query: any) => {
             lastPage,
             data: dataQuery,
         };
-        return { data, error: null }
+        return { data, error: null, filter: features.filters }
     } catch (error) {
         console.log(error)
         return { data: null, error: error }

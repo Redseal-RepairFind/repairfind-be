@@ -56,15 +56,39 @@ var APIFeatures = /** @class */ (function () {
     function APIFeatures(query, queryString) {
         this.query = query;
         this.queryString = queryString;
+        this.filters = {};
     }
     APIFeatures.prototype.filter = function () {
         var queryObj = __assign({}, this.queryString);
-        var excludedFields = ['page', 'sort', 'limit', 'fields'];
+        var excludedFields = ['page', 'sort', 'limit', 'fields', 'startDate', 'endDate'];
         excludedFields.forEach(function (el) { return delete queryObj[el]; });
         // 1B) Advanced filtering
         var queryStr = JSON.stringify(queryObj);
         queryStr = queryStr.replace(/\b(gte|gt|lte|lt)\b/g, function (match) { return "$".concat(match); });
         this.query = this.query.find(JSON.parse(queryStr));
+        // Filtering by date range
+        if (this.queryString.startDate) {
+            var dateFilter = {};
+            if (this.queryString.startDate) {
+                var startDate = new Date(this.queryString.startDate);
+                startDate.setUTCHours(0, 0, 0, 0);
+                dateFilter.$gte = startDate;
+            }
+            if (this.queryString.endDate) {
+                var endDate = new Date(this.queryString.endDate);
+                endDate.setUTCHours(23, 59, 59, 999);
+                dateFilter.$lte = endDate;
+            }
+            // If no end date is provided, set it to the end of the day
+            if (!this.queryString.endDate) {
+                var endDate = new Date(this.queryString.startDate);
+                endDate.setUTCHours(23, 59, 59, 999);
+                dateFilter.$lte = endDate;
+            }
+            this.query = this.query.find({ createdAt: dateFilter });
+            // Pass the date filter to the filters object
+            this.filters = __assign(__assign({}, JSON.parse(queryStr)), { createdAt: dateFilter });
+        }
         return this;
     };
     APIFeatures.prototype.sort = function () {
@@ -164,7 +188,7 @@ var applyAPIFeature = function (model, query) { return __awaiter(void 0, void 0,
                     lastPage: lastPage,
                     data: dataQuery,
                 };
-                return [2 /*return*/, { data: data, error: null }];
+                return [2 /*return*/, { data: data, error: null, filter: features.filters }];
             case 3:
                 error_1 = _a.sent();
                 console.log(error_1);

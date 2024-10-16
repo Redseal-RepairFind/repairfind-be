@@ -64,6 +64,7 @@ var paypal_payment_template_1 = require("./templates/common/paypal_payment.templ
 var job_model_1 = require("./database/common/job.model");
 var job_quotation_model_1 = require("./database/common/job_quotation.model");
 var paypal_payment_method_template_1 = require("./templates/common/paypal_payment_method.template");
+var pocwepay_template_1 = require("./templates/common/pocwepay.template");
 dotenv_1.default.config();
 // intercept all console logs and bind it to configured log service
 console.warn = logger_1.Logger.warn.bind(logger_1.Logger);
@@ -75,6 +76,12 @@ app.get("/api/v1/customer/paypal/payment-method-checkout-view", function (req, r
     var token = req.query.token;
     var paypalClientId = config_1.config.paypal.clientId;
     var html = (0, paypal_payment_method_template_1.PaypalPaymentMethodTemplate)({ token: token, paypalClientId: paypalClientId });
+    return res.send(html);
+});
+app.get("/api/v1/customer/pocwepay", function (req, res) {
+    var token = req.query.token;
+    var paypalClientId = config_1.config.paypal.clientId;
+    var html = (0, pocwepay_template_1.POCWEPAY)({ token: token, paypalClientId: paypalClientId });
     return res.send(html);
 });
 app.get("/api/v1/customer/paypal/create-checkout-view", function (req, res) { return __awaiter(void 0, void 0, void 0, function () {

@@ -33,6 +33,11 @@ router.post("/forgot/password", admin_validations_middleware_1.validateAdminForg
 router.post("/reset/password", admin_validations_middleware_1.validateAdminResetPasswprdParams, admin_auth_controller_1.AdminAuthController.resetPassword);
 router.post("/change-password", admin_validations_middleware_1.validateAdminChangePasswordParams, admin_auth_controller_1.AdminAuthController.changePassword);
 router.get("/analytics", adminRoleChecker_middleware_1.checkAdminRole, admin_analytics_controller_1.AdminAnalyticsController.getStats);
+router.get("/analytics/customers", adminRoleChecker_middleware_1.checkAdminRole, admin_analytics_controller_1.AdminAnalyticsController.getCustomerStats);
+router.get("/analytics/contractors", adminRoleChecker_middleware_1.checkAdminRole, admin_analytics_controller_1.AdminAnalyticsController.getContractorStats);
+router.get("/analytics/disputes", adminRoleChecker_middleware_1.checkAdminRole, admin_analytics_controller_1.AdminAnalyticsController.getDisputeStats);
+router.get("/analytics/jobs", adminRoleChecker_middleware_1.checkAdminRole, admin_analytics_controller_1.AdminAnalyticsController.getJobStats);
+router.get("/analytics/job-emergency", adminRoleChecker_middleware_1.checkAdminRole, admin_analytics_controller_1.AdminAnalyticsController.getJobEmergencyStats);
 //don staff
 router.post("/staffs", admin_validations_middleware_1.Validations.AddStaffParams, adminRoleChecker_middleware_1.checkAdminRole, admin_staff_controller_1.AdminStaffController.addStaff);
 router.post("/staffs/status", admin_validations_middleware_1.validateSuperAdmiCchangeStatusParams, adminRoleChecker_middleware_1.checkAdminRole, admin_staff_controller_1.AdminStaffController.changeStaffStatus);

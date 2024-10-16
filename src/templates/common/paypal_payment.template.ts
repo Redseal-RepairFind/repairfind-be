@@ -105,7 +105,6 @@ export const PaypalPaymentCheckoutTemplate = ({token, paypalClientId, quotationI
 
           window.paypal
             .Buttons({
-              fundingSource: paypal.FUNDING.PAYPAL,
               createOrder: createOrderCallback,
               onApprove: onApproveCallback,
               onError: function(err) {
@@ -119,7 +118,7 @@ export const PaypalPaymentCheckoutTemplate = ({token, paypalClientId, quotationI
             onApprove: onApproveCallback,
           });
 
-          if (cardField.isEligible() && ${enableCardField}) {
+          if (cardField.isEligible()) {
 
             document.getElementById('card-form').style.display = 'block'
 
