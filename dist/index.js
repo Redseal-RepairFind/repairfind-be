@@ -60,10 +60,10 @@ var parsers_1 = __importDefault(require("./modules/common/middlewares/parsers"))
 var twillio_1 = __importDefault(require("./services/twillio"));
 var fcm_1 = require("./services/notifications/fcm");
 var config_1 = require("./config");
-var paypal_payment_template_1 = require("./templates/common/paypal_payment.template");
 var job_model_1 = require("./database/common/job.model");
 var job_quotation_model_1 = require("./database/common/job_quotation.model");
 var paypal_payment_method_template_1 = require("./templates/common/paypal_payment_method.template");
+var paypal_fastlane_payment_template_1 = require("./templates/common/paypal_fastlane_payment.template");
 dotenv_1.default.config();
 // intercept all console logs and bind it to configured log service
 console.warn = logger_1.Logger.warn.bind(logger_1.Logger);
@@ -105,7 +105,7 @@ app.get("/api/v1/customer/paypal/create-checkout-view", function (req, res) { re
                     return [2 /*return*/, res.status(400).json({ success: false, message: 'Job is not pending, so new payment is not possible' })];
                 }
                 paypalClientId = config_1.config.paypal.clientId;
-                html = (0, paypal_payment_template_1.PaypalPaymentCheckoutTemplate)({ token: token, paypalClientId: paypalClientId, quotationId: quotationId, jobId: jobId, isChangeOrder: isChangeOrder });
+                html = (0, paypal_fastlane_payment_template_1.PaypalFastLanePaymentCheckoutTemplate)({ token: token, paypalClientId: paypalClientId, quotationId: quotationId, jobId: jobId, isChangeOrder: isChangeOrder });
                 return [2 /*return*/, res.send(html)];
         }
     });
