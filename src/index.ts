@@ -96,11 +96,11 @@ app.get("/api/v1/customer/paypal/create-checkout-view", async(req: any, res) => 
 
 
 // Apply security-related middleware
-securityMiddleware(app);
+// securityMiddleware(app);
 
 
 // Apply CSRF protection middleware
-csrfMiddleware(app);
+// csrfMiddleware(app);
 
 
 // Apply sentry middleware
@@ -108,14 +108,14 @@ csrfMiddleware(app);
 
 
 // Apply cors middleware
-corsMiddleware(app)
+// corsMiddleware(app)
 
 
 // Api rate limit
 // configureRateLimit(app)
 
 // Parsers
-configureParsers(app);
+// configureParsers(app);
 
 
 

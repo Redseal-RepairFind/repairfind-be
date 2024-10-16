@@ -37,15 +37,27 @@ export const POCWEPAY = ({token, paypalClientId, enableCardField=false}: {token:
           }
       </style>
 
-
+        <script src="https://gatewayt.moneris.com/chktv2/js/chkt_v2.00.js">
+        <div id="monerisCheckout"></div>
+        
       </head>
       <body>
-        
-       <div id="wepay_checkout_container"></div>
-        <script type="text/javascript" src="https://www.wepay.com/min/js/iframe.wepay.js"></script>
-        <script type="text/javascript">
-            WePay.iframe_checkout("wepay_checkout_container", "https://stage.wepay.com/api/checkout/12345");
+
+        <script>
+            var myCheckout = new monerisCheckout();
+            myCheckout.setMode("qa");
+            myCheckout.setCheckoutDiv("monerisCheckout");
+
+            var myCheckout = new monerisCheckout();
+            myCheckout.setCallback("page_loaded", myPageLoad);
+            myCheckout.setCallback("cancel_transaction", myCancelTransaction);
+            myCheckout.setCallback("error_event", myErrorEvent);
+            myCheckout.setCallback("payment_receipt", myPaymentReceipt);
+            myCheckout.setCallback("payment_complete", myPaymentComplete);
+
         </script>
+        
+       
       </body>
     </html>
   `;
