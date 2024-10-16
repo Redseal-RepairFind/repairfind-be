@@ -1,4 +1,4 @@
-export const PaypalPaymentCheckoutTemplate = ({token, paypalClientId, quotationId, jobId, isChangeOrder = true, enableCardField=false}: {token: string, paypalClientId: string, quotationId: any, jobId: any, isChangeOrder: boolean, enableCardField?: boolean }) => `
+export const PaypalPaymentCheckoutTemplate = ({token, paypalClientId, quotationId, jobId, isChangeOrder = false, enableCardField=true}: {token: string, paypalClientId: string, quotationId: any, jobId: any, isChangeOrder: boolean, enableCardField?: boolean }) => `
 <!DOCTYPE html>
 <html lang="en">
 
