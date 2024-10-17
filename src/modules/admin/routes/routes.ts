@@ -177,7 +177,6 @@ router.delete("/questions/:questionId", checkAdminRole, AdminQuizController.Dele
 
 
 
-
 // App Versions
 router.post("/promotions", Validations.validatePromotionCreation, checkAdminRole, PromotionController.addPromotion);
 router.get("/promotions", checkAdminRole, PromotionController.getPromotions);
