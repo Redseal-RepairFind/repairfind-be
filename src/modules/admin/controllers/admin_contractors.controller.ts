@@ -2,20 +2,14 @@ import { validationResult } from "express-validator";
 import AdminRegModel from "../../../database/admin/models/admin.model";
 import { ContractorModel } from "../../../database/contractor/models/contractor.model";
 import { JobModel } from "../../../database/common/job.model";
-import CustomerRegModel from "../../../database/customer/models/customer.model";
-import { sendEmail } from "../../../utils/send_email_utility";
-import { htmlAdminRquestGstStatuChangeTemplate } from "../../../templates/admin/adminRequestGstStatusTemplate";
-import { CONTRACTOR_TYPES, GST_STATUS } from "../../../database/contractor/interface/contractor.interface";
-import { InvoiceModel } from "../../../database/common/invoices.shema";
-import { ContractorProfileModel } from "../../../database/contractor/models/contractor_profile.model";
+import { CONTRACTOR_STATUS, CONTRACTOR_TYPES, GST_STATUS } from "../../../database/contractor/interface/contractor.interface";
 import { applyAPIFeature } from "../../../utils/api.feature";
 import { NextFunction, Request, Response } from "express";
 import { StripeService } from "../../../services/stripe";
 import { IStripeAccount } from "../../../database/common/stripe_account.schema";
 import { castPayloadToDTO } from "../../../utils/interface_dto.util";
 import { BadRequestError, InternalServerError } from "../../../utils/custom.errors";
-import CustomerModel from "../../../database/customer/models/customer.model";
-import mongoose, { Document, PipelineStage as MongoosePipelineStage } from 'mongoose'; // Import Document type from mongoose
+import mongoose, { PipelineStage as MongoosePipelineStage } from 'mongoose'; // Import Document type from mongoose
 import { JobQuotationModel } from "../../../database/common/job_quotation.model";
 import { JobDisputeModel } from "../../../database/common/job_dispute.model";
 import { ContractorQuizPipeline } from "../../../database/contractor/pipelines/contractor_quize.pipeline";
@@ -746,11 +740,11 @@ export const attachCertnDetails = async (
   next: NextFunction
 ) => {
   try {
-    const {certnDetails, contractorEmail} = req.body; // Extract certnId and certnDetails from the request body
+    const { certnDetails, contractorEmail } = req.body; // Extract certnId and certnDetails from the request body
     const { contractorId } = req.params; // Extract contractorId from the request parameters
 
     // Find the contractor by ID
-    const contractor = await ContractorModel.findOne({email: contractorEmail});
+    const contractor = await ContractorModel.findOne({ email: contractorEmail });
     if (!contractor) {
       return res.status(404).json({ success: false, message: 'Contractor not found' });
     }
@@ -793,7 +787,7 @@ export const attachCertnId = async (
     const { certnId, contractorEmail } = req.body; // Extract certnId and certnDetails from the request body
 
     // Find the contractor by ID
-    const contractor = await ContractorModel.findOne({email: contractorEmail});
+    const contractor = await ContractorModel.findOne({ email: contractorEmail });
     if (!contractor) {
       return res.status(404).json({ success: false, message: 'Contractor not found' });
     }
@@ -862,6 +856,49 @@ export const issueCoupon = async (
 };
 
 
+export const getContractorStats = async (
+  req: any, res: Response
+) => {
+  try {
+
+    const { data, filter } = await applyAPIFeature(ContractorModel.find(), req.query);
+
+    const contractorCounts = await ContractorModel.aggregate([
+      {
+        $facet: {
+          verifiedContractors: [
+            { $match: { ...filter, accountStatus: CONTRACTOR_STATUS.APPROVED } },
+            { $count: "count" }
+          ],
+          unverifiedContractors: [
+            { $match: { ...filter, accountStatus: { $ne: CONTRACTOR_STATUS.APPROVED } } },
+            { $count: "count" }
+          ]
+        }
+
+      }
+    ])
+
+    const verifiedCount = contractorCounts[0].verifiedContractors[0]?.count || 0;
+    const unverifiedCount = contractorCounts[0].unverifiedContractors[0]?.count || 0;
+
+    return res.json({
+      success: true,
+      message: "Contractor stats retrieved",
+      data: {
+        ...data,
+        stats: {
+          verifiedContractors: verifiedCount,
+          unVerifiedContractors: unverifiedCount
+        }
+      },
+    });
+  } catch (err: any) {
+    return res.status(500).json({ success: false, message: err.message });
+  }
+}
+
+
 export const AdminContractorController = {
   exploreContractors,
   removeStripeAccount,
@@ -874,6 +911,6 @@ export const AdminContractorController = {
   sendCustomEmail,
   attachCertnDetails,
   attachCertnId,
-  issueCoupon
-
+  issueCoupon,
+  getContractorStats
 }

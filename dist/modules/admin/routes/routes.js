@@ -33,11 +33,6 @@ router.post("/forgot/password", admin_validations_middleware_1.validateAdminForg
 router.post("/reset/password", admin_validations_middleware_1.validateAdminResetPasswprdParams, admin_auth_controller_1.AdminAuthController.resetPassword);
 router.post("/change-password", admin_validations_middleware_1.validateAdminChangePasswordParams, admin_auth_controller_1.AdminAuthController.changePassword);
 router.get("/analytics", adminRoleChecker_middleware_1.checkAdminRole, admin_analytics_controller_1.AdminAnalyticsController.getStats);
-router.get("/analytics/customers", adminRoleChecker_middleware_1.checkAdminRole, admin_analytics_controller_1.AdminAnalyticsController.getCustomerStats);
-router.get("/analytics/contractors", adminRoleChecker_middleware_1.checkAdminRole, admin_analytics_controller_1.AdminAnalyticsController.getContractorStats);
-router.get("/analytics/disputes", adminRoleChecker_middleware_1.checkAdminRole, admin_analytics_controller_1.AdminAnalyticsController.getDisputeStats);
-router.get("/analytics/jobs", adminRoleChecker_middleware_1.checkAdminRole, admin_analytics_controller_1.AdminAnalyticsController.getJobStats);
-router.get("/analytics/job-emergency", adminRoleChecker_middleware_1.checkAdminRole, admin_analytics_controller_1.AdminAnalyticsController.getJobEmergencyStats);
 //don staff
 router.post("/staffs", admin_validations_middleware_1.Validations.AddStaffParams, adminRoleChecker_middleware_1.checkAdminRole, admin_staff_controller_1.AdminStaffController.addStaff);
 router.post("/staffs/status", admin_validations_middleware_1.validateSuperAdmiCchangeStatusParams, adminRoleChecker_middleware_1.checkAdminRole, admin_staff_controller_1.AdminStaffController.changeStaffStatus);
@@ -61,6 +56,7 @@ router.get("/abuse-reports/:id", adminRoleChecker_middleware_1.checkAdminRole, a
 router.patch("/abuse-reports/:id", admin_validations_middleware_1.Validations.validateAppVersionUpdate, adminRoleChecker_middleware_1.checkAdminRole, admin_report_controller_1.AdminReportController.updateReport);
 // CONTRACTOR
 router.get("/contractors", adminRoleChecker_middleware_1.checkAdminRole, admin_contractors_controller_1.AdminContractorController.exploreContractors); // admin get contractor detail
+router.get("/contractors/stats", adminRoleChecker_middleware_1.checkAdminRole, admin_contractors_controller_1.AdminContractorController.getContractorStats);
 router.get("/contractors/:contractorId", adminRoleChecker_middleware_1.checkAdminRole, admin_contractors_controller_1.AdminContractorController.getSingleContractor); // admin get single contractor detail
 router.get("/contractors/:contractorId/jobs", adminRoleChecker_middleware_1.checkAdminRole, admin_contractors_controller_1.AdminContractorController.getJobHistory); // admin get single contractor detail
 router.get("/contractors/:contractorId/jobs/:jobId", adminRoleChecker_middleware_1.checkAdminRole, admin_contractors_controller_1.AdminContractorController.getSingleJob); // admin get single contractor detail
@@ -73,6 +69,7 @@ router.post("/contractors/:contractorId/attach-stripe-account", admin_contractor
 router.post("/contractors/:contractorId/remove-stripe-account", admin_contractors_controller_1.AdminContractorController.removeStripeAccount); //
 router.post("/contractors/:contractorId/issue-coupon", admin_contractors_controller_1.AdminContractorController.issueCoupon); //
 //done
+router.get("/customers", adminRoleChecker_middleware_1.checkAdminRole, admin_customer_controller_1.AdminCustomerController.getCustomerStats);
 router.get("/customer/detail", adminRoleChecker_middleware_1.checkAdminRole, admin_customer_controller_1.AdminCustomerController.AdminGetCustomerDetailController); // admin get customer detail
 router.get("/customer/detail/:customerId", adminRoleChecker_middleware_1.checkAdminRole, admin_customer_controller_1.AdminCustomerController.AdminGetSingleCustomerDetailController); // admin get single customer detail
 router.get("/customer/job/detail/:customerId", adminRoleChecker_middleware_1.checkAdminRole, admin_customer_controller_1.AdminCustomerController.AdminGetSingleCustomerJobDetailController); // admin get single customer  job detail

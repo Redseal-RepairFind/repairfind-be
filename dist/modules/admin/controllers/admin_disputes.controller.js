@@ -86,29 +86,43 @@ var events_1 = require("../../../events");
 var admin_model_1 = __importDefault(require("../../../database/admin/models/admin.model"));
 var conversation_util_1 = require("../../../utils/conversation.util");
 var getJobDisputes = function (req, res) { return __awaiter(void 0, void 0, void 0, function () {
-    var errors, adminId, filter, _a, data, error, err_1;
+    var errors, adminId, _a, data, filter, totalOpen, totalOngoing, totalResolved, err_1;
     return __generator(this, function (_b) {
         switch (_b.label) {
             case 0:
-                _b.trys.push([0, 2, , 3]);
+                _b.trys.push([0, 5, , 6]);
                 errors = (0, express_validator_1.validationResult)(req);
                 if (!errors.isEmpty()) {
                     return [2 /*return*/, res.status(400).json({ errors: errors.array() })];
                 }
                 adminId = req.admin.id;
-                filter = {};
-                return [4 /*yield*/, (0, api_feature_1.applyAPIFeature)(job_dispute_model_1.JobDisputeModel.find(filter).populate({
+                return [4 /*yield*/, (0, api_feature_1.applyAPIFeature)(job_dispute_model_1.JobDisputeModel.find().populate({
                         path: 'disputer',
                         select: 'firstName lastName name profilePhoto _id'
                     }), req.query)];
             case 1:
-                _a = _b.sent(), data = _a.data, error = _a.error;
-                return [2 /*return*/, res.json({ success: true, message: "Job disputes retrieved", data: data })];
+                _a = _b.sent(), data = _a.data, filter = _a.filter;
+                return [4 /*yield*/, job_dispute_model_1.JobDisputeModel.countDocuments(__assign(__assign({}, filter), { status: job_dispute_model_1.JOB_DISPUTE_STATUS.OPEN }))];
             case 2:
+                totalOpen = _b.sent();
+                return [4 /*yield*/, job_dispute_model_1.JobDisputeModel.countDocuments(__assign(__assign({}, filter), { status: job_dispute_model_1.JOB_DISPUTE_STATUS.ONGOING }))];
+            case 3:
+                totalOngoing = _b.sent();
+                return [4 /*yield*/, job_dispute_model_1.JobDisputeModel.countDocuments(__assign(__assign({}, filter), { status: job_dispute_model_1.JOB_DISPUTE_STATUS.RESOLVED }))];
+            case 4:
+                totalResolved = _b.sent();
+                return [2 /*return*/, res.json({
+                        success: true, message: "Job disputes retrieved", data: __assign(__assign({}, data), { stats: {
+                                totalOpen: totalOpen,
+                                totalOngoing: totalOngoing,
+                                totalResolved: totalResolved
+                            } }),
+                    })];
+            case 5:
                 err_1 = _b.sent();
                 res.status(500).json({ message: err_1.message });
-                return [3 /*break*/, 3];
-            case 3: return [2 /*return*/];
+                return [3 /*break*/, 6];
+            case 6: return [2 /*return*/];
         }
     });
 }); };

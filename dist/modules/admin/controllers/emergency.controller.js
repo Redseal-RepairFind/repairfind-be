@@ -1,4 +1,15 @@
 "use strict";
+var __assign = (this && this.__assign) || function () {
+    __assign = Object.assign || function(t) {
+        for (var s, i = 1, n = arguments.length; i < n; i++) {
+            s = arguments[i];
+            for (var p in s) if (Object.prototype.hasOwnProperty.call(s, p))
+                t[p] = s[p];
+        }
+        return t;
+    };
+    return __assign.apply(this, arguments);
+};
 var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, generator) {
     function adopt(value) { return value instanceof P ? value : new P(function (resolve) { resolve(value); }); }
     return new (P || (P = Promise))(function (resolve, reject) {
@@ -41,22 +52,34 @@ var job_emergency_model_1 = require("../../../database/common/job_emergency.mode
 var api_feature_1 = require("../../../utils/api.feature");
 var custom_errors_1 = require("../../../utils/custom.errors");
 var getEmergencies = function (req, res, next) { return __awaiter(void 0, void 0, void 0, function () {
-    var _a, page, limit, adminId, filter, _b, data, error, error_1;
-    return __generator(this, function (_c) {
-        switch (_c.label) {
+    var _a, data, filter, totalResolved, totalPending, totalInProgress, error_1;
+    return __generator(this, function (_b) {
+        switch (_b.label) {
             case 0:
-                _c.trys.push([0, 2, , 3]);
-                _a = req.query, page = _a.page, limit = _a.limit;
-                adminId = req.admin.id;
-                filter = {};
-                return [4 /*yield*/, (0, api_feature_1.applyAPIFeature)(job_emergency_model_1.JobEmergencyModel.find(filter), req.query)];
+                _b.trys.push([0, 5, , 6]);
+                return [4 /*yield*/, (0, api_feature_1.applyAPIFeature)(job_emergency_model_1.JobEmergencyModel.find(), req.query)];
             case 1:
-                _b = _c.sent(), data = _b.data, error = _b.error;
-                return [2 /*return*/, res.json({ success: true, message: "Job emergencies retrieved", data: data })];
+                _a = _b.sent(), data = _a.data, filter = _a.filter;
+                return [4 /*yield*/, job_emergency_model_1.JobEmergencyModel.countDocuments(__assign(__assign({}, filter), { status: job_emergency_model_1.EMERGENCY_STATUS.RESOLVED }))];
             case 2:
-                error_1 = _c.sent();
+                totalResolved = _b.sent();
+                return [4 /*yield*/, job_emergency_model_1.JobEmergencyModel.countDocuments(__assign(__assign({}, filter), { status: job_emergency_model_1.EMERGENCY_STATUS.PENDING }))];
+            case 3:
+                totalPending = _b.sent();
+                return [4 /*yield*/, job_emergency_model_1.JobEmergencyModel.countDocuments(__assign(__assign({}, filter), { status: job_emergency_model_1.EMERGENCY_STATUS.IN_PROGRESS }))];
+            case 4:
+                totalInProgress = _b.sent();
+                return [2 /*return*/, res.json({
+                        success: true, message: "Job emergencies retrieved", data: __assign(__assign({}, data), { stats: {
+                                totalResolved: totalResolved,
+                                totalPending: totalPending,
+                                totalInProgress: totalInProgress,
+                            } }),
+                    })];
+            case 5:
+                error_1 = _b.sent();
                 return [2 /*return*/, next(new custom_errors_1.InternalServerError('An error occurred', error_1))];
-            case 3: return [2 /*return*/];
+            case 6: return [2 /*return*/];
         }
     });
 }); };

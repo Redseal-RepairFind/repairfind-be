@@ -1,4 +1,15 @@
 "use strict";
+var __assign = (this && this.__assign) || function () {
+    __assign = Object.assign || function(t) {
+        for (var s, i = 1, n = arguments.length; i < n; i++) {
+            s = arguments[i];
+            for (var p in s) if (Object.prototype.hasOwnProperty.call(s, p))
+                t[p] = s[p];
+        }
+        return t;
+    };
+    return __assign.apply(this, arguments);
+};
 var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, generator) {
     function adopt(value) { return value instanceof P ? value : new P(function (resolve) { resolve(value); }); }
     return new (P || (P = Promise))(function (resolve, reject) {
@@ -39,7 +50,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.AdminCustomerController = exports.issueCoupon = exports.AdminChangeCustomerAccountStatusController = exports.AdminGetSingleCustomerJobDetailController = exports.AdminGetSingleCustomerDetailController = exports.AdminGetCustomerDetailController = void 0;
+exports.AdminCustomerController = exports.getCustomerStats = exports.issueCoupon = exports.AdminChangeCustomerAccountStatusController = exports.AdminGetSingleCustomerJobDetailController = exports.AdminGetSingleCustomerDetailController = exports.AdminGetCustomerDetailController = void 0;
 var express_validator_1 = require("express-validator");
 var admin_model_1 = __importDefault(require("../../../database/admin/models/admin.model"));
 var customer_model_1 = __importDefault(require("../../../database/customer/models/customer.model"));
@@ -49,9 +60,11 @@ var promotion_schema_1 = require("../../../database/common/promotion.schema");
 var coupon_schema_1 = require("../../../database/common/coupon.schema");
 var couponCodeGenerator_1 = require("../../../utils/couponCodeGenerator");
 var custom_errors_1 = require("../../../utils/custom.errors");
+var customer_model_2 = __importDefault(require("../../../database/customer/models/customer.model"));
+var api_feature_1 = require("../../../utils/api.feature");
 //get customer detail /////////////
 var AdminGetCustomerDetailController = function (req, res) { return __awaiter(void 0, void 0, void 0, function () {
-    var _a, page, limit, errors, admin, adminId, skip, customersDetail, totalCustomer, err_1;
+    var _a, page, limit, errors, skip, customersDetail, totalCustomer, err_1;
     return __generator(this, function (_b) {
         switch (_b.label) {
             case 0:
@@ -61,8 +74,6 @@ var AdminGetCustomerDetailController = function (req, res) { return __awaiter(vo
                 if (!errors.isEmpty()) {
                     return [2 /*return*/, res.status(400).json({ errors: errors.array() })];
                 }
-                admin = req.admin;
-                adminId = admin.id;
                 page = page || 1;
                 limit = limit || 50;
                 skip = (page - 1) * limit;
@@ -319,10 +330,38 @@ var issueCoupon = function (req, res, next) { return __awaiter(void 0, void 0, v
     });
 }); };
 exports.issueCoupon = issueCoupon;
+var getCustomerStats = function (req, res) { return __awaiter(void 0, void 0, void 0, function () {
+    var _a, data, filter, customersWithBooking, err_5;
+    return __generator(this, function (_b) {
+        switch (_b.label) {
+            case 0:
+                _b.trys.push([0, 3, , 4]);
+                return [4 /*yield*/, (0, api_feature_1.applyAPIFeature)(customer_model_2.default.find(), req.query)];
+            case 1:
+                _a = _b.sent(), data = _a.data, filter = _a.filter;
+                return [4 /*yield*/, customer_model_2.default.countDocuments(__assign({}, filter))];
+            case 2:
+                customersWithBooking = _b.sent();
+                return [2 /*return*/, res.json({
+                        success: true,
+                        message: "Customer stats retrieved",
+                        data: __assign(__assign({}, data), { stats: {
+                                customersWithBooking: customersWithBooking
+                            } }),
+                    })];
+            case 3:
+                err_5 = _b.sent();
+                return [2 /*return*/, res.status(500).json({ success: false, message: err_5.message })];
+            case 4: return [2 /*return*/];
+        }
+    });
+}); };
+exports.getCustomerStats = getCustomerStats;
 exports.AdminCustomerController = {
     AdminGetCustomerDetailController: exports.AdminGetCustomerDetailController,
     AdminGetSingleCustomerDetailController: exports.AdminGetSingleCustomerDetailController,
     AdminGetSingleCustomerJobDetailController: exports.AdminGetSingleCustomerJobDetailController,
     AdminChangeCustomerAccountStatusController: exports.AdminChangeCustomerAccountStatusController,
     issueCoupon: exports.issueCoupon,
+    getCustomerStats: exports.getCustomerStats
 };

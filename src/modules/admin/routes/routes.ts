@@ -36,11 +36,6 @@ router.post("/change-password", validateAdminChangePasswordParams, AdminAuthCont
 
 
 router.get("/analytics", checkAdminRole, AdminAnalyticsController.getStats);
-router.get("/analytics/customers", checkAdminRole, AdminAnalyticsController.getCustomerStats);
-router.get("/analytics/contractors", checkAdminRole, AdminAnalyticsController.getContractorStats);
-router.get("/analytics/disputes", checkAdminRole, AdminAnalyticsController.getDisputeStats);
-router.get("/analytics/jobs", checkAdminRole, AdminAnalyticsController.getJobStats);
-router.get("/analytics/job-emergency", checkAdminRole, AdminAnalyticsController.getJobEmergencyStats);
 
 
 //don staff
@@ -77,6 +72,7 @@ router.patch("/abuse-reports/:id", Validations.validateAppVersionUpdate, checkAd
 
 // CONTRACTOR
 router.get("/contractors", checkAdminRole, AdminContractorController.exploreContractors); // admin get contractor detail
+router.get("/contractors/stats", checkAdminRole, AdminContractorController.getContractorStats);
 router.get("/contractors/:contractorId", checkAdminRole, AdminContractorController.getSingleContractor); // admin get single contractor detail
 router.get("/contractors/:contractorId/jobs", checkAdminRole, AdminContractorController.getJobHistory); // admin get single contractor detail
 router.get("/contractors/:contractorId/jobs/:jobId", checkAdminRole, AdminContractorController.getSingleJob); // admin get single contractor detail
@@ -94,6 +90,7 @@ router.post("/contractors/:contractorId/issue-coupon", AdminContractorController
 
 
 //done
+router.get("/customers", checkAdminRole, AdminCustomerController.getCustomerStats);
 router.get("/customer/detail", checkAdminRole, AdminCustomerController.AdminGetCustomerDetailController); // admin get customer detail
 router.get("/customer/detail/:customerId", checkAdminRole, AdminCustomerController.AdminGetSingleCustomerDetailController); // admin get single customer detail
 router.get("/customer/job/detail/:customerId", checkAdminRole, AdminCustomerController.AdminGetSingleCustomerJobDetailController); // admin get single customer  job detail
@@ -177,7 +174,6 @@ router.get("/questions", checkAdminRole, AdminQuizController.GetAllQuestions); /
 router.get("/questions/:questionId", checkAdminRole, AdminQuizController.GetSingleQuestion); // admin get single question
 router.patch("/questions/:questionId", validateEditQuestionParams, checkAdminRole, AdminQuizController.EditQuestion); // admin edit question
 router.delete("/questions/:questionId", checkAdminRole, AdminQuizController.DeleteQuestion); // admin delete question
-
 
 
 

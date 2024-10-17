@@ -59,7 +59,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.AdminContractorController = exports.issueCoupon = exports.attachCertnId = exports.attachCertnDetails = exports.attachStripeAccount = exports.removeStripeAccount = exports.AdminChangeContractorAccountStatusController = exports.updateAccountStatus = exports.sendCustomEmail = exports.updateGstDetails = exports.getSingleJob = exports.getJobHistory = exports.getSingleContractor = exports.exploreContractors = void 0;
+exports.AdminContractorController = exports.getContractorStats = exports.issueCoupon = exports.attachCertnId = exports.attachCertnDetails = exports.attachStripeAccount = exports.removeStripeAccount = exports.AdminChangeContractorAccountStatusController = exports.updateAccountStatus = exports.sendCustomEmail = exports.updateGstDetails = exports.getSingleJob = exports.getJobHistory = exports.getSingleContractor = exports.exploreContractors = void 0;
 var express_validator_1 = require("express-validator");
 var admin_model_1 = __importDefault(require("../../../database/admin/models/admin.model"));
 var contractor_model_1 = require("../../../database/contractor/models/contractor.model");
@@ -825,6 +825,50 @@ var issueCoupon = function (req, res, next) { return __awaiter(void 0, void 0, v
     });
 }); };
 exports.issueCoupon = issueCoupon;
+var getContractorStats = function (req, res) { return __awaiter(void 0, void 0, void 0, function () {
+    var _a, data, filter, contractorCounts, verifiedCount, unverifiedCount, err_7;
+    var _b, _c;
+    return __generator(this, function (_d) {
+        switch (_d.label) {
+            case 0:
+                _d.trys.push([0, 3, , 4]);
+                return [4 /*yield*/, (0, api_feature_1.applyAPIFeature)(contractor_model_1.ContractorModel.find(), req.query)];
+            case 1:
+                _a = _d.sent(), data = _a.data, filter = _a.filter;
+                return [4 /*yield*/, contractor_model_1.ContractorModel.aggregate([
+                        {
+                            $facet: {
+                                verifiedContractors: [
+                                    { $match: __assign(__assign({}, filter), { accountStatus: contractor_interface_1.CONTRACTOR_STATUS.APPROVED }) },
+                                    { $count: "count" }
+                                ],
+                                unverifiedContractors: [
+                                    { $match: __assign(__assign({}, filter), { accountStatus: { $ne: contractor_interface_1.CONTRACTOR_STATUS.APPROVED } }) },
+                                    { $count: "count" }
+                                ]
+                            }
+                        }
+                    ])];
+            case 2:
+                contractorCounts = _d.sent();
+                verifiedCount = ((_b = contractorCounts[0].verifiedContractors[0]) === null || _b === void 0 ? void 0 : _b.count) || 0;
+                unverifiedCount = ((_c = contractorCounts[0].unverifiedContractors[0]) === null || _c === void 0 ? void 0 : _c.count) || 0;
+                return [2 /*return*/, res.json({
+                        success: true,
+                        message: "Contractor stats retrieved",
+                        data: __assign(__assign({}, data), { stats: {
+                                verifiedContractors: verifiedCount,
+                                unVerifiedContractors: unverifiedCount
+                            } }),
+                    })];
+            case 3:
+                err_7 = _d.sent();
+                return [2 /*return*/, res.status(500).json({ success: false, message: err_7.message })];
+            case 4: return [2 /*return*/];
+        }
+    });
+}); };
+exports.getContractorStats = getContractorStats;
 exports.AdminContractorController = {
     exploreContractors: exports.exploreContractors,
     removeStripeAccount: exports.removeStripeAccount,
@@ -837,5 +881,6 @@ exports.AdminContractorController = {
     sendCustomEmail: exports.sendCustomEmail,
     attachCertnDetails: exports.attachCertnDetails,
     attachCertnId: exports.attachCertnId,
-    issueCoupon: exports.issueCoupon
+    issueCoupon: exports.issueCoupon,
+    getContractorStats: exports.getContractorStats
 };
