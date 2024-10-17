@@ -765,7 +765,7 @@ JobEvent.on('JOB_RESCHEDULE_DECLINED_ACCEPTED', async function (payload: { job: 
                 entityType: 'jobs'
             });
 
-            if (payload.job.reschedule?.createdBy == 'contractor') { // send mail to contractor
+            if (job.reschedule?.createdBy == 'contractor') { // send mail to contractor
 
                 const dateTimeOptions: any = {
                     weekday: 'short',
@@ -778,7 +778,7 @@ JobEvent.on('JOB_RESCHEDULE_DECLINED_ACCEPTED', async function (payload: { job: 
                     timeZone: contractor.currentTimezone,
                     timeZoneName: 'long'
                 }
-                const rescheduleDate = new Intl.DateTimeFormat('en-GB', dateTimeOptions).format(new Date(payload.job.reschedule.date));
+                const rescheduleDate = new Intl.DateTimeFormat('en-GB', dateTimeOptions).format(new Date(job.reschedule.date));
 
 
                 let emailSubject = 'Job Reschedule Request'
@@ -828,7 +828,7 @@ JobEvent.on('JOB_RESCHEDULE_DECLINED_ACCEPTED', async function (payload: { job: 
                 message.senderType = 'customers'
 
             }
-            if (payload.job.reschedule?.createdBy == 'customer') { // send mail to  customer
+            if (job.reschedule?.createdBy == 'customer') { // send mail to  customer
 
                 const dateTimeOptions: any = {
                     weekday: 'short',
@@ -841,7 +841,7 @@ JobEvent.on('JOB_RESCHEDULE_DECLINED_ACCEPTED', async function (payload: { job: 
                     timeZone: customer.currentTimezone,
                     timeZoneName: 'long'
                 }
-                const rescheduleDate = new Intl.DateTimeFormat('en-GB', dateTimeOptions).format(new Date(payload.job.reschedule.date));
+                const rescheduleDate = new Intl.DateTimeFormat('en-GB', dateTimeOptions).format(new Date(job.reschedule.date));
 
 
                 let emailSubject = 'Job Reschedule Request'
@@ -849,7 +849,7 @@ JobEvent.on('JOB_RESCHEDULE_DECLINED_ACCEPTED', async function (payload: { job: 
                 <h2>${emailSubject}</h2>
                 <p>Hello ${customer.name},</p>
                 <p style="color: #333333;">Your Job reschedule request on Repairfind has been ${payload.action}  by the contractor</p>
-                <p><strong>Job Title:</strong> ${payload.job.description}</p>
+                <p><strong>Job Title:</strong> ${job.description}</p>
                 <p><strong>Proposed Date:</strong> ${rescheduleDate}</p>
                 `
                 let html = GenericEmailTemplate({ name: customer.name, subject: emailSubject, content: emailContent })
@@ -887,13 +887,16 @@ JobEvent.on('JOB_RESCHEDULE_DECLINED_ACCEPTED', async function (payload: { job: 
                     }
                 }, { push: true, socket: true, database: true });
 
-
                 message.sender = contractor.id
                 message.senderType = 'contractors'
 
             }
 
+            if(payload.action == 'declined'){
+                job.reschedule = null
+            }
             await message.save()
+            await job.save()
 
         }
 

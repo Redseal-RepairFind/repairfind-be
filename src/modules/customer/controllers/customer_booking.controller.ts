@@ -458,7 +458,7 @@ export const acceptOrDeclineReschedule = async (req: any, res: Response, next: N
             JobEvent.emit('JOB_RESCHEDULE_DECLINED_ACCEPTED', { job, action: 'accepted' })
         } else {
             JobEvent.emit('JOB_RESCHEDULE_DECLINED_ACCEPTED', { job, action: 'declined' })
-            job.reschedule = null
+            // job.reschedule = null
 
         }
 

@@ -941,7 +941,7 @@ exports.JobEvent.on('JOB_RESCHEDULE_DECLINED_ACCEPTED', function (payload) {
         return __generator(this, function (_e) {
             switch (_e.label) {
                 case 0:
-                    _e.trys.push([0, 16, , 17]);
+                    _e.trys.push([0, 17, , 18]);
                     logger_1.Logger.info('handling alert JOB_RESCHEDULE_DECLINED_ACCEPTED event', payload.action);
                     return [4 /*yield*/, customer_model_1.default.findById(payload.job.customer)];
                 case 1:
@@ -951,7 +951,7 @@ exports.JobEvent.on('JOB_RESCHEDULE_DECLINED_ACCEPTED', function (payload) {
                     contractor = _e.sent();
                     job = payload.job;
                     event_1 = payload.action == 'accepted' ? 'JOB_RESCHEDULE_ACCEPTED' : 'JOB_RESCHEDULE_DECLINED';
-                    if (!(contractor && customer)) return [3 /*break*/, 15];
+                    if (!(contractor && customer)) return [3 /*break*/, 16];
                     return [4 /*yield*/, conversation_util_1.ConversationUtil.updateOrCreateConversation(customer.id, 'customers', contractor.id, 'contractors')];
                 case 3:
                     conversation = _e.sent();
@@ -962,7 +962,7 @@ exports.JobEvent.on('JOB_RESCHEDULE_DECLINED_ACCEPTED', function (payload) {
                         entity: job.id,
                         entityType: 'jobs'
                     });
-                    if (!(((_a = payload.job.reschedule) === null || _a === void 0 ? void 0 : _a.createdBy) == 'contractor')) return [3 /*break*/, 8];
+                    if (!(((_a = job.reschedule) === null || _a === void 0 ? void 0 : _a.createdBy) == 'contractor')) return [3 /*break*/, 8];
                     dateTimeOptions = {
                         weekday: 'short',
                         day: 'numeric',
@@ -974,7 +974,7 @@ exports.JobEvent.on('JOB_RESCHEDULE_DECLINED_ACCEPTED', function (payload) {
                         timeZone: contractor.currentTimezone,
                         timeZoneName: 'long'
                     };
-                    rescheduleDate = new Intl.DateTimeFormat('en-GB', dateTimeOptions).format(new Date(payload.job.reschedule.date));
+                    rescheduleDate = new Intl.DateTimeFormat('en-GB', dateTimeOptions).format(new Date(job.reschedule.date));
                     emailSubject = 'Job Reschedule Request';
                     emailContent = "\n                <h2>".concat(emailSubject, "</h2>\n                <p>Hello ").concat(contractor.name, ",</p>\n                <p style=\"color: #333333;\">Your Job reschedule request on Repairfind has been ").concat(payload.action, " by customer</p>\n                <p><strong>Job Title:</strong> ").concat(payload.job.description, "</p>\n                <p><strong>Proposed Date:</strong> ").concat(rescheduleDate, "</p>\n                ");
                     html = (0, generic_email_1.GenericEmailTemplate)({ name: contractor.name, subject: emailSubject, content: emailContent });
@@ -1019,7 +1019,7 @@ exports.JobEvent.on('JOB_RESCHEDULE_DECLINED_ACCEPTED', function (payload) {
                     message.senderType = 'customers';
                     _e.label = 8;
                 case 8:
-                    if (!(((_c = payload.job.reschedule) === null || _c === void 0 ? void 0 : _c.createdBy) == 'customer')) return [3 /*break*/, 13];
+                    if (!(((_c = job.reschedule) === null || _c === void 0 ? void 0 : _c.createdBy) == 'customer')) return [3 /*break*/, 13];
                     dateTimeOptions = {
                         weekday: 'short',
                         day: 'numeric',
@@ -1031,9 +1031,9 @@ exports.JobEvent.on('JOB_RESCHEDULE_DECLINED_ACCEPTED', function (payload) {
                         timeZone: customer.currentTimezone,
                         timeZoneName: 'long'
                     };
-                    rescheduleDate = new Intl.DateTimeFormat('en-GB', dateTimeOptions).format(new Date(payload.job.reschedule.date));
+                    rescheduleDate = new Intl.DateTimeFormat('en-GB', dateTimeOptions).format(new Date(job.reschedule.date));
                     emailSubject = 'Job Reschedule Request';
-                    emailContent = "\n                <h2>".concat(emailSubject, "</h2>\n                <p>Hello ").concat(customer.name, ",</p>\n                <p style=\"color: #333333;\">Your Job reschedule request on Repairfind has been ").concat(payload.action, "  by the contractor</p>\n                <p><strong>Job Title:</strong> ").concat(payload.job.description, "</p>\n                <p><strong>Proposed Date:</strong> ").concat(rescheduleDate, "</p>\n                ");
+                    emailContent = "\n                <h2>".concat(emailSubject, "</h2>\n                <p>Hello ").concat(customer.name, ",</p>\n                <p style=\"color: #333333;\">Your Job reschedule request on Repairfind has been ").concat(payload.action, "  by the contractor</p>\n                <p><strong>Job Title:</strong> ").concat(job.description, "</p>\n                <p><strong>Proposed Date:</strong> ").concat(rescheduleDate, "</p>\n                ");
                     html = (0, generic_email_1.GenericEmailTemplate)({ name: customer.name, subject: emailSubject, content: emailContent });
                     return [4 /*yield*/, i18n_1.i18n.getTranslation({ phraseOrSlug: html, targetLang: customer.language, saveToFile: false, useGoogle: true, contentType: 'html' })];
                 case 9:
@@ -1075,16 +1075,23 @@ exports.JobEvent.on('JOB_RESCHEDULE_DECLINED_ACCEPTED', function (payload) {
                     message.sender = contractor.id;
                     message.senderType = 'contractors';
                     _e.label = 13;
-                case 13: return [4 /*yield*/, message.save()];
+                case 13:
+                    if (payload.action == 'declined') {
+                        job.reschedule = null;
+                    }
+                    return [4 /*yield*/, message.save()];
                 case 14:
                     _e.sent();
-                    _e.label = 15;
-                case 15: return [3 /*break*/, 17];
-                case 16:
+                    return [4 /*yield*/, job.save()];
+                case 15:
+                    _e.sent();
+                    _e.label = 16;
+                case 16: return [3 /*break*/, 18];
+                case 17:
                     error_11 = _e.sent();
                     logger_1.Logger.error("Error handling JOB_RESCHEDULE_DECLINED_ACCEPTED event: ".concat(error_11));
-                    return [3 /*break*/, 17];
-                case 17: return [2 /*return*/];
+                    return [3 /*break*/, 18];
+                case 18: return [2 /*return*/];
             }
         });
     });
