@@ -13,11 +13,6 @@ export const getJobs = async (
 ) => {
 
   try {
-    let {
-      page,
-      limit
-    } = req.query;
-
     // Check for validation errors
     const errors = validationResult(req);
 
@@ -25,12 +20,45 @@ export const getJobs = async (
       return res.status(400).json({ errors: errors.array() });
     }
 
+    const { data, filter } = await applyAPIFeature(JobModel.find().populate(['customer', 'contractor', 'contract']), req.query)
 
-    page = page || 1;
-    limit = limit || 50;
-    const { data, error } = await applyAPIFeature(JobModel.find().populate(['customer', 'contractor', 'contract']), req.query)
+    const allJobs = await JobModel.countDocuments(filter);
+    const totalCanceled = await JobModel.countDocuments({ ...filter, status: JOB_STATUS.CANCELED });
+    const totalCompleted = await JobModel.countDocuments({ ...filter, status: JOB_STATUS.COMPLETED });
+    const totalPending = await JobModel.countDocuments({ ...filter, status: JOB_STATUS.PENDING });
+    const totalBooked = await JobModel.countDocuments({ ...filter, status: JOB_STATUS.BOOKED });
+    const totalDisputed = await JobModel.countDocuments({ ...filter, status: JOB_STATUS.DISPUTED });
+    const totalNotStarted = await JobModel.countDocuments({ ...filter, status: JOB_STATUS.NOT_STARTED });
+    const totalOngoing = await JobModel.countDocuments({ ...filter, status: JOB_STATUS.ONGOING });
+    const totalExpired = await JobModel.countDocuments({ ...filter, status: JOB_STATUS.EXPIRED });
 
-    return res.json({ success: true, message: "Jobs retrieved successfully", data });
+    // Find the most requested job category
+    const mostRequestedCategory = await JobModel.aggregate([
+      { $match: { ...filter } },
+      { $group: { _id: "$category", count: { $sum: 1 } } },
+      { $sort: { count: -1 } },
+      { $limit: 1 },
+    ]);
+
+    return res.json({
+      success: true, message: "Jobs retrieved successfully",
+      data: {
+        ...data,
+        stats: {
+          allJobs,
+          totalCanceled,
+          totalCompleted,
+          totalPending,
+          totalBooked,
+          totalDisputed,
+          totalNotStarted,
+          totalOngoing,
+          totalExpired,
+          mostRequestedCategory: mostRequestedCategory[0]
+
+        }
+      },
+    });
 
   } catch (err: any) {
     // signup error
@@ -117,8 +145,8 @@ export const getJobStats = async (
 
         }
       },
-      { $project: { _id: 1, profilePhoto: 1, name: 1, rating: 1, ratingCount: 1,  reviewCount: { $size: "$reviews" } } },
-      
+      { $project: { _id: 1, profilePhoto: 1, name: 1, rating: 1, ratingCount: 1, reviewCount: { $size: "$reviews" } } },
+
       { $sort: { reviewCount: -1 } },
       { $limit: 1 }
     ]);

@@ -27,14 +27,28 @@ export const getJobDisputes = async (
     }
 
     const adminId = req.admin.id
-    
-    const filter = {}
-    const { data, error } = await applyAPIFeature(JobDisputeModel.find(filter).populate({
+
+
+    const { data, filter } = await applyAPIFeature(JobDisputeModel.find().populate({
       path: 'disputer',
       select: 'firstName lastName name profilePhoto _id'
     }), req.query)
 
-    return res.json({ success: true, message: "Job disputes retrieved", data });
+    const totalOpen = await JobDisputeModel.countDocuments({ ...filter, status: JOB_DISPUTE_STATUS.OPEN });
+    const totalOngoing = await JobDisputeModel.countDocuments({ ...filter, status: JOB_DISPUTE_STATUS.ONGOING });
+    const totalResolved = await JobDisputeModel.countDocuments({ ...filter, status: JOB_DISPUTE_STATUS.RESOLVED });
+
+
+    return res.json({
+      success: true, message: "Job disputes retrieved", data: {
+        ...data,
+        stats: {
+          totalOpen,
+          totalOngoing,
+          totalResolved
+        }
+      },
+    });
 
   } catch (err: any) {
     res.status(500).json({ message: err.message });
@@ -449,7 +463,7 @@ export const enableRevisit = async (req: any, res: Response, next: NextFunction)
       return res.status(404).json({ success: false, message: 'Job not found' });
     }
 
-    const jobDay = await JobDayModel.findOne({job: job.id});
+    const jobDay = await JobDayModel.findOne({ job: job.id });
     if (!jobDay) {
       return res.status(404).json({ success: false, message: 'Existing job day not found' });
     }
