@@ -1055,7 +1055,7 @@ var getJobListings = function (req, res, next) { return __awaiter(void 0, void 0
                 pipeline.push({ $match: { type: job_model_1.JobType.LISTING } });
                 pipeline.push({ $match: { category: category } });
                 pipeline.push({ $match: { status: job_model_1.JOB_STATUS.PENDING } });
-                pipeline.push({ $match: { "expiresIn": { $gt: 0 } } });
+                // pipeline.push({ $match: { "expiresIn": { $gt: 0 } } });
                 if (!showHidden) {
                     // Add a new $match stage to filter out jobs with contractorId in hideFrom array
                     pipeline.push({ $match: { hideFrom: { $nin: [contractorId] } } });
