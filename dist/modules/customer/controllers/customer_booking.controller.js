@@ -475,7 +475,7 @@ var acceptOrDeclineReschedule = function (req, res, next) { return __awaiter(voi
                 }
                 else {
                     events_1.JobEvent.emit('JOB_RESCHEDULE_DECLINED_ACCEPTED', { job: job, action: 'declined' });
-                    job.reschedule = null;
+                    // job.reschedule = null
                 }
                 return [4 /*yield*/, job.save()];
             case 2:
