@@ -956,7 +956,7 @@ export const getJobListings = async (req: any, res: Response, next: NextFunction
     pipeline.push({ $match: { type: JobType.LISTING } });
     pipeline.push({ $match: { category: category } });
     pipeline.push({ $match: { status: JOB_STATUS.PENDING } });
-    pipeline.push({ $match: { "expiresIn": { $gt: 0 } } });
+    // pipeline.push({ $match: { "expiresIn": { $gt: 0 } } });
 
 
     if (!showHidden) {
