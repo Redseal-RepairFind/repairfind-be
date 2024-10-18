@@ -72,7 +72,6 @@ router.patch("/abuse-reports/:id", Validations.validateAppVersionUpdate, checkAd
 
 // CONTRACTOR
 router.get("/contractors", checkAdminRole, AdminContractorController.exploreContractors); // admin get contractor detail
-router.get("/contractors/stats", checkAdminRole, AdminContractorController.getContractorStats);
 router.get("/contractors/:contractorId", checkAdminRole, AdminContractorController.getSingleContractor); // admin get single contractor detail
 router.get("/contractors/:contractorId/jobs", checkAdminRole, AdminContractorController.getJobHistory); // admin get single contractor detail
 router.get("/contractors/:contractorId/jobs/:jobId", checkAdminRole, AdminContractorController.getSingleJob); // admin get single contractor detail

@@ -72,6 +72,8 @@ export const exploreContractors = async (
       hasPassedQuiz,
       gstStatus,
       stripeAccountStatus,
+      startDate,
+      endDate
     } = req.query;
 
 
@@ -151,6 +153,33 @@ export const exploreContractors = async (
     ];
 
 
+    // Date filter
+    if (startDate) {
+      const dateFilter: any = {};
+
+      const start = new Date(startDate);
+      start.setUTCHours(0, 0, 0, 0);
+      dateFilter.$gte = start;
+
+
+      if (endDate) {
+        const end = new Date(endDate);
+        end.setUTCHours(23, 59, 59, 999);
+        dateFilter.$lte = end;
+      }
+
+      if (!endDate) {
+        const end = new Date(startDate);
+        end.setUTCHours(23, 59, 59, 999);
+        dateFilter.$lte = end;
+      }
+      console.log("Date filter", dateFilter)
+      pipeline.push({
+        $match: {
+          createdAt: dateFilter
+        }
+      })
+    }
 
 
     //example filter out who do not have stripe account
@@ -286,7 +315,15 @@ export const exploreContractors = async (
           { $count: "totalItems" },
           { $addFields: { page, limit, currentPage: parseInt(page), lastPage: { $ceil: { $divide: ["$totalItems", parseInt(limit)] } }, listing } }
         ],
-        data: [{ $skip: skip }, { $limit: parseInt(limit) }]
+        data: [{ $skip: skip }, { $limit: parseInt(limit) }],
+        verifiedContractors: [
+          { $match: { accountStatus: CONTRACTOR_STATUS.APPROVED } },
+          { $count: "count" }
+        ],
+        unverifiedContractors: [
+          { $match: { accountStatus: { $ne: CONTRACTOR_STATUS.APPROVED } } },
+          { $count: "count" }
+        ]
       }
     });
 
@@ -294,9 +331,21 @@ export const exploreContractors = async (
     const result = await ContractorModel.aggregate(pipeline);
     const contractors = result[0].data;
     const metadata = result[0].metadata[0];
+    const verifiedCount = result[0].verifiedContractors[0]?.count || 0;
+    const unverifiedCount = result[0].unverifiedContractors[0]?.count || 0;
 
     // Send response
-    res.status(200).json({ success: true, data: { ...metadata, data: contractors } });
+    res.status(200).json({
+      success: true,
+      data: {
+        ...metadata,
+        data: contractors,
+        stats: {
+          verifiedContractors: verifiedCount,
+          unVerifiedContractors: unverifiedCount
+        }
+      }
+    });
 
   } catch (err: any) {
     console.error("Error fetching contractors:", err);
@@ -856,48 +905,6 @@ export const issueCoupon = async (
 };
 
 
-export const getContractorStats = async (
-  req: any, res: Response
-) => {
-  try {
-
-    const { data, filter } = await applyAPIFeature(ContractorModel.find(), req.query);
-
-    const contractorCounts = await ContractorModel.aggregate([
-      {
-        $facet: {
-          verifiedContractors: [
-            { $match: { ...filter, accountStatus: CONTRACTOR_STATUS.APPROVED } },
-            { $count: "count" }
-          ],
-          unverifiedContractors: [
-            { $match: { ...filter, accountStatus: { $ne: CONTRACTOR_STATUS.APPROVED } } },
-            { $count: "count" }
-          ]
-        }
-
-      }
-    ])
-
-    const verifiedCount = contractorCounts[0].verifiedContractors[0]?.count || 0;
-    const unverifiedCount = contractorCounts[0].unverifiedContractors[0]?.count || 0;
-
-    return res.json({
-      success: true,
-      message: "Contractor stats retrieved",
-      data: {
-        ...data,
-        stats: {
-          verifiedContractors: verifiedCount,
-          unVerifiedContractors: unverifiedCount
-        }
-      },
-    });
-  } catch (err: any) {
-    return res.status(500).json({ success: false, message: err.message });
-  }
-}
-
 
 export const AdminContractorController = {
   exploreContractors,
@@ -911,6 +918,5 @@ export const AdminContractorController = {
   sendCustomEmail,
   attachCertnDetails,
   attachCertnId,
-  issueCoupon,
-  getContractorStats
+  issueCoupon
 }
