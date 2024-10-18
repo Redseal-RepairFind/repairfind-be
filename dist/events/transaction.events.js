@@ -145,7 +145,7 @@ exports.TransactionEvent.on('ESCROW_TRANSFER_SUCCESSFUL', function (transaction)
                                         toUser: coupon.user,
                                         toUserType: coupon.userType,
                                         description: "Referal Bonus Payment for: ".concat(coupon === null || coupon === void 0 ? void 0 : coupon.code),
-                                        status: transaction_model_1.TRANSACTION_STATUS.APPROVED,
+                                        status: transaction_model_1.TRANSACTION_STATUS.PENDING,
                                         remark: 'bonus_payout',
                                         invoice: {
                                             items: [],
