@@ -183,6 +183,7 @@ var handleJobRefunds = function () { return __awaiter(void 0, void 0, void 0, fu
             case 23:
                 // Ensure transaction is saved regardless of success or failure
                 _g.sent();
+                logger_1.Logger.info("Processing refund finally", transaction);
                 return [7 /*endfinally*/];
             case 24:
                 _i++;

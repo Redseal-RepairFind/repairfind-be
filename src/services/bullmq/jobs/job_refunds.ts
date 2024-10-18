@@ -80,6 +80,7 @@ export const handleJobRefunds = async () => {
             } finally {
                 // Ensure transaction is saved regardless of success or failure
                 await transaction.save();
+                Logger.info(`Processing refund finally`, transaction);
             }
         }
     } catch (error) {
