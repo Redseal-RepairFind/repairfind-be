@@ -75,101 +75,122 @@ var logger_1 = require("../../logger");
 var paypal_1 = require("../../paypal");
 var stripe_1 = require("../../stripe");
 var handleJobRefunds = function () { return __awaiter(void 0, void 0, void 0, function () {
-    var transactions, _i, transactions_1, transaction, fromUser, _a, toUser, _b, job, payment, amount, charge, metadata, stripePayment, amount, capture_id, metadata, paypalRefund, error_1, error_2;
-    var _c, _d;
-    return __generator(this, function (_e) {
-        switch (_e.label) {
+    var transactions, _i, transactions_1, transaction, fromUser, _a, toUser, _b, job, payment, amount, charge, metadata, amount, capture_id, metadata, paypalRefund, error_1, _c, name_1, message, details, error_2, error_3;
+    var _d, _e, _f;
+    return __generator(this, function (_g) {
+        switch (_g.label) {
             case 0:
-                _e.trys.push([0, 23, , 24]);
+                _g.trys.push([0, 26, , 27]);
                 return [4 /*yield*/, transaction_model_1.default.find({
                         type: transaction_model_1.TRANSACTION_TYPE.REFUND,
                         status: transaction_model_1.TRANSACTION_STATUS.PENDING
                     })];
             case 1:
-                transactions = _e.sent();
+                transactions = _g.sent();
                 _i = 0, transactions_1 = transactions;
-                _e.label = 2;
+                _g.label = 2;
             case 2:
-                if (!(_i < transactions_1.length)) return [3 /*break*/, 22];
+                if (!(_i < transactions_1.length)) return [3 /*break*/, 25];
                 transaction = transactions_1[_i];
-                _e.label = 3;
+                _g.label = 3;
             case 3:
-                _e.trys.push([3, 20, , 21]);
-                if (!(transaction.fromUserType == 'customers')) return [3 /*break*/, 5];
+                _g.trys.push([3, 21, 22, 24]);
+                if (!(transaction.fromUserType === 'customers')) return [3 /*break*/, 5];
                 return [4 /*yield*/, customer_model_1.default.findById(transaction.fromUser)];
             case 4:
-                _a = _e.sent();
+                _a = _g.sent();
                 return [3 /*break*/, 7];
             case 5: return [4 /*yield*/, contractor_model_1.ContractorModel.findById(transaction.fromUser)];
             case 6:
-                _a = _e.sent();
-                _e.label = 7;
+                _a = _g.sent();
+                _g.label = 7;
             case 7:
                 fromUser = _a;
-                if (!(transaction.toUserType == 'customers')) return [3 /*break*/, 9];
+                if (!(transaction.toUserType === 'customers')) return [3 /*break*/, 9];
                 return [4 /*yield*/, customer_model_1.default.findById(transaction.toUser)];
             case 8:
-                _b = _e.sent();
+                _b = _g.sent();
                 return [3 /*break*/, 11];
             case 9: return [4 /*yield*/, contractor_model_1.ContractorModel.findById(transaction.toUser)];
             case 10:
-                _b = _e.sent();
-                _e.label = 11;
+                _b = _g.sent();
+                _g.label = 11;
             case 11:
                 toUser = _b;
                 return [4 /*yield*/, job_model_1.JobModel.findById(transaction.job)];
             case 12:
-                job = _e.sent();
-                if (!(fromUser && toUser && job)) return [3 /*break*/, 18];
+                job = _g.sent();
+                if (!(fromUser && toUser && job)) return [3 /*break*/, 20];
                 return [4 /*yield*/, payment_schema_1.PaymentModel.findById(transaction.payment)];
             case 13:
-                payment = _e.sent();
+                payment = _g.sent();
                 if (!payment) {
-                    return [2 /*return*/];
+                    return [3 /*break*/, 24]; // Skip to next transaction if payment not found
                 }
-                if (!(payment.channel == 'stripe')) return [3 /*break*/, 15];
+                if (!(payment.channel === 'stripe')) return [3 /*break*/, 15];
                 amount = (transaction.amount * 100);
                 charge = payment.charge_id;
-                metadata = (_c = transaction.metadata) !== null && _c !== void 0 ? _c : {};
-                metadata.transactionId = transaction.id;
-                metadata.paymentId = payment.id;
-                return [4 /*yield*/, stripe_1.StripeService.payment.refundCharge(charge, amount, metadata)]; // convert to cent
-            case 14:
-                stripePayment = _e.sent() // convert to cent
-                ;
-                _e.label = 15;
-            case 15:
-                if (!(payment.channel == 'paypal')) return [3 /*break*/, 18];
-                amount = (transaction.amount);
-                capture_id = payment.capture_id;
                 metadata = (_d = transaction.metadata) !== null && _d !== void 0 ? _d : {};
                 metadata.transactionId = transaction.id;
                 metadata.paymentId = payment.id;
-                return [4 /*yield*/, paypal_1.PayPalService.payment.refundPayment(capture_id, amount)];
+                return [4 /*yield*/, stripe_1.StripeService.payment.refundCharge(charge, amount, metadata)];
+            case 14:
+                _g.sent(); // Refund
+                transaction.status = transaction_model_1.TRANSACTION_STATUS.SUCCESSFUL; // Update status
+                _g.label = 15;
+            case 15:
+                if (!(payment.channel === 'paypal')) return [3 /*break*/, 20];
+                amount = transaction.amount;
+                capture_id = payment.capture_id;
+                metadata = (_e = transaction.metadata) !== null && _e !== void 0 ? _e : {};
+                metadata.transactionId = transaction.id;
+                metadata.paymentId = payment.id;
+                _g.label = 16;
             case 16:
-                paypalRefund = _e.sent();
-                return [4 /*yield*/, (0, exports.sendRefundReceiptEmail)({ fromUser: fromUser, toUser: toUser, transaction: transaction, payment: payment, job: job })];
+                _g.trys.push([16, 19, , 20]);
+                return [4 /*yield*/, paypal_1.PayPalService.payment.refundPayment(capture_id, amount)];
             case 17:
-                _e.sent();
-                transaction.status == transaction_model_1.TRANSACTION_STATUS.SUCCESSFUL;
-                _e.label = 18;
-            case 18: return [4 /*yield*/, transaction.save()];
+                paypalRefund = _g.sent();
+                return [4 /*yield*/, (0, exports.sendRefundReceiptEmail)({ fromUser: fromUser, toUser: toUser, transaction: transaction, payment: payment, job: job })];
+            case 18:
+                _g.sent();
+                transaction.status = transaction_model_1.TRANSACTION_STATUS.SUCCESSFUL; // Update status
+                logger_1.Logger.info("Paypal refund completed: ".concat(transaction.id), paypalRefund);
+                return [3 /*break*/, 20];
             case 19:
-                _e.sent();
-                return [3 /*break*/, 21];
-            case 20:
-                error_1 = _e.sent();
-                logger_1.Logger.error("Error processing refund transaction: ".concat(transaction.id), error_1);
-                return [3 /*break*/, 21];
+                error_1 = _g.sent();
+                _c = error_1.response.data, name_1 = _c.name, message = _c.message, details = _c.details;
+                // Check for 'CAPTURE_FULLY_REFUNDED' error and handle it
+                if (name_1 === 'UNPROCESSABLE_ENTITY' && details.some(function (detail) { return detail.issue === 'CAPTURE_FULLY_REFUNDED'; })) {
+                    // Set transaction status to SUCCESSFUL to prevent further attempts
+                    transaction.status = transaction_model_1.TRANSACTION_STATUS.SUCCESSFUL;
+                    logger_1.Logger.info("Transaction already fully refunded: ".concat(transaction.id));
+                }
+                else {
+                    throw error_1; // Re-throw other errors
+                }
+                return [3 /*break*/, 20];
+            case 20: return [3 /*break*/, 24];
             case 21:
+                error_2 = _g.sent();
+                logger_1.Logger.error("Error processing refund transaction: ".concat(transaction.id), (_f = error_2.response) === null || _f === void 0 ? void 0 : _f.data);
+                return [3 /*break*/, 24];
+            case 22: 
+            // Ensure transaction is saved regardless of success or failure
+            return [4 /*yield*/, transaction.save()];
+            case 23:
+                // Ensure transaction is saved regardless of success or failure
+                _g.sent();
+                return [7 /*endfinally*/];
+            case 24:
                 _i++;
                 return [3 /*break*/, 2];
-            case 22: return [3 /*break*/, 24];
-            case 23:
-                error_2 = _e.sent();
-                logger_1.Logger.error('Error processing refund transaction:', error_2);
-                return [3 /*break*/, 24];
-            case 24: return [2 /*return*/];
+            case 25: return [3 /*break*/, 27];
+            case 26:
+                error_3 = _g.sent();
+                logger_1.Logger.error('Error processing refund transactions:', error_3);
+                return [3 /*break*/, 27];
+            case 27: return [2 /*return*/];
         }
     });
 }); };
@@ -177,7 +198,7 @@ exports.handleJobRefunds = handleJobRefunds;
 var sendRefundReceiptEmail = function (_a) {
     var fromUser = _a.fromUser, toUser = _a.toUser, transaction = _a.transaction, payment = _a.payment, job = _a.job;
     return __awaiter(void 0, void 0, void 0, function () {
-        var emailSubject, emailContent, html, translatedHtml, translatedSubject, error_3;
+        var emailSubject, emailContent, html, translatedHtml, translatedSubject, error_4;
         return __generator(this, function (_b) {
             switch (_b.label) {
                 case 0:
@@ -199,8 +220,8 @@ var sendRefundReceiptEmail = function (_a) {
                     logger_1.Logger.info("Refund receipt email sent to ".concat(toUser.email));
                     return [3 /*break*/, 6];
                 case 5:
-                    error_3 = _b.sent();
-                    logger_1.Logger.error("Failed to send refund receipt email to ".concat(toUser.email, ":"), error_3);
+                    error_4 = _b.sent();
+                    logger_1.Logger.error("Failed to send refund receipt email to ".concat(toUser.email, ":"), error_4);
                     return [3 /*break*/, 6];
                 case 6: return [2 /*return*/];
             }

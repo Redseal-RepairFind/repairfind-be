@@ -459,7 +459,7 @@ export const getFavoriteContractors = async (req: any, res: Response, next: Next
         const favoriteIds = favorites.map((fav) => fav.contractor);
         let filter: any = { _id: { $in: favoriteIds } };
 
-        const { data, error } = await applyAPIFeature(ContractorModel.find(filter), req.query);
+        const { data, error } = await applyAPIFeature(ContractorModel.find(filter).populate('profile'), req.query);
         return res.status(200).json({ success: true, message: 'Favorite contractors  retrieved', data: data })
     } catch (error: any) {
         next(new BadRequestError('An error occurred', error))

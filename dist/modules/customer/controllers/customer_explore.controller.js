@@ -478,7 +478,7 @@ var getFavoriteContractors = function (req, res, next) { return __awaiter(void 0
                 favorites = _b.sent();
                 favoriteIds = favorites.map(function (fav) { return fav.contractor; });
                 filter = { _id: { $in: favoriteIds } };
-                return [4 /*yield*/, (0, api_feature_1.applyAPIFeature)(contractor_model_1.ContractorModel.find(filter), req.query)];
+                return [4 /*yield*/, (0, api_feature_1.applyAPIFeature)(contractor_model_1.ContractorModel.find(filter).populate('profile'), req.query)];
             case 2:
                 _a = _b.sent(), data = _a.data, error = _a.error;
                 return [2 /*return*/, res.status(200).json({ success: true, message: 'Favorite contractors  retrieved', data: data })];

@@ -56,7 +56,6 @@ router.get("/abuse-reports/:id", adminRoleChecker_middleware_1.checkAdminRole, a
 router.patch("/abuse-reports/:id", admin_validations_middleware_1.Validations.validateAppVersionUpdate, adminRoleChecker_middleware_1.checkAdminRole, admin_report_controller_1.AdminReportController.updateReport);
 // CONTRACTOR
 router.get("/contractors", adminRoleChecker_middleware_1.checkAdminRole, admin_contractors_controller_1.AdminContractorController.exploreContractors); // admin get contractor detail
-router.get("/contractors/stats", adminRoleChecker_middleware_1.checkAdminRole, admin_contractors_controller_1.AdminContractorController.getContractorStats);
 router.get("/contractors/:contractorId", adminRoleChecker_middleware_1.checkAdminRole, admin_contractors_controller_1.AdminContractorController.getSingleContractor); // admin get single contractor detail
 router.get("/contractors/:contractorId/jobs", adminRoleChecker_middleware_1.checkAdminRole, admin_contractors_controller_1.AdminContractorController.getJobHistory); // admin get single contractor detail
 router.get("/contractors/:contractorId/jobs/:jobId", adminRoleChecker_middleware_1.checkAdminRole, admin_contractors_controller_1.AdminContractorController.getSingleJob); // admin get single contractor detail

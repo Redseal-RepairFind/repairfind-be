@@ -59,7 +59,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.AdminContractorController = exports.getContractorStats = exports.issueCoupon = exports.attachCertnId = exports.attachCertnDetails = exports.attachStripeAccount = exports.removeStripeAccount = exports.AdminChangeContractorAccountStatusController = exports.updateAccountStatus = exports.sendCustomEmail = exports.updateGstDetails = exports.getSingleJob = exports.getJobHistory = exports.getSingleContractor = exports.exploreContractors = void 0;
+exports.AdminContractorController = exports.issueCoupon = exports.attachCertnId = exports.attachCertnDetails = exports.attachStripeAccount = exports.removeStripeAccount = exports.AdminChangeContractorAccountStatusController = exports.updateAccountStatus = exports.sendCustomEmail = exports.updateGstDetails = exports.getSingleJob = exports.getJobHistory = exports.getSingleContractor = exports.exploreContractors = void 0;
 var express_validator_1 = require("express-validator");
 var admin_model_1 = __importDefault(require("../../../database/admin/models/admin.model"));
 var contractor_model_1 = require("../../../database/contractor/models/contractor.model");
@@ -80,19 +80,20 @@ var promotion_schema_1 = require("../../../database/common/promotion.schema");
 var coupon_schema_1 = require("../../../database/common/coupon.schema");
 var couponCodeGenerator_1 = require("../../../utils/couponCodeGenerator");
 var exploreContractors = function (req, res) { return __awaiter(void 0, void 0, void 0, function () {
-    var errors, _a, searchName, listing, minDistance, maxDistance, radius, latitude, longitude, emergencyJobs, category, location_1, city, country, address, accountType, date, isOffDuty, availability, experienceYear, gstNumber, _b, page, _c, limit, sort, minResponseTime, maxResponseTime, sortByResponseTime, hasPassedQuiz, gstStatus, stripeAccountStatus, availableDaysArray, skip, toRadians, mergedPipelines, pipeline, _d, sortField, sortOrder, sortStage, result, contractors, metadata, err_1;
+    var errors, _a, searchName, listing, minDistance, maxDistance, radius, latitude, longitude, emergencyJobs, category, location_1, city, country, address, accountType, date, isOffDuty, availability, experienceYear, gstNumber, _b, page, _c, limit, sort, minResponseTime, maxResponseTime, sortByResponseTime, hasPassedQuiz, gstStatus, stripeAccountStatus, startDate, endDate, availableDaysArray, skip, toRadians, mergedPipelines, pipeline, dateFilter, start, end, end, _d, sortField, sortOrder, sortStage, result, contractors, metadata, verifiedCount, unverifiedCount, err_1;
     var _e;
-    return __generator(this, function (_f) {
-        switch (_f.label) {
+    var _f, _g;
+    return __generator(this, function (_h) {
+        switch (_h.label) {
             case 0:
                 errors = (0, express_validator_1.validationResult)(req);
                 if (!errors.isEmpty()) {
                     return [2 /*return*/, res.status(400).json({ errors: errors.array() })];
                 }
-                _f.label = 1;
+                _h.label = 1;
             case 1:
-                _f.trys.push([1, 3, , 4]);
-                _a = req.query, searchName = _a.searchName, listing = _a.listing, minDistance = _a.minDistance, maxDistance = _a.maxDistance, radius = _a.radius, latitude = _a.latitude, longitude = _a.longitude, emergencyJobs = _a.emergencyJobs, category = _a.category, location_1 = _a.location, city = _a.city, country = _a.country, address = _a.address, accountType = _a.accountType, date = _a.date, isOffDuty = _a.isOffDuty, availability = _a.availability, experienceYear = _a.experienceYear, gstNumber = _a.gstNumber, _b = _a.page, page = _b === void 0 ? 1 : _b, _c = _a.limit, limit = _c === void 0 ? 10 : _c, sort = _a.sort, minResponseTime = _a.minResponseTime, maxResponseTime = _a.maxResponseTime, sortByResponseTime = _a.sortByResponseTime, hasPassedQuiz = _a.hasPassedQuiz, gstStatus = _a.gstStatus, stripeAccountStatus = _a.stripeAccountStatus;
+                _h.trys.push([1, 3, , 4]);
+                _a = req.query, searchName = _a.searchName, listing = _a.listing, minDistance = _a.minDistance, maxDistance = _a.maxDistance, radius = _a.radius, latitude = _a.latitude, longitude = _a.longitude, emergencyJobs = _a.emergencyJobs, category = _a.category, location_1 = _a.location, city = _a.city, country = _a.country, address = _a.address, accountType = _a.accountType, date = _a.date, isOffDuty = _a.isOffDuty, availability = _a.availability, experienceYear = _a.experienceYear, gstNumber = _a.gstNumber, _b = _a.page, page = _b === void 0 ? 1 : _b, _c = _a.limit, limit = _c === void 0 ? 10 : _c, sort = _a.sort, minResponseTime = _a.minResponseTime, maxResponseTime = _a.maxResponseTime, sortByResponseTime = _a.sortByResponseTime, hasPassedQuiz = _a.hasPassedQuiz, gstStatus = _a.gstStatus, stripeAccountStatus = _a.stripeAccountStatus, startDate = _a.startDate, endDate = _a.endDate;
                 availableDaysArray = availability ? availability.split(',') : [];
                 skip = (parseInt(page) - 1) * parseInt(limit);
                 toRadians = function (degrees) { return degrees * (Math.PI / 180); };
@@ -161,6 +162,29 @@ var exploreContractors = function (req, res) { return __awaiter(void 0, void 0, 
                         }
                     },
                 ], false);
+                // Date filter
+                if (startDate) {
+                    dateFilter = {};
+                    start = new Date(startDate);
+                    start.setUTCHours(0, 0, 0, 0);
+                    dateFilter.$gte = start;
+                    if (endDate) {
+                        end = new Date(endDate);
+                        end.setUTCHours(23, 59, 59, 999);
+                        dateFilter.$lte = end;
+                    }
+                    if (!endDate) {
+                        end = new Date(startDate);
+                        end.setUTCHours(23, 59, 59, 999);
+                        dateFilter.$lte = end;
+                    }
+                    console.log("Date filter", dateFilter);
+                    pipeline.push({
+                        $match: {
+                            createdAt: dateFilter
+                        }
+                    });
+                }
                 //example filter out who do not have stripe account
                 // pipeline.push({ $match: { "stripeAccountStatus.status": 'active' } })
                 //example filter out employees and contractors 
@@ -272,19 +296,35 @@ var exploreContractors = function (req, res) { return __awaiter(void 0, void 0, 
                             { $count: "totalItems" },
                             { $addFields: { page: page, limit: limit, currentPage: parseInt(page), lastPage: { $ceil: { $divide: ["$totalItems", parseInt(limit)] } }, listing: listing } }
                         ],
-                        data: [{ $skip: skip }, { $limit: parseInt(limit) }]
+                        data: [{ $skip: skip }, { $limit: parseInt(limit) }],
+                        verifiedContractors: [
+                            { $match: { accountStatus: contractor_interface_1.CONTRACTOR_STATUS.APPROVED } },
+                            { $count: "count" }
+                        ],
+                        unverifiedContractors: [
+                            { $match: { accountStatus: { $ne: contractor_interface_1.CONTRACTOR_STATUS.APPROVED } } },
+                            { $count: "count" }
+                        ]
                     }
                 });
                 return [4 /*yield*/, contractor_model_1.ContractorModel.aggregate(pipeline)];
             case 2:
-                result = _f.sent();
+                result = _h.sent();
                 contractors = result[0].data;
                 metadata = result[0].metadata[0];
+                verifiedCount = ((_f = result[0].verifiedContractors[0]) === null || _f === void 0 ? void 0 : _f.count) || 0;
+                unverifiedCount = ((_g = result[0].unverifiedContractors[0]) === null || _g === void 0 ? void 0 : _g.count) || 0;
                 // Send response
-                res.status(200).json({ success: true, data: __assign(__assign({}, metadata), { data: contractors }) });
+                res.status(200).json({
+                    success: true,
+                    data: __assign(__assign({}, metadata), { data: contractors, stats: {
+                            verifiedContractors: verifiedCount,
+                            unVerifiedContractors: unverifiedCount
+                        } })
+                });
                 return [3 /*break*/, 4];
             case 3:
-                err_1 = _f.sent();
+                err_1 = _h.sent();
                 console.error("Error fetching contractors:", err_1);
                 res.status(400).json({ message: 'Something went wrong' });
                 return [3 /*break*/, 4];
@@ -825,50 +865,6 @@ var issueCoupon = function (req, res, next) { return __awaiter(void 0, void 0, v
     });
 }); };
 exports.issueCoupon = issueCoupon;
-var getContractorStats = function (req, res) { return __awaiter(void 0, void 0, void 0, function () {
-    var _a, data, filter, contractorCounts, verifiedCount, unverifiedCount, err_7;
-    var _b, _c;
-    return __generator(this, function (_d) {
-        switch (_d.label) {
-            case 0:
-                _d.trys.push([0, 3, , 4]);
-                return [4 /*yield*/, (0, api_feature_1.applyAPIFeature)(contractor_model_1.ContractorModel.find(), req.query)];
-            case 1:
-                _a = _d.sent(), data = _a.data, filter = _a.filter;
-                return [4 /*yield*/, contractor_model_1.ContractorModel.aggregate([
-                        {
-                            $facet: {
-                                verifiedContractors: [
-                                    { $match: __assign(__assign({}, filter), { accountStatus: contractor_interface_1.CONTRACTOR_STATUS.APPROVED }) },
-                                    { $count: "count" }
-                                ],
-                                unverifiedContractors: [
-                                    { $match: __assign(__assign({}, filter), { accountStatus: { $ne: contractor_interface_1.CONTRACTOR_STATUS.APPROVED } }) },
-                                    { $count: "count" }
-                                ]
-                            }
-                        }
-                    ])];
-            case 2:
-                contractorCounts = _d.sent();
-                verifiedCount = ((_b = contractorCounts[0].verifiedContractors[0]) === null || _b === void 0 ? void 0 : _b.count) || 0;
-                unverifiedCount = ((_c = contractorCounts[0].unverifiedContractors[0]) === null || _c === void 0 ? void 0 : _c.count) || 0;
-                return [2 /*return*/, res.json({
-                        success: true,
-                        message: "Contractor stats retrieved",
-                        data: __assign(__assign({}, data), { stats: {
-                                verifiedContractors: verifiedCount,
-                                unVerifiedContractors: unverifiedCount
-                            } }),
-                    })];
-            case 3:
-                err_7 = _d.sent();
-                return [2 /*return*/, res.status(500).json({ success: false, message: err_7.message })];
-            case 4: return [2 /*return*/];
-        }
-    });
-}); };
-exports.getContractorStats = getContractorStats;
 exports.AdminContractorController = {
     exploreContractors: exports.exploreContractors,
     removeStripeAccount: exports.removeStripeAccount,
@@ -881,6 +877,5 @@ exports.AdminContractorController = {
     sendCustomEmail: exports.sendCustomEmail,
     attachCertnDetails: exports.attachCertnDetails,
     attachCertnId: exports.attachCertnId,
-    issueCoupon: exports.issueCoupon,
-    getContractorStats: exports.getContractorStats
+    issueCoupon: exports.issueCoupon
 };
