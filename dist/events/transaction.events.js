@@ -140,7 +140,7 @@ exports.TransactionEvent.on('ESCROW_TRANSFER_SUCCESSFUL', function (transaction)
                                 case 0: 
                                 //create refund transaction for each payment
                                 return [4 /*yield*/, transaction_model_1.default.create({
-                                        type: transaction_model_1.TRANSACTION_TYPE.REFUND,
+                                        type: transaction_model_1.TRANSACTION_TYPE.ESCROW,
                                         amount: coupon.value,
                                         toUser: coupon.user,
                                         toUserType: coupon.userType,
