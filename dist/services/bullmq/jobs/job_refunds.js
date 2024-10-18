@@ -120,7 +120,9 @@ var handleJobRefunds = function () { return __awaiter(void 0, void 0, void 0, fu
                 return [4 /*yield*/, job_model_1.JobModel.findById(transaction.job)];
             case 12:
                 job = _g.sent();
+                logger_1.Logger.info("Processing refund checking for fromUser ".concat(fromUser === null || fromUser === void 0 ? void 0 : fromUser.id, ", toUser").concat(toUser === null || toUser === void 0 ? void 0 : toUser.id, " and Job ").concat(job === null || job === void 0 ? void 0 : job.id));
                 if (!(fromUser && toUser && job)) return [3 /*break*/, 20];
+                logger_1.Logger.info("Processing found fromUser, toUser and Job");
                 return [4 /*yield*/, payment_schema_1.PaymentModel.findById(transaction.payment)];
             case 13:
                 payment = _g.sent();
@@ -183,7 +185,7 @@ var handleJobRefunds = function () { return __awaiter(void 0, void 0, void 0, fu
             case 23:
                 // Ensure transaction is saved regardless of success or failure
                 _g.sent();
-                logger_1.Logger.info("Processing refund finally", transaction);
+                logger_1.Logger.info("Processing refund finally", [transaction]);
                 return [7 /*endfinally*/];
             case 24:
                 _i++;
