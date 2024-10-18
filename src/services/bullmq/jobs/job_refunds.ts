@@ -12,7 +12,6 @@ import { Logger } from "../../logger";
 import { PayPalService } from "../../paypal";
 import { StripeService } from "../../stripe";
 
-
 export const handleJobRefunds = async () => {
     try {
         const transactions = await TransactionModel.find({
@@ -20,51 +19,69 @@ export const handleJobRefunds = async () => {
             status: TRANSACTION_STATUS.PENDING
         });
 
-
         for (const transaction of transactions) {
             try {
+                const fromUser = (transaction.fromUserType === 'customers') ? 
+                    await CustomerModel.findById(transaction.fromUser) : 
+                    await ContractorModel.findById(transaction.fromUser);
 
-                const fromUser = (transaction.fromUserType == 'customers') ? await CustomerModel.findById(transaction.fromUser) : await ContractorModel.findById(transaction.fromUser)
-                const toUser = (transaction.toUserType == 'customers') ? await CustomerModel.findById(transaction.toUser) : await ContractorModel.findById(transaction.toUser)
-                const job = await JobModel.findById(transaction.job)
+                const toUser = (transaction.toUserType === 'customers') ? 
+                    await CustomerModel.findById(transaction.toUser) : 
+                    await ContractorModel.findById(transaction.toUser);
+
+                const job = await JobModel.findById(transaction.job);
 
                 if (fromUser && toUser && job) {
-                    const payment = await PaymentModel.findById(transaction.payment)
+                    const payment = await PaymentModel.findById(transaction.payment);
                     if (!payment) {
-                        return
+                        continue; // Skip to next transaction if payment not found
                     }
 
-                    if (payment.channel == 'stripe'){
-                        const amount = (transaction.amount * 100)
-                        const charge = payment.charge_id
-                        let metadata: any = transaction.metadata ?? {}
-                        metadata.transactionId = transaction.id
-                        metadata.paymentId = payment.id
-                        const stripePayment = await StripeService.payment.refundCharge(charge, amount, metadata)// convert to cent
+                    if (payment.channel === 'stripe') {
+                        const amount = (transaction.amount * 100);
+                        const charge = payment.charge_id;
+                        let metadata: any = transaction.metadata ?? {};
+                        metadata.transactionId = transaction.id;
+                        metadata.paymentId = payment.id;
+                        await StripeService.payment.refundCharge(charge, amount, metadata); // Refund
+                        transaction.status = TRANSACTION_STATUS.SUCCESSFUL; // Update status
                     }
 
-                    if (payment.channel == 'paypal'){
-                        const amount = (transaction.amount)
-                        const capture_id = payment.capture_id
-                        let metadata: any = transaction.metadata ?? {}
-                        metadata.transactionId = transaction.id
-                        metadata.paymentId = payment.id
-                        const paypalRefund = await PayPalService.payment.refundPayment(capture_id, amount)
-                        await sendRefundReceiptEmail({fromUser, toUser, transaction, payment, job})
-                        transaction.status == TRANSACTION_STATUS.SUCCESSFUL
+                    if (payment.channel === 'paypal') {
+                        const amount = transaction.amount;
+                        const capture_id = payment.capture_id;
+                        let metadata: any = transaction.metadata ?? {};
+                        metadata.transactionId = transaction.id;
+                        metadata.paymentId = payment.id;
+
+                        try {
+                            const paypalRefund = await PayPalService.payment.refundPayment(capture_id, amount);
+                            await sendRefundReceiptEmail({fromUser, toUser, transaction, payment, job});
+                            transaction.status = TRANSACTION_STATUS.SUCCESSFUL; // Update status
+                            Logger.info(`Paypal refund completed: ${transaction.id}`, paypalRefund);
+                        } catch (error: any) {
+                            const { name, message, details } = error.response.data;
+
+                            // Check for 'CAPTURE_FULLY_REFUNDED' error and handle it
+                            if (name === 'UNPROCESSABLE_ENTITY' && details.some((detail: any) => detail.issue === 'CAPTURE_FULLY_REFUNDED')) {
+                                // Set transaction status to SUCCESSFUL to prevent further attempts
+                                transaction.status = TRANSACTION_STATUS.SUCCESSFUL;
+                                Logger.info(`Transaction already fully refunded: ${transaction.id}`);
+                            } else {
+                                throw error; // Re-throw other errors
+                            }
+                        }
                     }
                 }
-
-
-                await transaction.save()
-            } catch (error) {
-                Logger.error(`Error processing refund transaction: ${transaction.id}`, error);
+            } catch (error: any) {
+                Logger.error(`Error processing refund transaction: ${transaction.id}`, error.response?.data);
+            } finally {
+                // Ensure transaction is saved regardless of success or failure
+                await transaction.save();
             }
         }
-
-
     } catch (error) {
-        Logger.error('Error processing refund transaction:', error);
+        Logger.error('Error processing refund transactions:', error);
     }
 };
 
