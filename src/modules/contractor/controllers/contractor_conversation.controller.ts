@@ -10,36 +10,93 @@ import CustomerModel from "../../../database/customer/models/customer.model";
 import mongoose, { Schema } from "mongoose";
 import { ConversationUtil } from "../../../utils/conversation.util";
 
+// export const getConversations = async (req: any, res: Response, next: NextFunction) => {
+//     try {
+//         const { startDate, endDate, read, unread } = req.query;
+//         const contractorId = req.contractor.id;
+//         const filter: any = { 'members.member': contractorId, 'members.memberType': 'contractors', type: CONVERSATION_TYPE.DIRECT_MESSAGE};
+
+//         // Filtering by startDate and endDate
+//         if (startDate && endDate) {
+//             filter.createdAt = { $gte: new Date(startDate as string), $lte: new Date(endDate as string) };
+//         }
+
+//         const {data, error} = await applyAPIFeature(ConversationModel.find(filter).populate('entity'), req.query);
+//         if(data){
+//             // Map through each conversation and fetch heading info
+//             await Promise.all(data.data.map(async (conversation: any) => {
+//                 conversation.heading = await conversation.getHeading(contractorId);
+//                 if(conversation.entityType == 'jobs'){
+//                     conversation.entity.myQuotation = await conversation.entity.getMyQuotation(conversation.entity.id, contractorId);
+//                 }
+//             }));
+//         }
+
+//         res.status(200).json({
+//             success: true, message: "Conversations retrieved", 
+//             data: data
+//         });
+//     } catch (error: any) {
+//         return next(new InternalServerError('An error occurred ', error))
+//     }
+// };
+
+
+
 export const getConversations = async (req: any, res: Response, next: NextFunction) => {
     try {
         const { startDate, endDate, read, unread } = req.query;
         const contractorId = req.contractor.id;
-        const filter: any = { 'members.member': contractorId, 'members.memberType': 'contractors', type: CONVERSATION_TYPE.DIRECT_MESSAGE};
+        const filter: any = { 
+            'members.member': contractorId, 
+            'members.memberType': 'contractors', 
+            type: CONVERSATION_TYPE.DIRECT_MESSAGE 
+        };
 
         // Filtering by startDate and endDate
         if (startDate && endDate) {
             filter.createdAt = { $gte: new Date(startDate as string), $lte: new Date(endDate as string) };
         }
 
-        const {data, error} = await applyAPIFeature(ConversationModel.find(filter).populate('entity'), req.query);
-        if(data){
-            // Map through each conversation and fetch heading info
-            await Promise.all(data.data.map(async (conversation: any) => {
-                conversation.heading = await conversation.getHeading(contractorId);
-                if(conversation.entityType == 'jobs'){
-                    conversation.entity.myQuotation = await conversation.entity.getMyQuotation(conversation.entity.id, contractorId);
+        const { data, error } = await applyAPIFeature(ConversationModel.find(filter).populate('entity'), req.query);
+
+        if (data) {
+            // Map through each conversation, fetch heading info, and handle entity-specific logic
+            const filteredConversations = await Promise.all(data.data.map(async (conversation: any) => {
+                try {
+                    // Get heading
+                    conversation.heading = await conversation.getHeading(contractorId);
+
+                    // Get quotation if the entityType is 'jobs'
+                    if (conversation.entityType === 'jobs' && conversation.entity) {
+                        conversation.entity.myQuotation = await conversation.entity.getMyQuotation(conversation.entity.id, contractorId);
+                    }
+
+                    return conversation;
+                } catch (err) {
+                    console.error('Error processing conversation:', err);
+                    return null;  // Return null if an error occurs in fetching data for that conversation
                 }
             }));
+
+            // Filter out conversations without a heading or failed processing
+            const conversationsWithHeading = filteredConversations.filter((conversation: any) => conversation && conversation.heading);
+
+            // Replace data with filtered conversations
+            data.data = conversationsWithHeading;
         }
 
         res.status(200).json({
-            success: true, message: "Conversations retrieved", 
+            success: true, 
+            message: "Conversations retrieved", 
             data: data
         });
     } catch (error: any) {
-        return next(new InternalServerError('An error occurred ', error))
+        return next(new InternalServerError('An error occurred while retrieving conversations', error));
     }
 };
+
+
 
 export const getSingleConversation = async (req: any, res: Response, next: NextFunction)=> {
     try {

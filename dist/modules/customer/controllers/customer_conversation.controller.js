@@ -45,7 +45,7 @@ var events_1 = require("../../../events");
 var custom_errors_1 = require("../../../utils/custom.errors");
 var conversation_util_1 = require("../../../utils/conversation.util");
 var getConversations = function (req, res) { return __awaiter(void 0, void 0, void 0, function () {
-    var _a, startDate, endDate, read, unread, customerId_1, filter, _b, data, error, error_1;
+    var _a, startDate, endDate, read, unread, customerId_1, filter, _b, data, error, filteredConversations, conversationsWithHeading, error_1;
     return __generator(this, function (_c) {
         switch (_c.label) {
             case 0:
@@ -61,7 +61,6 @@ var getConversations = function (req, res) { return __awaiter(void 0, void 0, vo
             case 1:
                 _b = _c.sent(), data = _b.data, error = _b.error;
                 if (!data) return [3 /*break*/, 3];
-                // Map through each conversation and fetch heading info
                 return [4 /*yield*/, Promise.all(data.data.map(function (conversation) { return __awaiter(void 0, void 0, void 0, function () {
                         var _a;
                         return __generator(this, function (_b) {
@@ -71,23 +70,25 @@ var getConversations = function (req, res) { return __awaiter(void 0, void 0, vo
                                     return [4 /*yield*/, conversation.getHeading(customerId_1)];
                                 case 1:
                                     _a.heading = _b.sent();
-                                    return [2 /*return*/];
+                                    return [2 /*return*/, conversation];
                             }
                         });
                     }); }))];
             case 2:
-                // Map through each conversation and fetch heading info
-                _c.sent();
+                filteredConversations = _c.sent();
+                conversationsWithHeading = filteredConversations.filter(function (conversation) { return conversation.heading; });
+                data.data = conversationsWithHeading; // Replace data with filtered conversations
                 _c.label = 3;
             case 3:
                 res.status(200).json({
-                    success: true, message: "Conversations retrieved",
+                    success: true,
+                    message: "Conversations retrieved",
                     data: data
                 });
                 return [3 /*break*/, 5];
             case 4:
                 error_1 = _c.sent();
-                console.error("Error fetching notifications:", error_1);
+                console.error("Error fetching conversations:", error_1);
                 res.status(500).json({ success: false, message: "Server error" });
                 return [3 /*break*/, 5];
             case 5: return [2 /*return*/];

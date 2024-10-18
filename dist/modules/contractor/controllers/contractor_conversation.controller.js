@@ -50,15 +50,46 @@ var contractor_model_1 = require("../../../database/contractor/models/contractor
 var customer_model_1 = __importDefault(require("../../../database/customer/models/customer.model"));
 var mongoose_1 = __importDefault(require("mongoose"));
 var conversation_util_1 = require("../../../utils/conversation.util");
+// export const getConversations = async (req: any, res: Response, next: NextFunction) => {
+//     try {
+//         const { startDate, endDate, read, unread } = req.query;
+//         const contractorId = req.contractor.id;
+//         const filter: any = { 'members.member': contractorId, 'members.memberType': 'contractors', type: CONVERSATION_TYPE.DIRECT_MESSAGE};
+//         // Filtering by startDate and endDate
+//         if (startDate && endDate) {
+//             filter.createdAt = { $gte: new Date(startDate as string), $lte: new Date(endDate as string) };
+//         }
+//         const {data, error} = await applyAPIFeature(ConversationModel.find(filter).populate('entity'), req.query);
+//         if(data){
+//             // Map through each conversation and fetch heading info
+//             await Promise.all(data.data.map(async (conversation: any) => {
+//                 conversation.heading = await conversation.getHeading(contractorId);
+//                 if(conversation.entityType == 'jobs'){
+//                     conversation.entity.myQuotation = await conversation.entity.getMyQuotation(conversation.entity.id, contractorId);
+//                 }
+//             }));
+//         }
+//         res.status(200).json({
+//             success: true, message: "Conversations retrieved", 
+//             data: data
+//         });
+//     } catch (error: any) {
+//         return next(new InternalServerError('An error occurred ', error))
+//     }
+// };
 var getConversations = function (req, res, next) { return __awaiter(void 0, void 0, void 0, function () {
-    var _a, startDate, endDate, read, unread, contractorId_1, filter, _b, data, error, error_1;
+    var _a, startDate, endDate, read, unread, contractorId_1, filter, _b, data, error, filteredConversations, conversationsWithHeading, error_1;
     return __generator(this, function (_c) {
         switch (_c.label) {
             case 0:
                 _c.trys.push([0, 4, , 5]);
                 _a = req.query, startDate = _a.startDate, endDate = _a.endDate, read = _a.read, unread = _a.unread;
                 contractorId_1 = req.contractor.id;
-                filter = { 'members.member': contractorId_1, 'members.memberType': 'contractors', type: conversations_schema_1.CONVERSATION_TYPE.DIRECT_MESSAGE };
+                filter = {
+                    'members.member': contractorId_1,
+                    'members.memberType': 'contractors',
+                    type: conversations_schema_1.CONVERSATION_TYPE.DIRECT_MESSAGE
+                };
                 // Filtering by startDate and endDate
                 if (startDate && endDate) {
                     filter.createdAt = { $gte: new Date(startDate), $lte: new Date(endDate) };
@@ -67,39 +98,49 @@ var getConversations = function (req, res, next) { return __awaiter(void 0, void
             case 1:
                 _b = _c.sent(), data = _b.data, error = _b.error;
                 if (!data) return [3 /*break*/, 3];
-                // Map through each conversation and fetch heading info
                 return [4 /*yield*/, Promise.all(data.data.map(function (conversation) { return __awaiter(void 0, void 0, void 0, function () {
-                        var _a, _b;
+                        var _a, _b, err_1;
                         return __generator(this, function (_c) {
                             switch (_c.label) {
                                 case 0:
+                                    _c.trys.push([0, 4, , 5]);
+                                    // Get heading
                                     _a = conversation;
                                     return [4 /*yield*/, conversation.getHeading(contractorId_1)];
                                 case 1:
+                                    // Get heading
                                     _a.heading = _c.sent();
-                                    if (!(conversation.entityType == 'jobs')) return [3 /*break*/, 3];
+                                    if (!(conversation.entityType === 'jobs' && conversation.entity)) return [3 /*break*/, 3];
                                     _b = conversation.entity;
                                     return [4 /*yield*/, conversation.entity.getMyQuotation(conversation.entity.id, contractorId_1)];
                                 case 2:
                                     _b.myQuotation = _c.sent();
                                     _c.label = 3;
-                                case 3: return [2 /*return*/];
+                                case 3: return [2 /*return*/, conversation];
+                                case 4:
+                                    err_1 = _c.sent();
+                                    console.error('Error processing conversation:', err_1);
+                                    return [2 /*return*/, null]; // Return null if an error occurs in fetching data for that conversation
+                                case 5: return [2 /*return*/];
                             }
                         });
                     }); }))];
             case 2:
-                // Map through each conversation and fetch heading info
-                _c.sent();
+                filteredConversations = _c.sent();
+                conversationsWithHeading = filteredConversations.filter(function (conversation) { return conversation && conversation.heading; });
+                // Replace data with filtered conversations
+                data.data = conversationsWithHeading;
                 _c.label = 3;
             case 3:
                 res.status(200).json({
-                    success: true, message: "Conversations retrieved",
+                    success: true,
+                    message: "Conversations retrieved",
                     data: data
                 });
                 return [3 /*break*/, 5];
             case 4:
                 error_1 = _c.sent();
-                return [2 /*return*/, next(new custom_errors_1.InternalServerError('An error occurred ', error_1))];
+                return [2 /*return*/, next(new custom_errors_1.InternalServerError('An error occurred while retrieving conversations', error_1))];
             case 5: return [2 /*return*/];
         }
     });
@@ -303,7 +344,7 @@ var markAllMessagesAsRead = function (req, res, next) { return __awaiter(void 0,
 }); };
 exports.markAllMessagesAsRead = markAllMessagesAsRead;
 var startConversation = function (req, res, next) { return __awaiter(void 0, void 0, void 0, function () {
-    var _a, userId, userType, message, fromUserId, fromUser, user, _b, conversationMembers, conversation, err_1;
+    var _a, userId, userType, message, fromUserId, fromUser, user, _b, conversationMembers, conversation, err_2;
     return __generator(this, function (_c) {
         switch (_c.label) {
             case 0:
@@ -351,8 +392,8 @@ var startConversation = function (req, res, next) { return __awaiter(void 0, voi
                 res.status(200).json({ message: 'Conversation created', data: conversation });
                 return [3 /*break*/, 8];
             case 7:
-                err_1 = _c.sent();
-                res.status(500).json({ message: err_1.message });
+                err_2 = _c.sent();
+                res.status(500).json({ message: err_2.message });
                 return [3 /*break*/, 8];
             case 8: return [2 /*return*/];
         }

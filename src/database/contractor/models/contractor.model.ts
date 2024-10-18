@@ -606,7 +606,6 @@ ContractorSchema.pre('findOneAndUpdate', async function (next) {
 
 
 
-
 ContractorSchema.plugin(MongooseDelete, { deletedBy: true, overrideMethods: 'all' });
 
 
