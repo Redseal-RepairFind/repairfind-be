@@ -120,16 +120,13 @@ var handleJobRefunds = function () { return __awaiter(void 0, void 0, void 0, fu
                 return [4 /*yield*/, job_model_1.JobModel.findById(transaction.job)];
             case 12:
                 job = _g.sent();
-                logger_1.Logger.info("Processing refund checking for fromUser ".concat(fromUser === null || fromUser === void 0 ? void 0 : fromUser.id, ", toUser").concat(toUser === null || toUser === void 0 ? void 0 : toUser.id, " and Job ").concat(job === null || job === void 0 ? void 0 : job.id));
-                if (!(fromUser && toUser && job)) return [3 /*break*/, 20];
-                logger_1.Logger.info("Processing found fromUser, toUser and Job");
+                logger_1.Logger.info("Processing refund checking for fromUser ".concat(fromUser === null || fromUser === void 0 ? void 0 : fromUser.id, ", toUser ").concat(toUser === null || toUser === void 0 ? void 0 : toUser.id, " and Job ").concat(job === null || job === void 0 ? void 0 : job.id));
+                if (!(toUser && job)) return [3 /*break*/, 20];
                 return [4 /*yield*/, payment_schema_1.PaymentModel.findById(transaction.payment)];
             case 13:
                 payment = _g.sent();
-                if (!payment) {
-                    logger_1.Logger.error("Error processing refund transaction: Payment not found");
+                if (!payment)
                     return [3 /*break*/, 24]; // Skip to next transaction if payment not found
-                }
                 if (!(payment.channel === 'stripe')) return [3 /*break*/, 15];
                 amount = (transaction.amount * 100);
                 charge = payment.charge_id;
@@ -143,7 +140,6 @@ var handleJobRefunds = function () { return __awaiter(void 0, void 0, void 0, fu
                 _g.label = 15;
             case 15:
                 if (!(payment.channel === 'paypal')) return [3 /*break*/, 20];
-                logger_1.Logger.info("Error processing refund transaction: Payment is paypal");
                 amount = transaction.amount;
                 capture_id = payment.capture_id;
                 metadata = (_e = transaction.metadata) !== null && _e !== void 0 ? _e : {};
@@ -155,7 +151,7 @@ var handleJobRefunds = function () { return __awaiter(void 0, void 0, void 0, fu
                 return [4 /*yield*/, paypal_1.PayPalService.payment.refundPayment(capture_id, amount)];
             case 17:
                 paypalRefund = _g.sent();
-                return [4 /*yield*/, (0, exports.sendRefundReceiptEmail)({ fromUser: fromUser, toUser: toUser, transaction: transaction, payment: payment, job: job })];
+                return [4 /*yield*/, (0, exports.sendRefundReceiptEmail)({ toUser: toUser, transaction: transaction, payment: payment, job: job })];
             case 18:
                 _g.sent();
                 transaction.status = transaction_model_1.TRANSACTION_STATUS.SUCCESSFUL; // Update status
@@ -185,7 +181,6 @@ var handleJobRefunds = function () { return __awaiter(void 0, void 0, void 0, fu
             case 23:
                 // Ensure transaction is saved regardless of success or failure
                 _g.sent();
-                logger_1.Logger.info("Processing refund finally", [transaction]);
                 return [7 /*endfinally*/];
             case 24:
                 _i++;
@@ -201,7 +196,7 @@ var handleJobRefunds = function () { return __awaiter(void 0, void 0, void 0, fu
 }); };
 exports.handleJobRefunds = handleJobRefunds;
 var sendRefundReceiptEmail = function (_a) {
-    var fromUser = _a.fromUser, toUser = _a.toUser, transaction = _a.transaction, payment = _a.payment, job = _a.job;
+    var toUser = _a.toUser, transaction = _a.transaction, payment = _a.payment, job = _a.job;
     return __awaiter(void 0, void 0, void 0, function () {
         var emailSubject, emailContent, html, translatedHtml, translatedSubject, error_4;
         return __generator(this, function (_b) {

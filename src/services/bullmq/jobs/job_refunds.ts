@@ -31,18 +31,13 @@ export const handleJobRefunds = async () => {
 
                 const job = await JobModel.findById(transaction.job);
 
-                Logger.info(`Processing refund checking for fromUser ${fromUser?.id}, toUser${toUser?.id} and Job ${job?.id}`);
+                Logger.info(`Processing refund checking for fromUser ${fromUser?.id}, toUser ${toUser?.id} and Job ${job?.id}`);
 
-                if (fromUser && toUser && job) {
-
-                    Logger.info(`Processing found fromUser, toUser and Job`);
+                if ( toUser && job) {
 
                     const payment = await PaymentModel.findById(transaction.payment);
-                    if (!payment) {
-                        Logger.error(`Error processing refund transaction: Payment not found`);
-                        continue; // Skip to next transaction if payment not found
-                    }
-
+                    if (!payment) continue; // Skip to next transaction if payment not found
+                    
                     if (payment.channel === 'stripe') {
                         const amount = (transaction.amount * 100);
                         const charge = payment.charge_id;
@@ -54,7 +49,6 @@ export const handleJobRefunds = async () => {
                     }
 
                     if (payment.channel === 'paypal') {
-                        Logger.info(`Error processing refund transaction: Payment is paypal`);
                         const amount = transaction.amount;
                         const capture_id = payment.capture_id;
                         let metadata: any = transaction.metadata ?? {};
@@ -63,7 +57,7 @@ export const handleJobRefunds = async () => {
 
                         try {
                             const paypalRefund = await PayPalService.payment.refundPayment(capture_id, amount);
-                            await sendRefundReceiptEmail({fromUser, toUser, transaction, payment, job});
+                            await sendRefundReceiptEmail({toUser, transaction, payment, job});
                             transaction.status = TRANSACTION_STATUS.SUCCESSFUL; // Update status
                             Logger.info(`Paypal refund completed: ${transaction.id}`, paypalRefund);
                         } catch (error: any) {
@@ -85,7 +79,6 @@ export const handleJobRefunds = async () => {
             } finally {
                 // Ensure transaction is saved regardless of success or failure
                 await transaction.save();
-                Logger.info(`Processing refund finally`, [transaction]);
             }
         }
     } catch (error) {
@@ -96,13 +89,11 @@ export const handleJobRefunds = async () => {
 
 
 export const sendRefundReceiptEmail = async ({
-    fromUser,
     toUser,
     transaction,
     payment,
     job
 }: {
-    fromUser: ICustomer | IContractor;
     toUser: ICustomer | IContractor;
     transaction: ITransaction;
     payment: IPayment;
