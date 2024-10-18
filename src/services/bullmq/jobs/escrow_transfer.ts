@@ -94,7 +94,6 @@ const sendEscrowTransferEmail = async (contractor: IContractor, transaction: any
         <p><strong>Job Description:</strong> ${transaction.jobDescription}</p>
         <p><strong>Transaction Amount:</strong> $${transaction.amount.toFixed(2)}</p>
         <p><strong>Payment Method:</strong> ${payment.channel === 'stripe' ? 'Stripe' : 'PayPal'}</p>
-        <p><strong>Transfer Details:</strong> ${JSON.stringify(transferDetails)}</p>
         <p style="color: #333333;">Thank you for using RepairFind!</p>
         <p style="color: #333333;">If you have any issues, feel free to contact us via support.</p>
     `;
