@@ -34,6 +34,7 @@ export const handleJobRefunds = async () => {
                 if (fromUser && toUser && job) {
                     const payment = await PaymentModel.findById(transaction.payment);
                     if (!payment) {
+                        Logger.error(`Error processing refund transaction: Payment not found`);
                         continue; // Skip to next transaction if payment not found
                     }
 
@@ -48,6 +49,7 @@ export const handleJobRefunds = async () => {
                     }
 
                     if (payment.channel === 'paypal') {
+                        Logger.info(`Error processing refund transaction: Payment is paypal`);
                         const amount = transaction.amount;
                         const capture_id = payment.capture_id;
                         let metadata: any = transaction.metadata ?? {};

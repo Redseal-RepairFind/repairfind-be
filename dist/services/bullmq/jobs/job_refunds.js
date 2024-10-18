@@ -125,6 +125,7 @@ var handleJobRefunds = function () { return __awaiter(void 0, void 0, void 0, fu
             case 13:
                 payment = _g.sent();
                 if (!payment) {
+                    logger_1.Logger.error("Error processing refund transaction: Payment not found");
                     return [3 /*break*/, 24]; // Skip to next transaction if payment not found
                 }
                 if (!(payment.channel === 'stripe')) return [3 /*break*/, 15];
@@ -140,6 +141,7 @@ var handleJobRefunds = function () { return __awaiter(void 0, void 0, void 0, fu
                 _g.label = 15;
             case 15:
                 if (!(payment.channel === 'paypal')) return [3 /*break*/, 20];
+                logger_1.Logger.info("Error processing refund transaction: Payment is paypal");
                 amount = transaction.amount;
                 capture_id = payment.capture_id;
                 metadata = (_e = transaction.metadata) !== null && _e !== void 0 ? _e : {};
