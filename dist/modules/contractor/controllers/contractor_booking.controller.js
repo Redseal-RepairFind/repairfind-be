@@ -90,6 +90,8 @@ var transaction_model_1 = __importStar(require("../../../database/common/transac
 var job_util_1 = require("../../../utils/job.util");
 var notification_util_1 = require("../../../utils/notification.util");
 var socket_1 = require("../../../services/socket");
+var conversation_util_1 = require("../../../utils/conversation.util");
+var messages_schema_1 = require("../../../database/common/messages.schema");
 var getMyBookings = function (req, res, next) { return __awaiter(void 0, void 0, void 0, function () {
     var errors, _a, _b, limit, _c, page, _d, sort, customerId, status_1, startDate, endDate, date, type, contractorId_1, filter, statuses, start, end, selectedDate, startOfDay_1, endOfDay, _e, data, error, error_1;
     return __generator(this, function (_f) {
@@ -592,12 +594,12 @@ var assignJob = function (req, res, next) { return __awaiter(void 0, void 0, voi
 }); };
 exports.assignJob = assignJob;
 var cancelBooking = function (req, res, next) { return __awaiter(void 0, void 0, void 0, function () {
-    var contractorId, bookingId, reason, job_1, _a, contractor, contract, newReview, foundIndex, jobDate, charges, paymentType, payments, currentTime, timeDifferenceInHours, refundPolicy, _i, _b, payment, refund, error_8;
+    var contractorId, bookingId, reason, job_1, _a, contractor, contract, newReview, foundIndex, jobDate, charges, paymentType, payments, currentTime, timeDifferenceInHours, refundPolicy, _i, _b, payment, refund, conversation, newMessage, error_8;
     var _c;
     return __generator(this, function (_d) {
         switch (_d.label) {
             case 0:
-                _d.trys.push([0, 12, , 13]);
+                _d.trys.push([0, 15, , 16]);
                 contractorId = req.contractor.id;
                 bookingId = req.params.bookingId;
                 reason = req.body.reason;
@@ -735,12 +737,39 @@ var cancelBooking = function (req, res, next) { return __awaiter(void 0, void 0,
                 _i++;
                 return [3 /*break*/, 8];
             case 11:
-                res.json({ success: true, message: 'Booking canceled successfully', data: job_1 });
-                return [3 /*break*/, 13];
+                // Update the job status to canceled
+                job_1.status = job_model_1.JOB_STATUS.CANCELED;
+                job_1.jobHistory.push({
+                    eventType: 'JOB_CANCELED',
+                    timestamp: new Date(),
+                    payload: { reason: reason, canceledBy: 'contractor' }
+                });
+                return [4 /*yield*/, job_1.save()];
             case 12:
+                _d.sent();
+                events_1.JobEvent.emit('JOB_CANCELED', { job: job_1, canceledBy: 'contractor' });
+                return [4 /*yield*/, conversation_util_1.ConversationUtil.updateOrCreateConversation(contractorId, 'contractors', job_1.customer, 'customers')];
+            case 13:
+                conversation = _d.sent();
+                return [4 /*yield*/, messages_schema_1.MessageModel.create({
+                        conversation: conversation.id,
+                        sender: job_1.contractor,
+                        senderType: 'contractors',
+                        message: "Job canceled by contractor: ".concat(contractor.name),
+                        messageType: messages_schema_1.MessageType.ALERT,
+                        createdAt: new Date(),
+                        entity: job_1.id,
+                        entityType: 'jobs'
+                    })];
+            case 14:
+                newMessage = _d.sent();
+                events_1.ConversationEvent.emit('NEW_MESSAGE', { message: newMessage });
+                res.json({ success: true, message: 'Booking canceled successfully', data: job_1 });
+                return [3 /*break*/, 16];
+            case 15:
                 error_8 = _d.sent();
                 return [2 /*return*/, next(new custom_errors_1.BadRequestError('An error occurred', error_8))];
-            case 13: return [2 /*return*/];
+            case 16: return [2 /*return*/];
         }
     });
 }); };

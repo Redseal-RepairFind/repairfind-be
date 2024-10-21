@@ -1096,7 +1096,6 @@ exports.JobEvent.on('JOB_RESCHEDULE_DECLINED_ACCEPTED', function (payload) {
         });
     });
 });
-// TODO: Separate this - so I ca translate, break the actions into individual events
 exports.JobEvent.on('NEW_JOB_RESCHEDULE_REQUEST', function (payload) {
     var _a, _b, _c, _d;
     return __awaiter(this, void 0, void 0, function () {

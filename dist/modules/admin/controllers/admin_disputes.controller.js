@@ -319,10 +319,10 @@ var createDisputeRefund = function (req, res, next) { return __awaiter(void 0, v
                             .status(400)
                             .json({ success: false, message: "Disputed Job not found" })];
                 }
-                if (job.status == job_model_1.JOB_STATUS.REFUNDED) {
+                if (job.status == job_model_1.JOB_STATUS.CANCELED) {
                     return [2 /*return*/, res
                             .status(401)
-                            .json({ success: false, message: "Job is already refunded" })];
+                            .json({ success: false, message: "Job is already canceled" })];
                 }
                 if (jobDispute.arbitrator != adminId) {
                     return [2 /*return*/, res
@@ -386,7 +386,7 @@ var createDisputeRefund = function (req, res, next) { return __awaiter(void 0, v
                 return [3 /*break*/, 5];
             case 8:
                 // Update the job status to canceled
-                job.status = job_model_1.JOB_STATUS.REFUNDED;
+                job.status = job_model_1.JOB_STATUS.CANCELED;
                 job.jobHistory.push({
                     eventType: 'JOB_DISPUTE_REFUND',
                     timestamp: new Date(),
@@ -438,10 +438,10 @@ var markJobAsComplete = function (req, res, next) { return __awaiter(void 0, voi
                 if (job.status === job_model_1.JOB_STATUS.COMPLETED) {
                     return [2 /*return*/, res.status(400).json({ success: false, message: 'The booking is already marked as complete' })];
                 }
-                if (job.status == job_model_1.JOB_STATUS.REFUNDED) {
+                if (job.status == job_model_1.JOB_STATUS.CANCELED) {
                     return [2 /*return*/, res
                             .status(401)
-                            .json({ success: false, message: "Job is already refunded" })];
+                            .json({ success: false, message: "Job is already canceled" })];
                 }
                 jobStatus = (job.schedule.type == job_model_1.JOB_SCHEDULE_TYPE.SITE_VISIT) ? job_model_1.JOB_STATUS.COMPLETED_SITE_VISIT : job_model_1.JOB_STATUS.COMPLETED;
                 job.statusUpdate = __assign(__assign({}, job.statusUpdate), { status: jobStatus, isCustomerAccept: true, awaitingConfirmation: false });
@@ -513,10 +513,10 @@ var enableRevisit = function (req, res, next) { return __awaiter(void 0, void 0,
                 if (job.status === job_model_1.JOB_STATUS.COMPLETED) {
                     return [2 /*return*/, res.status(400).json({ success: false, message: 'The booking is already marked as complete' })];
                 }
-                if (job.status == job_model_1.JOB_STATUS.REFUNDED) {
+                if (job.status == job_model_1.JOB_STATUS.CANCELED) {
                     return [2 /*return*/, res
                             .status(401)
-                            .json({ success: false, message: "Job is already refunded" })];
+                            .json({ success: false, message: "Job is already canceled" })];
                 }
                 job.revisitEnabled = true;
                 // job.status = JOB_STATUS.BOOKED 

@@ -885,7 +885,7 @@ var requestBookingRefund = function (req, res, next) { return __awaiter(void 0, 
                 return [3 /*break*/, 5];
             case 8:
                 // Update the job status to canceled
-                job.status = job_model_1.JOB_STATUS.REFUNDED;
+                job.status = job_model_1.JOB_STATUS.CANCELED;
                 job.jobHistory.push({
                     eventType: 'JOB_PAYMENT_REFUNDED',
                     timestamp: new Date(),

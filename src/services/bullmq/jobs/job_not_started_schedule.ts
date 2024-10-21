@@ -1,9 +1,12 @@
 import { CertnService, NotificationService } from "../..";
 import { IJob, JOB_SCHEDULE_REMINDER, JOB_STATUS, JobModel } from "../../../database/common/job.model";
+import { JobQuotationModel } from "../../../database/common/job_quotation.model";
+import TransactionModel, { TRANSACTION_STATUS, TRANSACTION_TYPE } from "../../../database/common/transaction.model";
 import { IContractor, IContractorCertnDetails } from "../../../database/contractor/interface/contractor.interface";
 import { ContractorModel } from "../../../database/contractor/models/contractor.model";
 import { ICustomer } from "../../../database/customer/interface/customer.interface";
 import CustomerModel from "../../../database/customer/models/customer.model";
+import { JobEvent } from "../../../events";
 import { i18n } from "../../../i18n";
 import { Logger } from "../../logger";
 
@@ -19,17 +22,14 @@ export const jobNotStartedScheduleCheck = async () => {
             try {
                 const customer = await CustomerModel.findById(job.customer);
                 const contractor = await ContractorModel.findById(job.contractor);
-
+                const contract = await JobQuotationModel.findById(job?.contract)
                 const currentDate = new Date();
                 const jobStartDate = new Date(job.schedule.startDate);
 
                 const timeDifference = jobStartDate.getTime() - currentDate.getTime();
                 const daysDifference = Math.floor(timeDifference / (1000 * 60 * 60 * 24));
                 const hourDifference = Math.floor(timeDifference / (1000 * 60 * 60));
-                const minuteDifference = Math.floor(timeDifference / (1000 * 60));
-
                 const formattedJobStartDate = `${jobStartDate.toDateString()} at ${get12HourFormat(jobStartDate)}`;
-
 
                 if (customer && contractor) {
 
@@ -71,14 +71,63 @@ export const jobNotStartedScheduleCheck = async () => {
                     
                     if (daysDifference <= -1) {
                         if (!job.reminders.includes(JOB_SCHEDULE_REMINDER.NOT_STARTED)) {
-                            job.status = JOB_STATUS.NOT_STARTED;
+                           
                             job.reminders.push(JOB_SCHEDULE_REMINDER.NOT_STARTED);
                             await Promise.all([
-                                sendReminderContractor(customer, contractor, job, `Your job with ${customer.name} scheduled for yesterday: ${formattedJobStartDate} was not started`),
-                                sendReminderCustomer(customer, contractor, job, `Your job with ${contractor.name} scheduled for yesterday: ${formattedJobStartDate} was not started`),
+                                sendReminderContractor(customer, contractor, job, `Your job with ${customer.name} scheduled for yesterday: ${formattedJobStartDate} was not started a refund has been triggered as part of our NO SHOW policy`),
+                                sendReminderCustomer(customer, contractor, job, `Your job with ${contractor.name} scheduled for yesterday: ${formattedJobStartDate} was not started a refund has been triggered as part of our NO SHOW policy`),
                                 job.save()
                             ])
 
+                            // create refund transaction here
+                            const charges = await contract?.calculateCharges()
+                            const payments = await job.getPayments()
+                            const refundPolicy = {name: 'free_refund', fee: 0 }
+                            for (const payment of payments.payments) {
+                                if (payment.refunded) continue
+                                
+                                let refund = {
+                                    refundAmount: payment.amount - refundPolicy.fee,
+                                    totalAmount: payment.amount,
+                                    fee: refundPolicy.fee,
+                                    contractorAmount: 0,
+                                    companyAmount: 0,
+                                    initiatedBy: 'no_show',
+                                    policyApplied: refundPolicy.name,
+                                };
+                    
+                                //create refund transaction - 
+                                await TransactionModel.create({
+                                    type: TRANSACTION_TYPE.REFUND,
+                                    amount: refund.refundAmount,
+                                    initiatorUser: job.customer,
+                                    initiatorUserType: 'customers',
+                                    fromUser: job.contractor,
+                                    fromUserType: 'contractors',
+                                    toUser: job.customer,
+                                    toUserType: 'customers',
+                                    description: `Refund from job: ${job?.title} payment`,
+                                    status: TRANSACTION_STATUS.PENDING,
+                                    remark: 'job_refund',
+                                    invoice: {
+                                        items: [],
+                                        charges: charges,
+                                        refund: refund
+                                    },
+                                    metadata: {
+                                        ...refund,
+                                        payment: payment.id.toString(),
+                                        charge: payment.charge
+                                    },
+                                    job: job.id,
+                                    payment: payment.id
+                                })
+
+                                //TODO: Refund transaction can be moved to  JOB_REFUND_REQUESTED, possibly change the name to JOB_REFUND_CREATED
+                                JobEvent.emit('JOB_REFUND_REQUESTED', { job, payment, refund })
+                            }
+
+                            job.status = JOB_STATUS.CANCELED;
                         }
                         continue;
                     }

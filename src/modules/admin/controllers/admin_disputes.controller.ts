@@ -278,10 +278,10 @@ export const createDisputeRefund = async (
     }
 
 
-    if (job.status == JOB_STATUS.REFUNDED) {
+    if (job.status == JOB_STATUS.CANCELED) {
       return res
         .status(401)
-        .json({ success: false, message: "Job is already refunded" });
+        .json({ success: false, message: "Job is already canceled" });
     }
 
 
@@ -348,7 +348,7 @@ export const createDisputeRefund = async (
     }
 
     // Update the job status to canceled
-    job.status = JOB_STATUS.REFUNDED;
+    job.status = JOB_STATUS.CANCELED;
 
     job.jobHistory.push({
       eventType: 'JOB_DISPUTE_REFUND',
@@ -401,10 +401,10 @@ export const markJobAsComplete = async (req: any, res: Response, next: NextFunct
     }
 
 
-    if (job.status == JOB_STATUS.REFUNDED) {
+    if (job.status == JOB_STATUS.CANCELED) {
       return res
         .status(401)
-        .json({ success: false, message: "Job is already refunded" });
+        .json({ success: false, message: "Job is already canceled" });
     }
 
     const jobStatus = (job.schedule.type == JOB_SCHEDULE_TYPE.SITE_VISIT) ? JOB_STATUS.COMPLETED_SITE_VISIT : JOB_STATUS.COMPLETED
@@ -479,10 +479,10 @@ export const enableRevisit = async (req: any, res: Response, next: NextFunction)
     }
 
 
-    if (job.status == JOB_STATUS.REFUNDED) {
+    if (job.status == JOB_STATUS.CANCELED) {
       return res
         .status(401)
-        .json({ success: false, message: "Job is already refunded" });
+        .json({ success: false, message: "Job is already canceled" });
     }
 
     job.revisitEnabled = true

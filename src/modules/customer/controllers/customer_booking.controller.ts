@@ -732,7 +732,6 @@ export const cancelBooking = async (req: any, res: Response, next: NextFunction)
 
             // emit event here
             JobEvent.emit('JOB_REFUND_REQUESTED', { job, payment, refund })
-
         }
 
 
@@ -745,10 +744,8 @@ export const cancelBooking = async (req: any, res: Response, next: NextFunction)
         });
 
 
-
         await job.save();
         JobEvent.emit('JOB_CANCELED', { job, canceledBy: 'customer' })
-
 
         // Create a message in the conversation
         const conversation = await ConversationUtil.updateOrCreateConversation(customerId, 'customers', contractor.id, 'contractors')
@@ -861,7 +858,7 @@ export const requestBookingRefund = async (req: any, res: Response, next: NextFu
 
 
         // Update the job status to canceled
-        job.status = JOB_STATUS.REFUNDED;
+        job.status = JOB_STATUS.CANCELED;
 
         job.jobHistory.push({
             eventType: 'JOB_PAYMENT_REFUNDED',

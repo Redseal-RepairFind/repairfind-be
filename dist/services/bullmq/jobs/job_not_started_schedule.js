@@ -1,4 +1,38 @@
 "use strict";
+var __assign = (this && this.__assign) || function () {
+    __assign = Object.assign || function(t) {
+        for (var s, i = 1, n = arguments.length; i < n; i++) {
+            s = arguments[i];
+            for (var p in s) if (Object.prototype.hasOwnProperty.call(s, p))
+                t[p] = s[p];
+        }
+        return t;
+    };
+    return __assign.apply(this, arguments);
+};
+var __createBinding = (this && this.__createBinding) || (Object.create ? (function(o, m, k, k2) {
+    if (k2 === undefined) k2 = k;
+    var desc = Object.getOwnPropertyDescriptor(m, k);
+    if (!desc || ("get" in desc ? !m.__esModule : desc.writable || desc.configurable)) {
+      desc = { enumerable: true, get: function() { return m[k]; } };
+    }
+    Object.defineProperty(o, k2, desc);
+}) : (function(o, m, k, k2) {
+    if (k2 === undefined) k2 = k;
+    o[k2] = m[k];
+}));
+var __setModuleDefault = (this && this.__setModuleDefault) || (Object.create ? (function(o, v) {
+    Object.defineProperty(o, "default", { enumerable: true, value: v });
+}) : function(o, v) {
+    o["default"] = v;
+});
+var __importStar = (this && this.__importStar) || function (mod) {
+    if (mod && mod.__esModule) return mod;
+    var result = {};
+    if (mod != null) for (var k in mod) if (k !== "default" && Object.prototype.hasOwnProperty.call(mod, k)) __createBinding(result, mod, k);
+    __setModuleDefault(result, mod);
+    return result;
+};
 var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, generator) {
     function adopt(value) { return value instanceof P ? value : new P(function (resolve) { resolve(value); }); }
     return new (P || (P = Promise))(function (resolve, reject) {
@@ -42,45 +76,50 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.jobNotStartedScheduleCheck = void 0;
 var __1 = require("../..");
 var job_model_1 = require("../../../database/common/job.model");
+var job_quotation_model_1 = require("../../../database/common/job_quotation.model");
+var transaction_model_1 = __importStar(require("../../../database/common/transaction.model"));
 var contractor_model_1 = require("../../../database/contractor/models/contractor.model");
 var customer_model_1 = __importDefault(require("../../../database/customer/models/customer.model"));
+var events_1 = require("../../../events");
 var i18n_1 = require("../../../i18n");
 var logger_1 = require("../../logger");
 var jobNotStartedScheduleCheck = function () { return __awaiter(void 0, void 0, void 0, function () {
-    var jobs, _i, jobs_1, job, customer, contractor, currentDate, jobStartDate, timeDifference, daysDifference, hourDifference, minuteDifference, formattedJobStartDate, formattedJobStartDateContractorTz, formattedJobStartDateCustomerTz, error_1, error_2;
-    return __generator(this, function (_a) {
-        switch (_a.label) {
+    var jobs, _i, jobs_1, job, customer, contractor, contract, currentDate, jobStartDate, timeDifference, daysDifference, hourDifference, formattedJobStartDate, formattedJobStartDateContractorTz, formattedJobStartDateCustomerTz, charges, payments, refundPolicy, _a, _b, payment, refund, error_1, error_2;
+    return __generator(this, function (_c) {
+        switch (_c.label) {
             case 0:
-                _a.trys.push([0, 12, , 13]);
+                _c.trys.push([0, 19, , 20]);
                 return [4 /*yield*/, job_model_1.JobModel.find({
                         status: { $in: ['BOOKED'] },
                         revisitEnabled: false, // this is important so has not to move a disputed job with revisit enabled to not started
                         'schedule.startDate': { $exists: true }
                     })];
             case 1:
-                jobs = _a.sent();
+                jobs = _c.sent();
                 _i = 0, jobs_1 = jobs;
-                _a.label = 2;
+                _c.label = 2;
             case 2:
-                if (!(_i < jobs_1.length)) return [3 /*break*/, 11];
+                if (!(_i < jobs_1.length)) return [3 /*break*/, 18];
                 job = jobs_1[_i];
-                _a.label = 3;
+                _c.label = 3;
             case 3:
-                _a.trys.push([3, 9, , 10]);
+                _c.trys.push([3, 16, , 17]);
                 return [4 /*yield*/, customer_model_1.default.findById(job.customer)];
             case 4:
-                customer = _a.sent();
+                customer = _c.sent();
                 return [4 /*yield*/, contractor_model_1.ContractorModel.findById(job.contractor)];
             case 5:
-                contractor = _a.sent();
+                contractor = _c.sent();
+                return [4 /*yield*/, job_quotation_model_1.JobQuotationModel.findById(job === null || job === void 0 ? void 0 : job.contract)];
+            case 6:
+                contract = _c.sent();
                 currentDate = new Date();
                 jobStartDate = new Date(job.schedule.startDate);
                 timeDifference = jobStartDate.getTime() - currentDate.getTime();
                 daysDifference = Math.floor(timeDifference / (1000 * 60 * 60 * 24));
                 hourDifference = Math.floor(timeDifference / (1000 * 60 * 60));
-                minuteDifference = Math.floor(timeDifference / (1000 * 60));
                 formattedJobStartDate = "".concat(jobStartDate.toDateString(), " at ").concat(get12HourFormat(jobStartDate));
-                if (!(customer && contractor)) return [3 /*break*/, 8];
+                if (!(customer && contractor)) return [3 /*break*/, 15];
                 formattedJobStartDateContractorTz = new Intl.DateTimeFormat('en-GB', {
                     weekday: 'short',
                     day: 'numeric',
@@ -112,35 +151,94 @@ var jobNotStartedScheduleCheck = function () { return __awaiter(void 0, void 0, 
                     daysDifference: "".concat(daysDifference, " "),
                     hourDifference: "".concat(hourDifference),
                 });
-                if (!(daysDifference <= -1)) return [3 /*break*/, 8];
-                if (!!job.reminders.includes(job_model_1.JOB_SCHEDULE_REMINDER.NOT_STARTED)) return [3 /*break*/, 7];
-                job.status = job_model_1.JOB_STATUS.NOT_STARTED;
+                if (!(daysDifference <= -1)) return [3 /*break*/, 15];
+                if (!!job.reminders.includes(job_model_1.JOB_SCHEDULE_REMINDER.NOT_STARTED)) return [3 /*break*/, 14];
                 job.reminders.push(job_model_1.JOB_SCHEDULE_REMINDER.NOT_STARTED);
                 return [4 /*yield*/, Promise.all([
-                        sendReminderContractor(customer, contractor, job, "Your job with ".concat(customer.name, " scheduled for yesterday: ").concat(formattedJobStartDate, " was not started")),
-                        sendReminderCustomer(customer, contractor, job, "Your job with ".concat(contractor.name, " scheduled for yesterday: ").concat(formattedJobStartDate, " was not started")),
+                        sendReminderContractor(customer, contractor, job, "Your job with ".concat(customer.name, " scheduled for yesterday: ").concat(formattedJobStartDate, " was not started a refund has been triggered as part of our NO SHOW policy")),
+                        sendReminderCustomer(customer, contractor, job, "Your job with ".concat(contractor.name, " scheduled for yesterday: ").concat(formattedJobStartDate, " was not started a refund has been triggered as part of our NO SHOW policy")),
                         job.save()
-                    ])];
-            case 6:
-                _a.sent();
-                _a.label = 7;
-            case 7: return [3 /*break*/, 10];
+                    ])
+                    // create refund transaction here
+                ];
+            case 7:
+                _c.sent();
+                return [4 /*yield*/, (contract === null || contract === void 0 ? void 0 : contract.calculateCharges())];
             case 8:
-                logger_1.Logger.info("Processed job not started reminder: daysDifference: ".concat(daysDifference, " - JobId: ").concat(job.id));
-                return [3 /*break*/, 10];
+                charges = _c.sent();
+                return [4 /*yield*/, job.getPayments()];
             case 9:
-                error_1 = _a.sent();
-                logger_1.Logger.error("Error sending job not started reminder for job ID ".concat(job.id, ":"), error_1);
-                return [3 /*break*/, 10];
+                payments = _c.sent();
+                refundPolicy = { name: 'free_refund', fee: 0 };
+                _a = 0, _b = payments.payments;
+                _c.label = 10;
             case 10:
+                if (!(_a < _b.length)) return [3 /*break*/, 13];
+                payment = _b[_a];
+                if (payment.refunded)
+                    return [3 /*break*/, 12];
+                refund = {
+                    refundAmount: payment.amount - refundPolicy.fee,
+                    totalAmount: payment.amount,
+                    fee: refundPolicy.fee,
+                    contractorAmount: 0,
+                    companyAmount: 0,
+                    initiatedBy: 'no_show',
+                    policyApplied: refundPolicy.name,
+                };
+                //create refund transaction - 
+                return [4 /*yield*/, transaction_model_1.default.create({
+                        type: transaction_model_1.TRANSACTION_TYPE.REFUND,
+                        amount: refund.refundAmount,
+                        initiatorUser: job.customer,
+                        initiatorUserType: 'customers',
+                        fromUser: job.contractor,
+                        fromUserType: 'contractors',
+                        toUser: job.customer,
+                        toUserType: 'customers',
+                        description: "Refund from job: ".concat(job === null || job === void 0 ? void 0 : job.title, " payment"),
+                        status: transaction_model_1.TRANSACTION_STATUS.PENDING,
+                        remark: 'job_refund',
+                        invoice: {
+                            items: [],
+                            charges: charges,
+                            refund: refund
+                        },
+                        metadata: __assign(__assign({}, refund), { payment: payment.id.toString(), charge: payment.charge }),
+                        job: job.id,
+                        payment: payment.id
+                    })
+                    //TODO: Refund transaction can be moved to  JOB_REFUND_REQUESTED, possibly change the name to JOB_REFUND_CREATED
+                ];
+            case 11:
+                //create refund transaction - 
+                _c.sent();
+                //TODO: Refund transaction can be moved to  JOB_REFUND_REQUESTED, possibly change the name to JOB_REFUND_CREATED
+                events_1.JobEvent.emit('JOB_REFUND_REQUESTED', { job: job, payment: payment, refund: refund });
+                _c.label = 12;
+            case 12:
+                _a++;
+                return [3 /*break*/, 10];
+            case 13:
+                job.status = job_model_1.JOB_STATUS.CANCELED;
+                _c.label = 14;
+            case 14: return [3 /*break*/, 17];
+            case 15:
+                logger_1.Logger.info("Processed job not started reminder: daysDifference: ".concat(daysDifference, " - JobId: ").concat(job.id));
+                return [3 /*break*/, 17];
+            case 16:
+                error_1 = _c.sent();
+                logger_1.Logger.error("Error sending job not started reminder for job ID ".concat(job.id, ":"), error_1);
+                return [3 /*break*/, 17];
+            case 17:
                 _i++;
                 return [3 /*break*/, 2];
-            case 11: return [3 /*break*/, 13];
-            case 12:
-                error_2 = _a.sent();
+            case 18: return [3 /*break*/, 20];
+            case 19:
+                error_2 = _c.sent();
                 logger_1.Logger.error('Error fetching jobs for job day not started reminder:', error_2);
-                return [3 /*break*/, 13];
-            case 13: return [2 /*return*/];
+                return [3 /*break*/, 20];
+            case 20: return [2 /*return*/];
         }
     });
 }); };

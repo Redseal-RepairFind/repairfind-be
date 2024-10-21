@@ -906,7 +906,7 @@ JobEvent.on('JOB_RESCHEDULE_DECLINED_ACCEPTED', async function (payload: { job: 
     }
 });
 
-// TODO: Separate this - so I ca translate, break the actions into individual events
+
 JobEvent.on('NEW_JOB_RESCHEDULE_REQUEST', async function (payload: { job: IJob, action: string }) {
     try {
         Logger.info('handling alert NEW_JOB_RESCHEDULE_REQUEST event', payload.action)
@@ -2300,8 +2300,6 @@ JobEvent.on('JOB_QUOTATION_EDITED', async function (payload: { job: IJob, quotat
 });
 
 
-
-
 // JOB DAY
 JobEvent.on('JOB_DAY_STARTED', async function (payload: { job: IJob, jobDay: IJobDay }) {
     try {
@@ -2605,6 +2603,10 @@ JobEvent.on('JOB_REFUND_REQUESTED', async function (payload: { job: any, payment
         const contractor = await ContractorModel.findById(job.contractor)
 
         if (!customer || !contractor) return
+
+
+        //create Transaction
+        
 
         // send notification to  customer
         let emailSubject = 'Job Refund Requested'

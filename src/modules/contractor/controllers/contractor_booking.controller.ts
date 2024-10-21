@@ -7,7 +7,7 @@ import { IJob, JobModel, JOB_STATUS, JobType, JOB_SCHEDULE_TYPE, IJobAssignment,
 import { BadRequestError, InternalServerError } from "../../../utils/custom.errors";
 import { applyAPIFeature } from "../../../utils/api.feature";
 import { JobQuotationModel } from "../../../database/common/job_quotation.model";
-import { JobEvent } from "../../../events";
+import { ConversationEvent, JobEvent } from "../../../events";
 import mongoose from "mongoose";
 import { CONTRACTOR_TYPES } from "../../../database/contractor/interface/contractor.interface";
 import ContractorTeamModel from "../../../database/contractor/models/contractor_team.model";
@@ -18,6 +18,8 @@ import TransactionModel, { TRANSACTION_STATUS, TRANSACTION_TYPE } from "../../..
 import { JobUtil } from "../../../utils/job.util";
 import { NotificationUtil } from "../../../utils/notification.util";
 import { SocketService } from "../../../services/socket";
+import { ConversationUtil } from "../../../utils/conversation.util";
+import { IMessage, MessageModel, MessageType } from "../../../database/common/messages.schema";
 
 
 
@@ -665,7 +667,6 @@ export const cancelBooking = async (req: any, res: Response, next: NextFunction)
         await contractor.save()
 
 
-      
         const jobDate = job.schedule.startDate.getTime();
         const charges = await contract.calculateCharges()
 
@@ -729,7 +730,32 @@ export const cancelBooking = async (req: any, res: Response, next: NextFunction)
         }
 
 
+         // Update the job status to canceled
+         job.status = JOB_STATUS.CANCELED;
+         job.jobHistory.push({
+             eventType: 'JOB_CANCELED',
+             timestamp: new Date(),
+             payload: { reason, canceledBy: 'contractor' }
+         });
 
+         await job.save();
+         JobEvent.emit('JOB_CANCELED', { job, canceledBy: 'contractor' })
+
+
+          // Create a message in the conversation
+        const conversation = await ConversationUtil.updateOrCreateConversation(contractorId, 'contractors', job.customer, 'customers')
+        const newMessage: IMessage = await MessageModel.create({
+            conversation: conversation.id,
+            sender: job.contractor,
+            senderType: 'contractors',
+            message: `Job canceled by contractor: ${contractor.name}`,
+            messageType: MessageType.ALERT,
+            createdAt: new Date(),
+            entity: job.id,
+            entityType: 'jobs'
+        });
+        ConversationEvent.emit('NEW_MESSAGE', { message: newMessage })
+        
         res.json({ success: true, message: 'Booking canceled successfully', data: job });
     } catch (error: any) {
         return next(new BadRequestError('An error occurred', error));
