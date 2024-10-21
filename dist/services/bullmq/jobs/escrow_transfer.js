@@ -81,111 +81,140 @@ var stripe_1 = require("../../stripe");
 var email_1 = require("../../email"); // Import the email service
 var generic_email_1 = require("../../../templates/common/generic_email");
 var handleEscrowTransfer = function () { return __awaiter(void 0, void 0, void 0, function () {
-    var transactions, _i, transactions_1, transaction, toUser, payment, transferDetails, toUserStripeConnectAccount, connectAccountId, amount, transactionMeta, metadata, stripeTransfer, amount, paypalTransfer, transactionMeta, metadata, error_1, error_2;
-    var _a, _b;
-    return __generator(this, function (_c) {
-        switch (_c.label) {
+    var transactions, _i, transactions_1, transaction, toUser, payment, transferDetails, toUserStripeConnectAccount, connectAccountId, amount, transactionMeta, metadata, stripeTransfer, amount, paypalTransfer, transactionMeta, metadata, error_1, _a, name_1, message, details, error_2, error_3;
+    var _b, _c;
+    return __generator(this, function (_d) {
+        switch (_d.label) {
             case 0:
-                _c.trys.push([0, 17, , 18]);
+                _d.trys.push([0, 20, , 21]);
                 return [4 /*yield*/, transaction_model_1.default.find({
                         type: transaction_model_1.TRANSACTION_TYPE.ESCROW,
                         status: transaction_model_1.TRANSACTION_STATUS.APPROVED
                     })];
             case 1:
-                transactions = _c.sent();
+                transactions = _d.sent();
+                logger_1.Logger.info("Found ".concat(transactions.length, " escrow transactions to process."));
                 _i = 0, transactions_1 = transactions;
-                _c.label = 2;
+                _d.label = 2;
             case 2:
-                if (!(_i < transactions_1.length)) return [3 /*break*/, 16];
+                if (!(_i < transactions_1.length)) return [3 /*break*/, 19];
                 transaction = transactions_1[_i];
-                _c.label = 3;
+                _d.label = 3;
             case 3:
-                _c.trys.push([3, 14, , 15]);
+                _d.trys.push([3, 15, 16, 18]);
+                logger_1.Logger.info("Processing escrow transfer for transaction ".concat(transaction.id));
                 return [4 /*yield*/, contractor_model_1.ContractorModel.findById(transaction.toUser)];
             case 4:
-                toUser = _c.sent();
-                if (!toUser)
+                toUser = _d.sent();
+                if (!toUser) {
+                    logger_1.Logger.error("Contractor not found for transaction ".concat(transaction.id));
                     throw 'Contractor not found';
+                }
                 return [4 /*yield*/, payment_schema_1.PaymentModel.findById(transaction.payment)];
             case 5:
-                payment = _c.sent();
-                if (!payment)
-                    return [2 /*return*/];
+                payment = _d.sent();
+                if (!payment) {
+                    logger_1.Logger.error("Payment not found for transaction ".concat(transaction.id));
+                    return [3 /*break*/, 18];
+                }
                 transferDetails = void 0;
                 if (!(payment.channel === 'stripe')) return [3 /*break*/, 9];
+                logger_1.Logger.info("Processing Stripe transfer for transaction ".concat(transaction.id));
                 toUserStripeConnectAccount = toUser === null || toUser === void 0 ? void 0 : toUser.stripeAccount;
-                if (!toUserStripeConnectAccount)
+                if (!toUserStripeConnectAccount) {
+                    logger_1.Logger.error("No active Stripe connect account found for contractor ".concat(toUser.id));
                     throw 'Contractor does not have an active connect account';
+                }
                 connectAccountId = toUserStripeConnectAccount.id;
                 amount = (transaction.amount * 100);
-                transactionMeta = transaction.metadata;
-                metadata = (_a = __assign({}, transactionMeta)) !== null && _a !== void 0 ? _a : {};
-                metadata.transactionId = transaction.id;
-                metadata.paymentId = payment.id;
+                transactionMeta = (_b = transaction.metadata) !== null && _b !== void 0 ? _b : {};
+                metadata = __assign(__assign({}, transactionMeta), { transactionId: transaction.id, paymentId: payment.id });
                 return [4 /*yield*/, stripe_1.StripeService.transfer.createTransfer(connectAccountId, amount, metadata)];
             case 6:
-                stripeTransfer = _c.sent();
+                stripeTransfer = _d.sent();
                 metadata.transfer = stripeTransfer;
                 transaction.metadata = metadata;
                 transaction.status = transaction_model_1.TRANSACTION_STATUS.SUCCESSFUL;
                 transferDetails = stripeTransfer;
                 return [4 /*yield*/, transaction.save()];
             case 7:
-                _c.sent();
-                // Handle other stuffs like payout accumulated bonus from event
+                _d.sent();
+                logger_1.Logger.info("Stripe transfer successful for transaction ".concat(transaction.id));
                 transaction_events_1.TransactionEvent.emit('ESCROW_TRANSFER_SUCCESSFUL', transaction);
-                // Send notification email to the contractor
                 return [4 /*yield*/, sendEscrowTransferEmail(toUser, transaction, payment, transferDetails)];
             case 8:
-                // Send notification email to the contractor
-                _c.sent();
-                _c.label = 9;
+                _d.sent();
+                _d.label = 9;
             case 9:
-                if (!(payment.channel === 'paypal')) return [3 /*break*/, 13];
+                if (!(payment.channel === 'paypal')) return [3 /*break*/, 14];
+                logger_1.Logger.info("Processing PayPal transfer for transaction ".concat(transaction.id));
+                _d.label = 10;
+            case 10:
+                _d.trys.push([10, 13, , 14]);
                 amount = transaction.amount;
                 return [4 /*yield*/, paypal_1.PayPalService.payout.transferToEmail(toUser.email, amount, 'CAD')];
-            case 10:
-                paypalTransfer = _c.sent();
-                transactionMeta = transaction.metadata;
-                metadata = (_b = __assign({}, transactionMeta)) !== null && _b !== void 0 ? _b : {};
-                metadata.transactionId = transaction.id;
-                metadata.paymentId = payment.id;
-                metadata.transfer = paypalTransfer;
+            case 11:
+                paypalTransfer = _d.sent();
+                transactionMeta = (_c = transaction.metadata) !== null && _c !== void 0 ? _c : {};
+                metadata = __assign(__assign({}, transactionMeta), { transactionId: transaction.id, paymentId: payment.id, transfer: paypalTransfer });
                 transaction.metadata = metadata;
                 transaction.status = transaction_model_1.TRANSACTION_STATUS.SUCCESSFUL;
                 transferDetails = paypalTransfer;
-                return [4 /*yield*/, transaction.save()];
-            case 11:
-                _c.sent();
-                // Handle other stuffs like payout accumulated bonus from event
+                logger_1.Logger.info("PayPal transfer successful for transaction ".concat(transaction.id));
                 transaction_events_1.TransactionEvent.emit('ESCROW_TRANSFER_SUCCESSFUL', transaction);
-                // Send notification email to the contractor
                 return [4 /*yield*/, sendEscrowTransferEmail(toUser, transaction, payment, transferDetails)];
             case 12:
-                // Send notification email to the contractor
-                _c.sent();
-                _c.label = 13;
-            case 13: return [3 /*break*/, 15];
-            case 14:
-                error_1 = _c.sent();
-                logger_1.Logger.info("Error processing payout transfer: ".concat(transaction.id), error_1);
-                return [3 /*break*/, 15];
+                _d.sent();
+                return [3 /*break*/, 14];
+            case 13:
+                error_1 = _d.sent();
+                logger_1.Logger.error("PayPal transfer error for transaction ".concat(transaction.id, ":"), error_1);
+                // Extract PayPal error details if available
+                if (error_1.response && error_1.response.data) {
+                    _a = error_1.response.data, name_1 = _a.name, message = _a.message, details = _a.details;
+                    logger_1.Logger.error("PayPal Error Name: ".concat(name_1));
+                    logger_1.Logger.error("PayPal Error Message: ".concat(message));
+                    if (details && Array.isArray(details)) {
+                        details.forEach(function (detail) {
+                            logger_1.Logger.error("PayPal Error Detail: ".concat(JSON.stringify(detail)));
+                        });
+                    }
+                    // Specific handling of known error (e.g., Authorization issue)
+                    if (name_1 === 'Authorization' && details.some(function (detail) { return detail.issue === 'CAPTURE_FULLY_REFUNDED'; })) {
+                        logger_1.Logger.info("Transaction authorization failed: ".concat(transaction.id));
+                        transaction.status = transaction_model_1.TRANSACTION_STATUS.FAILED;
+                    }
+                }
+                // Re-throw error for further handling if it's not a known issue
+                throw error_1;
+            case 14: return [3 /*break*/, 18];
             case 15:
+                error_2 = _d.sent();
+                logger_1.Logger.error("Error processing payout transfer for transaction ".concat(transaction.id, ":"), error_2);
+                return [3 /*break*/, 18];
+            case 16: 
+            // Ensure transaction is saved regardless of success or failure
+            return [4 /*yield*/, transaction.save()];
+            case 17:
+                // Ensure transaction is saved regardless of success or failure
+                _d.sent();
+                return [7 /*endfinally*/];
+            case 18:
                 _i++;
                 return [3 /*break*/, 2];
-            case 16: return [3 /*break*/, 18];
-            case 17:
-                error_2 = _c.sent();
-                logger_1.Logger.error('Error processing handleEscrowTransfer:', error_2);
-                return [3 /*break*/, 18];
-            case 18: return [2 /*return*/];
+            case 19: return [3 /*break*/, 21];
+            case 20:
+                error_3 = _d.sent();
+                logger_1.Logger.error('Error processing handleEscrowTransfer:', error_3);
+                return [3 /*break*/, 21];
+            case 21: return [2 /*return*/];
         }
     });
 }); };
 exports.handleEscrowTransfer = handleEscrowTransfer;
 // Function to send email after successful escrow transfer
 var sendEscrowTransferEmail = function (contractor, transaction, payment, transferDetails) { return __awaiter(void 0, void 0, void 0, function () {
-    var emailSubject, emailContent, html, error_3;
+    var emailSubject, emailContent, html, error_4;
     return __generator(this, function (_a) {
         switch (_a.label) {
             case 0:
@@ -198,11 +227,11 @@ var sendEscrowTransferEmail = function (contractor, transaction, payment, transf
                 return [4 /*yield*/, email_1.EmailService.send(contractor.email, emailSubject, html)];
             case 2:
                 _a.sent();
-                logger_1.Logger.info("Escrow transfer email sent to ".concat(contractor.email));
+                logger_1.Logger.info("Escrow transfer email sent to ".concat(contractor.email, " for transaction ").concat(transaction.id));
                 return [3 /*break*/, 4];
             case 3:
-                error_3 = _a.sent();
-                logger_1.Logger.error("Failed to send escrow transfer email to ".concat(contractor.email, ":"), error_3);
+                error_4 = _a.sent();
+                logger_1.Logger.error("Failed to send escrow transfer email to ".concat(contractor.email, " for transaction ").concat(transaction.id, ":"), error_4);
                 return [3 /*break*/, 4];
             case 4: return [2 /*return*/];
         }
