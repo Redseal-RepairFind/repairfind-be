@@ -26,18 +26,55 @@ export const getJobDisputes = async (
       return res.status(400).json({ errors: errors.array() });
     }
 
-    const adminId = req.admin.id
-
 
     const { data, filter } = await applyAPIFeature(JobDisputeModel.find().populate({
       path: 'disputer',
       select: 'firstName lastName name profilePhoto _id'
     }), req.query)
 
-    const totalOpen = await JobDisputeModel.countDocuments({ ...filter, status: JOB_DISPUTE_STATUS.OPEN });
+    const totalOpen = await JobDisputeModel.countDocuments({ ...filter, status: { $in: [JOB_DISPUTE_STATUS.OPEN, JOB_DISPUTE_STATUS.REVISIT] } });
     const totalOngoing = await JobDisputeModel.countDocuments({ ...filter, status: JOB_DISPUTE_STATUS.ONGOING });
-    const totalResolved = await JobDisputeModel.countDocuments({ ...filter, status: JOB_DISPUTE_STATUS.RESOLVED });
+    const totalResolved = await JobDisputeModel.countDocuments({ ...filter, status: { $in: [JOB_DISPUTE_STATUS.RESOLVED, JOB_DISPUTE_STATUS.CLOSED] } });
+    const totalUnassigned = await JobDisputeModel.countDocuments({ ...filter, arbitrator: { $exists: false } });
 
+
+    const resolutionStats = await JobDisputeModel.aggregate([
+      { $match: { ...filter, status: { $in: [JOB_DISPUTE_STATUS.RESOLVED, JOB_DISPUTE_STATUS.CLOSED] } } },
+      {
+        $group: {
+          _id: null,
+          avgResolutionAge: {
+            $avg: {
+              $subtract: ['$updatedAt', '$createdAt'],
+            },
+          },
+        },
+      },
+    ]);
+
+    const avgResolutionAge = resolutionStats.length > 0 ? resolutionStats[0].avgResolutionAge : null;
+
+    // Helper function to format the time difference in minutes, hours, or days
+    const formatTime = (milliseconds: number): string => {
+      const seconds = milliseconds / 1000;
+      const minutes = seconds / 60;
+      const hours = minutes / 60;
+      const days = hours / 24;
+
+      if (minutes < 60) {
+        return `${Math.floor(minutes)} minute${Math.floor(minutes) !== 1 ? 's' : ''}`;
+      } else if (hours < 24) {
+        return `${Math.floor(hours)} hour${Math.floor(hours) !== 1 ? 's' : ''}`;
+      } else {
+        return `${Math.floor(days)} day${Math.floor(days) !== 1 ? 's' : ''}`;
+      }
+    };
+
+
+    // Find the oldest unresolved dispute
+    const oldestDispute = await JobDisputeModel.findOne({ ...filter, status: { $in: [JOB_DISPUTE_STATUS.OPEN, JOB_DISPUTE_STATUS.REVISIT] } })
+      .sort({ createdAt: 1 })
+      .select('createdAt');
 
     return res.json({
       success: true, message: "Job disputes retrieved", data: {
@@ -45,7 +82,10 @@ export const getJobDisputes = async (
         stats: {
           totalOpen,
           totalOngoing,
-          totalResolved
+          totalResolved,
+          totalUnassigned,
+          avgResolutionAge: avgResolutionAge ? formatTime(avgResolutionAge) : 'N/A',
+          oldestDispute
         }
       },
     });

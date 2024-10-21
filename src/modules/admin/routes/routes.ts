@@ -110,8 +110,8 @@ router.get("/jobs", checkAdminRole, AdminJobController.getJobs);
 router.get("/jobs/stats", checkAdminRole, AdminJobController.getJobStats);
 router.get("/jobs/:jobId", checkAdminRole, AdminJobController.getSingleJob);
 router.get("/app_detail", checkAdminRole, AdminGetAppDetailController);
+router.get("/jobdays", checkAdminRole, AdminJobController.getJobDays);
 // router.get("/invoice/detail/:jobId", checkAdminRole, AdminJobController.AdminGetInvoiceSingleJobsrDetailController ); 
-
 
 
 //done transaction
