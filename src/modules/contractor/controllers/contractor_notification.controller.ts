@@ -110,6 +110,8 @@ export const markAllNotificationsAsRead = async (req: any, res: Response): Promi
     }
 };
 
+
+
 export const redAlerts = async (req: any, res: Response, next: NextFunction): Promise<any> => {
 
     try {
@@ -117,7 +119,7 @@ export const redAlerts = async (req: any, res: Response, next: NextFunction): Pr
 
         // console.log(contractorId)
 
-       const {disputeAlerts, unseenBookings} = await NotificationUtil.redAlerts(contractorId)
+       const {disputeAlerts, unseenBookings} = await NotificationUtil.contractorRedAlerts(contractorId)
 
 
         res.json({ success: true, message: 'Alerts retrieved', data: {disputeAlerts, unseenBookings} });

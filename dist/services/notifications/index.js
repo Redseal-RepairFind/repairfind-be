@@ -72,7 +72,7 @@ var NotificationService = /** @class */ (function () {
             database: true
         }; }
         return __awaiter(this, void 0, void 0, function () {
-            var user, deviceTokens, devices, alerts, pushLoad, notification;
+            var user, deviceTokens, devices, alerts, alerts, pushLoad, notification;
             return __generator(this, function (_a) {
                 switch (_a.label) {
                     case 0:
@@ -120,14 +120,15 @@ var NotificationService = /** @class */ (function () {
                         // params.message = await i18n.getTranslation({phraseOrSlug: params.message, targetLang: user.language})
                         if ('firebase' in options) {
                         }
-                        if (!('socket' in options)) return [3 /*break*/, 11];
+                        if (!('socket' in options)) return [3 /*break*/, 13];
                         socket_1.SocketService.sendNotification(user.email, params.type, {
                             type: params.type,
                             message: params.message,
                             data: params.payload
                         });
-                        if (!(params.type == 'NEW_DISPUTE_MESSAGE' || params.type == 'JOB_BOOKED')) return [3 /*break*/, 11];
-                        return [4 /*yield*/, notification_util_1.NotificationUtil.redAlerts(params.user)];
+                        if (!(params.type == 'NEW_DISPUTE_MESSAGE' || params.type == 'JOB_BOOKED')) return [3 /*break*/, 13];
+                        if (!(params.userType == 'customers')) return [3 /*break*/, 11];
+                        return [4 /*yield*/, notification_util_1.NotificationUtil.customerRedAlerts(params.user)];
                     case 10:
                         alerts = _a.sent();
                         socket_1.SocketService.sendNotification(user.email, 'RED_DOT_ALERT', {
@@ -137,6 +138,17 @@ var NotificationService = /** @class */ (function () {
                         });
                         _a.label = 11;
                     case 11:
+                        if (!(params.userType == 'contractors')) return [3 /*break*/, 13];
+                        return [4 /*yield*/, notification_util_1.NotificationUtil.contractorRedAlerts(params.user)];
+                    case 12:
+                        alerts = _a.sent();
+                        socket_1.SocketService.sendNotification(user.email, 'RED_DOT_ALERT', {
+                            type: 'RED_DOT_ALERT',
+                            message: 'New alert update',
+                            data: alerts
+                        });
+                        _a.label = 13;
+                    case 13:
                         if ('push' in options) {
                             pushLoad = {
                                 title: params.title,
@@ -173,7 +185,7 @@ var NotificationService = /** @class */ (function () {
                                                 heading: JSON.stringify(params.payload.heading),
                                                 event: params.payload.event,
                                                 token: (_a = params.payload.token) !== null && _a !== void 0 ? _a : '',
-                                                uid: (_b = "\"".concat(params.payload.uid, "\"")) !== null && _b !== void 0 ? _b : '',
+                                                uid: "\"".concat((_b = params.payload.uid) !== null && _b !== void 0 ? _b : '', "\""),
                                                 user: params.payload.user,
                                                 userType: params.payload.userType
                                             }
@@ -213,19 +225,19 @@ var NotificationService = /** @class */ (function () {
                                 (0, expo_1.sendPushNotifications)(deviceTokens, pushLoad);
                             }
                         }
-                        if (!options.hasOwnProperty('database')) return [3 /*break*/, 13];
+                        if (!options.hasOwnProperty('database')) return [3 /*break*/, 15];
                         params.payload.message = params.message;
                         notification = new notification_model_1.default(params.payload);
                         return [4 /*yield*/, notification.save()];
-                    case 12:
+                    case 14:
                         _a.sent();
                         socket_1.SocketService.sendNotification(user.email, 'NEW_NOTIFICATION', {
                             type: 'NEW_NOTIFICATION',
                             message: params.message,
                             data: params.payload
                         });
-                        _a.label = 13;
-                    case 13: return [2 /*return*/];
+                        _a.label = 15;
+                    case 15: return [2 /*return*/];
                 }
             });
         });

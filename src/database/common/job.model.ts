@@ -162,6 +162,14 @@ export interface IJob extends Document {
     revisitEnabled: boolean;
     bookingViewedByContractor: boolean;
     language: string;
+    customerAlerts: {
+        hasNewDisputeMessage: boolean
+        hasNewPayment: boolean
+    };
+    contractorAlerts: {
+        hasNewDisputeMessage: boolean
+        hasNewPayment: boolean
+    }
     getMyQuotation: (contractorId: ObjectId) => {
     };
     getJobDay: (scheduleType?: JOB_SCHEDULE_TYPE) => {
@@ -322,6 +330,8 @@ const JobSchema = new Schema<IJob>({
     isSaved: { type: Schema.Types.Boolean, default: false },
     revisitEnabled: { type: Schema.Types.Boolean, default: false },
     bookingViewedByContractor: { type: Boolean, default: true },
+    contractorAlerts: {type: Schema.Types.Mixed},
+    customerAlerts: {type: Schema.Types.Mixed},
     language: {
         type: String,
         default: 'en'

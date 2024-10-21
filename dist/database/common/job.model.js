@@ -216,6 +216,8 @@ var JobSchema = new mongoose_1.Schema({
     isSaved: { type: mongoose_1.Schema.Types.Boolean, default: false },
     revisitEnabled: { type: mongoose_1.Schema.Types.Boolean, default: false },
     bookingViewedByContractor: { type: Boolean, default: true },
+    contractorAlerts: { type: mongoose_1.Schema.Types.Mixed },
+    customerAlerts: { type: mongoose_1.Schema.Types.Mixed },
     language: {
         type: String,
         default: 'en'

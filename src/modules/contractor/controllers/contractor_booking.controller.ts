@@ -345,7 +345,7 @@ export const getSingleBooking = async (req: any, res: Response, next: NextFuncti
             job.bookingViewedByContractor = true,
             await job.save()
 
-            const alerts = await NotificationUtil.redAlerts(contractorId)
+            const alerts = await NotificationUtil.contractorRedAlerts(contractorId)
             SocketService.sendNotification(contractor.email, 'RED_DOT_ALERT', {
                 type: 'RED_DOT_ALERT', 
                 message: 'New alert update', 

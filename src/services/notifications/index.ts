@@ -89,12 +89,32 @@ export class NotificationService {
 
             if (params.type == 'NEW_DISPUTE_MESSAGE' || params.type == 'JOB_BOOKED') {
                 // send red alert notification here also, for mobile to update red dots - lol
-                const alerts = await NotificationUtil.redAlerts(params.user as ObjectId)
-                SocketService.sendNotification(user.email, 'RED_DOT_ALERT', {
-                    type: 'RED_DOT_ALERT',
-                    message: 'New alert update',
-                    data: alerts
-                });
+                // const alerts = await NotificationUtil.redAlerts(params.user as ObjectId)
+                // SocketService.sendNotification(user.email, 'RED_DOT_ALERT', {
+                //     type: 'RED_DOT_ALERT',
+                //     message: 'New alert update',
+                //     data: alerts
+                // });
+
+                if(params.userType == 'customers'){
+                    const alerts = await NotificationUtil.customerRedAlerts(params.user as ObjectId)
+                    SocketService.sendNotification(user.email, 'RED_DOT_ALERT', {
+                        type: 'RED_DOT_ALERT',
+                        message: 'New alert update',
+                        data: alerts
+                    });
+                }
+
+                if(params.userType == 'contractors'){
+                    const alerts = await NotificationUtil.contractorRedAlerts(params.user as ObjectId)
+                    SocketService.sendNotification(user.email, 'RED_DOT_ALERT', {
+                        type: 'RED_DOT_ALERT',
+                        message: 'New alert update',
+                        data: alerts
+                    });
+                }
+
+
             }
         }
 
@@ -141,7 +161,7 @@ export class NotificationService {
                                 heading: JSON.stringify(params.payload.heading),
                                 event: params.payload.event,
                                 token: params.payload.token ?? '',
-                                uid: `"${params.payload.uid}"` ?? '',
+                                uid: `"${params.payload.uid ?? ''}"` ,
                                 user: params.payload.user,
                                 userType: params.payload.userType
                             }

@@ -191,7 +191,7 @@ var redAlerts = function (req, res, next) { return __awaiter(void 0, void 0, voi
             case 0:
                 _a.trys.push([0, 2, , 3]);
                 contractorId = req.contractor.id;
-                return [4 /*yield*/, notification_util_1.NotificationUtil.redAlerts(contractorId)
+                return [4 /*yield*/, notification_util_1.NotificationUtil.contractorRedAlerts(contractorId)
                     // const recentPayment = TransactionModel.find({type: {$in: [TRANSACTION_TYPE.JOB_PAYMENT, TRANSACTION_TYPE.SITE_VISIT]} })
                 ];
             case 1:

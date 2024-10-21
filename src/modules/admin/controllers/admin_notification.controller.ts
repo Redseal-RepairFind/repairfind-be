@@ -110,7 +110,8 @@ export const redAlerts = async (req: any, res: Response, next: NextFunction): Pr
     try {
         const contractorId = req.contractor.id;
 
-       const {disputeAlerts} = await NotificationUtil.redAlerts(contractorId)
+        //TODO: fix this
+       const {disputeAlerts} = await NotificationUtil.contractorRedAlerts(contractorId)
 
         // const recentPayment = TransactionModel.find({type: {$in: [TRANSACTION_TYPE.JOB_PAYMENT, TRANSACTION_TYPE.SITE_VISIT]} })
 

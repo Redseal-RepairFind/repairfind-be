@@ -371,7 +371,7 @@ var getSingleBooking = function (req, res, next) { return __awaiter(void 0, void
                 return [4 /*yield*/, job.save()];
             case 3:
                 _b.sent();
-                return [4 /*yield*/, notification_util_1.NotificationUtil.redAlerts(contractorId)];
+                return [4 /*yield*/, notification_util_1.NotificationUtil.contractorRedAlerts(contractorId)];
             case 4:
                 alerts = _b.sent();
                 socket_1.SocketService.sendNotification(contractor.email, 'RED_DOT_ALERT', {
