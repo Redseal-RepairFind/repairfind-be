@@ -38,6 +38,8 @@ var __generator = (this && this.__generator) || function (thisArg, body) {
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.NotificationUtil = void 0;
 var job_model_1 = require("../database/common/job.model");
+var conversations_schema_1 = require("../database/common/conversations.schema");
+var messages_schema_1 = require("../database/common/messages.schema");
 var contractorRedAlerts = function (userId) { return __awaiter(void 0, void 0, void 0, function () {
     var alertConditions, jobs, unseenBookings, disputeAlerts;
     return __generator(this, function (_a) {
@@ -85,36 +87,48 @@ var customerRedAlerts = function (customerId) { return __awaiter(void 0, void 0,
         }
     });
 }); };
-// const redAlerts = async (userId: ObjectId) => {
-//     // Fetch ticket-type conversations where the user is a member
-//     const ticketConversations = await ConversationModel.find({
-//         type: CONVERSATION_TYPE.TICKET,
-//         members: { $elemMatch: { member: userId } }
-//     });
-//     // Find ticket conversations with unread messages for the contractor
-//     const unreadTickets = await Promise.all(
-//         ticketConversations.map(async (conversation) => {
-//             const unreadMessagesCount = await MessageModel.countDocuments({
-//                 conversation: conversation._id,
-//                 readBy: { $ne: userId }
-//             });
-//             // Return conversation if it has unread messages
-//             return unreadMessagesCount > 0 ? conversation : null;
-//         })
-//     );
-//     // Filter out null values and get dispute-related alerts (entities of conversations with unread messages)
-//     const disputeAlerts = unreadTickets.filter(conversation => conversation !== null).map(conversation => conversation?.entity);
-//     // Fetch job bookings where the contractor hasn't viewed the booking yet
-//     const unseenJobIds = await JobModel.find({
-//         contractor: userId, 
-//         bookingViewedByContractor: { $eq: false }
-//     }).select('_id contractor bookingViewedByContractor').lean();
-//     // Extract job IDs from unseen bookings
-//     const unseenBookings = unseenJobIds.map((job: any) => job._id);
-//     // Return both dispute alerts and unseen bookings
-//     return { disputeAlerts, unseenBookings };
-// };
+var redAlerts = function (userId) { return __awaiter(void 0, void 0, void 0, function () {
+    var ticketConversations, unreadTickets, disputeAlerts, unseenJobIds, unseenBookings;
+    return __generator(this, function (_a) {
+        switch (_a.label) {
+            case 0: return [4 /*yield*/, conversations_schema_1.ConversationModel.find({
+                    type: conversations_schema_1.CONVERSATION_TYPE.TICKET,
+                    "members.member": userId
+                })];
+            case 1:
+                ticketConversations = _a.sent();
+                return [4 /*yield*/, Promise.all(ticketConversations.map(function (conversation) { return __awaiter(void 0, void 0, void 0, function () {
+                        var unreadMessagesCount;
+                        return __generator(this, function (_a) {
+                            switch (_a.label) {
+                                case 0: return [4 /*yield*/, messages_schema_1.MessageModel.countDocuments({
+                                        conversation: conversation._id,
+                                        readBy: { $ne: userId }
+                                    })];
+                                case 1:
+                                    unreadMessagesCount = _a.sent();
+                                    // Return conversation if it has unread messages
+                                    return [2 /*return*/, unreadMessagesCount > 0 ? conversation : null];
+                            }
+                        });
+                    }); }))];
+            case 2:
+                unreadTickets = _a.sent();
+                disputeAlerts = unreadTickets.filter(function (conversation) { return conversation !== null; }).map(function (conversation) { return conversation === null || conversation === void 0 ? void 0 : conversation.entity; });
+                return [4 /*yield*/, job_model_1.JobModel.find({
+                        contractor: userId,
+                        bookingViewedByContractor: { $eq: false }
+                    }).select('_id contractor bookingViewedByContractor').lean()];
+            case 3:
+                unseenJobIds = _a.sent();
+                unseenBookings = unseenJobIds.map(function (job) { return job._id; });
+                // Return both dispute alerts and unseen bookings
+                return [2 /*return*/, { disputeAlerts: disputeAlerts, unseenBookings: unseenBookings }];
+        }
+    });
+}); };
 exports.NotificationUtil = {
     contractorRedAlerts: contractorRedAlerts,
-    customerRedAlerts: customerRedAlerts
+    customerRedAlerts: customerRedAlerts,
+    redAlerts: redAlerts
 };

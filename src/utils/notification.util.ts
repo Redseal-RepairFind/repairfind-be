@@ -55,46 +55,47 @@ const customerRedAlerts = async (customerId: ObjectId) => {
 
 
 
-// const redAlerts = async (userId: ObjectId) => {
-//     // Fetch ticket-type conversations where the user is a member
-//     const ticketConversations = await ConversationModel.find({
-//         type: CONVERSATION_TYPE.TICKET,
-//         members: { $elemMatch: { member: userId } }
-//     });
+const redAlerts = async (userId: ObjectId) => {
+    // Fetch ticket-type conversations where the user is a member
+    const ticketConversations = await ConversationModel.find({
+        type: CONVERSATION_TYPE.TICKET,
+        "members.member": userId
+    });
 
-//     // Find ticket conversations with unread messages for the contractor
-//     const unreadTickets = await Promise.all(
-//         ticketConversations.map(async (conversation) => {
-//             const unreadMessagesCount = await MessageModel.countDocuments({
-//                 conversation: conversation._id,
-//                 readBy: { $ne: userId }
-//             });
+    // Find ticket conversations with unread messages for the contractor
+    const unreadTickets = await Promise.all(
+        ticketConversations.map(async (conversation) => {
+            const unreadMessagesCount = await MessageModel.countDocuments({
+                conversation: conversation._id,
+                readBy: { $ne: userId }
+            });
 
-//             // Return conversation if it has unread messages
-//             return unreadMessagesCount > 0 ? conversation : null;
-//         })
-//     );
+            // Return conversation if it has unread messages
+            return unreadMessagesCount > 0 ? conversation : null;
+        })
+    );
 
-//     // Filter out null values and get dispute-related alerts (entities of conversations with unread messages)
-//     const disputeAlerts = unreadTickets.filter(conversation => conversation !== null).map(conversation => conversation?.entity);
+    // Filter out null values and get dispute-related alerts (entities of conversations with unread messages)
+    const disputeAlerts = unreadTickets.filter(conversation => conversation !== null).map(conversation => conversation?.entity);
 
-//     // Fetch job bookings where the contractor hasn't viewed the booking yet
-//     const unseenJobIds = await JobModel.find({
-//         contractor: userId, 
-//         bookingViewedByContractor: { $eq: false }
-//     }).select('_id contractor bookingViewedByContractor').lean();
+    // Fetch job bookings where the contractor hasn't viewed the booking yet
+    const unseenJobIds = await JobModel.find({
+        contractor: userId, 
+        bookingViewedByContractor: { $eq: false }
+    }).select('_id contractor bookingViewedByContractor').lean();
 
-//     // Extract job IDs from unseen bookings
-//     const unseenBookings = unseenJobIds.map((job: any) => job._id);
+    // Extract job IDs from unseen bookings
+    const unseenBookings = unseenJobIds.map((job: any) => job._id);
 
-//     // Return both dispute alerts and unseen bookings
-//     return { disputeAlerts, unseenBookings };
-// };
+    // Return both dispute alerts and unseen bookings
+    return { disputeAlerts, unseenBookings };
+};
 
 
 
 export const NotificationUtil = {
     contractorRedAlerts,
-    customerRedAlerts
+    customerRedAlerts,
+    redAlerts
 };
 
