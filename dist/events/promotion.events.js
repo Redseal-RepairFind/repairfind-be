@@ -131,28 +131,38 @@ exports.PromotionEvent.on('NEW_REFERRAL', function (payload) {
 });
 exports.PromotionEvent.on('REFERRAL_COUPON_ACTIVATED', function (payload) {
     return __awaiter(this, void 0, void 0, function () {
-        var coupon, user, userType, error_2;
-        return __generator(this, function (_a) {
-            switch (_a.label) {
+        var coupon, user, _a, userType, error_2;
+        return __generator(this, function (_b) {
+            switch (_b.label) {
                 case 0:
-                    _a.trys.push([0, 3, , 4]);
+                    _b.trys.push([0, 7, , 8]);
                     logger_1.Logger.info("Handling NEW_REFERRAL event");
                     coupon = payload.coupon;
-                    user = payload.user;
-                    userType = payload.userType;
-                    if (!coupon) return [3 /*break*/, 2];
+                    if (!(coupon.userType == 'contractors')) return [3 /*break*/, 2];
+                    return [4 /*yield*/, contractor_model_1.ContractorModel.findById(coupon.user)];
+                case 1:
+                    _a = _b.sent();
+                    return [3 /*break*/, 4];
+                case 2: return [4 /*yield*/, customer_model_1.default.findById(coupon.user)];
+                case 3:
+                    _a = _b.sent();
+                    _b.label = 4;
+                case 4:
+                    user = _a;
+                    userType = coupon.userType;
+                    if (!(coupon && user)) return [3 /*break*/, 6];
                     //Do not sen out email, wait until coupon becomes active
                     return [4 /*yield*/, sendReferralCouponActivatedEmail(coupon, user, userType)];
-                case 1:
+                case 5:
                     //Do not sen out email, wait until coupon becomes active
-                    _a.sent();
-                    _a.label = 2;
-                case 2: return [3 /*break*/, 4];
-                case 3:
-                    error_2 = _a.sent();
+                    _b.sent();
+                    _b.label = 6;
+                case 6: return [3 /*break*/, 8];
+                case 7:
+                    error_2 = _b.sent();
                     logger_1.Logger.error("Error handling NEW_REFERRAL event: ".concat(error_2));
-                    return [3 /*break*/, 4];
-                case 4: return [2 /*return*/];
+                    return [3 /*break*/, 8];
+                case 8: return [2 /*return*/];
             }
         });
     });

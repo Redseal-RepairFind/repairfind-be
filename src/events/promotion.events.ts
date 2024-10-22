@@ -80,11 +80,11 @@ PromotionEvent.on('REFERRAL_COUPON_ACTIVATED', async function (payload: { coupon
 
 
         const coupon = payload.coupon
-        const user = payload.user
-        const userType = payload.userType
+        const user = coupon.userType == 'contractors' ? await ContractorModel.findById(coupon.user): await CustomerModel.findById(coupon.user)
+        const userType = coupon.userType
 
         // Decrease promotion limit
-        if (coupon) {
+        if (coupon && user) {
             //Do not sen out email, wait until coupon becomes active
             await sendReferralCouponActivatedEmail(coupon, user, userType);
         }
