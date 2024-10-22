@@ -1,10 +1,9 @@
 
 import { Schema, model } from "mongoose";
-import { CustomerAuthProviders, ICustomer, ICustomerLocation } from "../interface/customer.interface";
+import { CUSTOMER_STATUS, CustomerAuthProviders, ICustomer, ICustomerLocation } from "../interface/customer.interface";
 import { StripeCustomerSchema } from "../../common/stripe_customer.schema";
 import { StripePaymentMethodSchema } from "../../common/stripe_paymentmethod.schema";
 import  MongooseDelete, { SoftDeleteModel } from 'mongoose-delete';
-import { customerStatus } from "../../../constants/contractorStatus";
 import { PaypalPaymentMethodSchema } from "../../common/paypal_paymentmethod.schema";
 import { GeneratorUtil } from "../../../utils/generator.util";
 
@@ -83,8 +82,8 @@ const CustomerSchema = new Schema<ICustomer>(
     },
     status: {
       type: String,
-      enum: Object.values(customerStatus),
-      default: customerStatus.REVIEWING,
+      enum: Object.values(CUSTOMER_STATUS),
+      default: CUSTOMER_STATUS.APPROVED,
     },
     acceptTerms: {
       otp: String,

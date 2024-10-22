@@ -8,7 +8,6 @@ var customer_interface_1 = require("../interface/customer.interface");
 var stripe_customer_schema_1 = require("../../common/stripe_customer.schema");
 var stripe_paymentmethod_schema_1 = require("../../common/stripe_paymentmethod.schema");
 var mongoose_delete_1 = __importDefault(require("mongoose-delete"));
-var contractorStatus_1 = require("../../../constants/contractorStatus");
 var paypal_paymentmethod_schema_1 = require("../../common/paypal_paymentmethod.schema");
 var CustomerLocationSchema = new mongoose_1.Schema({
     address: String,
@@ -81,8 +80,8 @@ var CustomerSchema = new mongoose_1.Schema({
     },
     status: {
         type: String,
-        enum: Object.values(contractorStatus_1.customerStatus),
-        default: contractorStatus_1.customerStatus.REVIEWING,
+        enum: Object.values(customer_interface_1.CUSTOMER_STATUS),
+        default: customer_interface_1.CUSTOMER_STATUS.APPROVED,
     },
     acceptTerms: {
         otp: String,

@@ -11,6 +11,17 @@ export enum CustomerAuthProviders {
 }
 
 
+export enum CUSTOMER_STATUS {
+  APPROVED = "APPROVED",
+  PENDING = "PENDING",
+  REVIEWING = "REVIEWING",
+  REJECTED = "REJECTED",
+  SUSPENDED = "SUSPENDED",
+  BLACKLISTED = "BLACKLISTED",
+}
+
+
+
 export interface ICustomerLocation extends Document {
   address: string,
   city: string,
@@ -54,7 +65,7 @@ export interface ICustomer extends Document {
     createdTime: Date;
     verified: boolean;
   };
-  status: string;
+  status: CUSTOMER_STATUS;
   currentTimezone: string;
   stripeCustomer: IStripeCustomer
   stripePaymentMethods: Array<IStripePaymentMethod>
