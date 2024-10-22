@@ -113,8 +113,8 @@ export const redAlerts = async (req: any, res: Response, next: NextFunction): Pr
     try {
         const customerId = req.customer.id;
 
-       const {disputeAlerts, unseenBookings} = await NotificationUtil.redAlerts(customerId)
-        res.json({ success: true, message: 'Alerts retreived', data: {disputeAlerts, unseenBookings} });
+       const {disputeAlerts, unseenBookings} = await NotificationUtil.customerRedAlerts(customerId)
+        res.json({ success: true, message: 'Alerts retrieved', data: {disputeAlerts, unseenBookings} });
     } catch (err: any) {
         next(new InternalServerError("An error occurred", err));
     }

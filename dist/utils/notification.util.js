@@ -40,49 +40,128 @@ exports.NotificationUtil = void 0;
 var job_model_1 = require("../database/common/job.model");
 var conversations_schema_1 = require("../database/common/conversations.schema");
 var messages_schema_1 = require("../database/common/messages.schema");
-var contractorRedAlerts = function (userId) { return __awaiter(void 0, void 0, void 0, function () {
-    var alertConditions, jobs, unseenBookings, disputeAlerts;
-    return __generator(this, function (_a) {
-        switch (_a.label) {
-            case 0:
-                alertConditions = {
-                    contractor: userId,
-                    status: { $in: ['DISPUTED'] },
-                    $or: [
-                        { bookingViewedByContractor: { $eq: false } },
-                        { "contractorAlerts.hasNewDisputeMessage": { $eq: false } }
-                    ]
-                };
-                return [4 /*yield*/, job_model_1.JobModel.find(alertConditions)
-                        .select('_id contractor bookingViewedByContractor contractorAlerts')
-                        .lean()];
+var contractorRedAlerts = function (contractorId) { return __awaiter(void 0, void 0, void 0, function () {
+    var _a, ticketConversations, unseenJobs, disputeAlerts, unreadTicketPromises, unseenBookings;
+    return __generator(this, function (_b) {
+        switch (_b.label) {
+            case 0: return [4 /*yield*/, Promise.all([
+                    conversations_schema_1.ConversationModel.find({
+                        type: conversations_schema_1.CONVERSATION_TYPE.TICKET,
+                        "members.member": contractorId,
+                        "members.memberType": "contractors",
+                    }),
+                    job_model_1.JobModel.find({
+                        contractor: contractorId,
+                        bookingViewedByContractor: { $eq: false }
+                    }).select('_id contractor bookingViewedByContractor').lean()
+                ])];
             case 1:
-                jobs = _a.sent();
-                unseenBookings = jobs.filter(function (job) { return !job.bookingViewedByContractor; }).map(function (job) { return job._id; });
-                disputeAlerts = jobs.filter(function (job) { var _a; return ((_a = job.contractorAlerts) === null || _a === void 0 ? void 0 : _a.hasNewDisputeMessage) === false; });
+                _a = _b.sent(), ticketConversations = _a[0], unseenJobs = _a[1];
+                disputeAlerts = [];
+                unreadTicketPromises = ticketConversations.map(function (conversation) { return __awaiter(void 0, void 0, void 0, function () {
+                    var unreadMessagesCount, job, error_1;
+                    return __generator(this, function (_a) {
+                        switch (_a.label) {
+                            case 0: return [4 /*yield*/, messages_schema_1.MessageModel.countDocuments({
+                                    conversation: conversation._id,
+                                    readBy: { $ne: contractorId }
+                                })];
+                            case 1:
+                                unreadMessagesCount = _a.sent();
+                                if (!(unreadMessagesCount > 0 && conversation.entity)) return [3 /*break*/, 5];
+                                _a.label = 2;
+                            case 2:
+                                _a.trys.push([2, 4, , 5]);
+                                return [4 /*yield*/, job_model_1.JobModel.findById(conversation.entity)];
+                            case 3:
+                                job = _a.sent();
+                                if ((job === null || job === void 0 ? void 0 : job.status) === "DISPUTED") {
+                                    disputeAlerts.push(job.id);
+                                }
+                                return [3 /*break*/, 5];
+                            case 4:
+                                error_1 = _a.sent();
+                                console.error("Error fetching job for entity ".concat(conversation.entity, ":"), error_1);
+                                return [3 /*break*/, 5];
+                            case 5: return [2 /*return*/];
+                        }
+                    });
+                }); });
+                // Wait for all unread ticket checks to complete
+                return [4 /*yield*/, Promise.all(unreadTicketPromises)];
+            case 2:
+                // Wait for all unread ticket checks to complete
+                _b.sent();
+                unseenBookings = unseenJobs.map(function (job) { return job._id; });
                 return [2 /*return*/, { disputeAlerts: disputeAlerts, unseenBookings: unseenBookings }];
         }
     });
 }); };
 var customerRedAlerts = function (customerId) { return __awaiter(void 0, void 0, void 0, function () {
-    var alertConditions, jobs, unseenBookings, disputeAlerts;
+    var ticketConversations, unreadTickets, getDisputedJobEntities, disputeAlerts, unseenBookings;
     return __generator(this, function (_a) {
         switch (_a.label) {
-            case 0:
-                alertConditions = {
-                    customer: customerId,
-                    status: { $in: ['DISPUTED'] },
-                    $or: [
-                        { "customerAlerts.hasNewDisputeMessage": { $eq: false } }
-                    ]
-                };
-                return [4 /*yield*/, job_model_1.JobModel.find(alertConditions)
-                        .select('_id customer customerAlerts')
-                        .lean()];
+            case 0: return [4 /*yield*/, conversations_schema_1.ConversationModel.find({
+                    type: conversations_schema_1.CONVERSATION_TYPE.TICKET,
+                    "members.member": customerId,
+                    "members.memberType": "customers",
+                })];
             case 1:
-                jobs = _a.sent();
+                ticketConversations = _a.sent();
+                return [4 /*yield*/, Promise.all(ticketConversations.map(function (conversation) { return __awaiter(void 0, void 0, void 0, function () {
+                        var unreadMessagesCount;
+                        return __generator(this, function (_a) {
+                            switch (_a.label) {
+                                case 0: return [4 /*yield*/, messages_schema_1.MessageModel.countDocuments({
+                                        conversation: conversation._id,
+                                        readBy: { $ne: customerId }
+                                    })];
+                                case 1:
+                                    unreadMessagesCount = _a.sent();
+                                    // Return conversation if it has unread messages
+                                    return [2 /*return*/, unreadMessagesCount > 0 ? conversation : null];
+                            }
+                        });
+                    }); }))];
+            case 2:
+                unreadTickets = _a.sent();
+                getDisputedJobEntities = function (unreadTickets) { return __awaiter(void 0, void 0, void 0, function () {
+                    var disputeAlerts, _i, unreadTickets_1, conversation, job, error_2;
+                    return __generator(this, function (_a) {
+                        switch (_a.label) {
+                            case 0:
+                                disputeAlerts = [];
+                                _i = 0, unreadTickets_1 = unreadTickets;
+                                _a.label = 1;
+                            case 1:
+                                if (!(_i < unreadTickets_1.length)) return [3 /*break*/, 6];
+                                conversation = unreadTickets_1[_i];
+                                if (!conversation || !conversation.entity)
+                                    return [3 /*break*/, 5];
+                                _a.label = 2;
+                            case 2:
+                                _a.trys.push([2, 4, , 5]);
+                                return [4 /*yield*/, job_model_1.JobModel.findById(conversation.entity)];
+                            case 3:
+                                job = _a.sent();
+                                if (job && job.status === "DISPUTED") {
+                                    disputeAlerts.push(job.id);
+                                }
+                                return [3 /*break*/, 5];
+                            case 4:
+                                error_2 = _a.sent();
+                                return [3 /*break*/, 5];
+                            case 5:
+                                _i++;
+                                return [3 /*break*/, 1];
+                            case 6: return [2 /*return*/, disputeAlerts];
+                        }
+                    });
+                }); };
+                return [4 /*yield*/, getDisputedJobEntities(unreadTickets)];
+            case 3:
+                disputeAlerts = _a.sent();
                 unseenBookings = [];
-                disputeAlerts = jobs.filter(function (job) { var _a; return ((_a = job.contractorAlerts) === null || _a === void 0 ? void 0 : _a.hasNewDisputeMessage) === false; });
                 return [2 /*return*/, { disputeAlerts: disputeAlerts, unseenBookings: unseenBookings }];
         }
     });

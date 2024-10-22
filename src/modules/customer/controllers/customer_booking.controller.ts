@@ -287,7 +287,6 @@ export const getBookingDisputes = async (req: any, res: Response, next: NextFunc
         }
 
         if (error) {
-            console.log(error)
             res.status(500).json({ success: false, message: error });
         }
 

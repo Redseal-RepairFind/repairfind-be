@@ -1,4 +1,4 @@
-import  { ObjectId } from "mongoose";
+import { ObjectId } from "mongoose";
 import { JobModel } from "../database/common/job.model";
 import { Logger } from "../services/logger";
 import { CONVERSATION_TYPE, ConversationModel } from "../database/common/conversations.schema";
@@ -6,53 +6,94 @@ import { MessageModel } from "../database/common/messages.schema";
 
 
 
-const contractorRedAlerts = async (userId: ObjectId) => {
-    const alertConditions = {
-        contractor: userId,
-        status: { $in: ['DISPUTED'] },
-        $or: [
-            { bookingViewedByContractor: { $eq: false } },
-            { "contractorAlerts.hasNewDisputeMessage": { $eq: false } }
-        ]
-    };
+const contractorRedAlerts = async (contractorId: ObjectId) => {
+    // Fetch ticket-type conversations and unseen job IDs in parallel
+    const [ticketConversations, unseenJobs] = await Promise.all([
+        ConversationModel.find({
+            type: CONVERSATION_TYPE.TICKET,
+            "members.member": contractorId,
+            "members.memberType": "contractors",
+        }),
+        JobModel.find({
+            contractor: contractorId,
+            bookingViewedByContractor: { $eq: false }
+        }).select('_id contractor bookingViewedByContractor').lean()
+    ]);
 
-    // Fetch relevant job IDs for unseen bookings and dispute alerts
-    const jobs = await JobModel.find(alertConditions)
-        .select('_id contractor bookingViewedByContractor contractorAlerts')
-        .lean();
+    // Process ticket conversations to find unread messages and disputed jobs
+    const disputeAlerts: any = [];
+    const unreadTicketPromises = ticketConversations.map(async (conversation) => {
+        const unreadMessagesCount = await MessageModel.countDocuments({
+            conversation: conversation._id,
+            readBy: { $ne: contractorId }
+        });
 
-    // Split jobs based on the conditions
-    const unseenBookings = jobs.filter(job => !job.bookingViewedByContractor).map(job => job._id);
-    const disputeAlerts = jobs.filter(job => job.contractorAlerts?.hasNewDisputeMessage === false);
+        if (unreadMessagesCount > 0 && conversation.entity) {
+            try {
+                const job = await JobModel.findById(conversation.entity);
+                if (job?.status === "DISPUTED") {
+                    disputeAlerts.push(job.id);
+                }
+            } catch (error) {
+                console.error(`Error fetching job for entity ${conversation.entity}:`, error);
+            }
+        }
+    });
+
+    // Wait for all unread ticket checks to complete
+    await Promise.all(unreadTicketPromises);
+
+    // Extract job IDs from unseen bookings
+    const unseenBookings = unseenJobs.map(job => job._id);
 
     return { disputeAlerts, unseenBookings };
 };
-
 
 
 const customerRedAlerts = async (customerId: ObjectId) => {
-    const alertConditions = {
-        customer: customerId,
-        status: { $in: ['DISPUTED'] },
-        $or: [
-            { "customerAlerts.hasNewDisputeMessage": { $eq: false } }
-        ]
+
+    // Fetch ticket-type conversations where the user is a member
+    const ticketConversations = await ConversationModel.find({
+        type: CONVERSATION_TYPE.TICKET,
+        "members.member": customerId,
+        "members.memberType": "customers",
+    });
+
+    // Find ticket conversations with unread messages for the contractor
+    const unreadTickets = await Promise.all(
+        ticketConversations.map(async (conversation) => {
+            const unreadMessagesCount = await MessageModel.countDocuments({
+                conversation: conversation._id,
+                readBy: { $ne: customerId }
+            });
+
+            // Return conversation if it has unread messages
+            return unreadMessagesCount > 0 ? conversation : null;
+        })
+    );
+
+    const getDisputedJobEntities = async (unreadTickets: any) => {
+        const disputeAlerts = [];
+
+        for (const conversation of unreadTickets) {
+            if (!conversation || !conversation.entity) continue;
+            try {
+                const job = await JobModel.findById(conversation.entity);
+                if (job && job.status === "DISPUTED") {
+                    disputeAlerts.push(job.id);
+                }
+            } catch (error) {
+            }
+        }
+        return disputeAlerts;
     };
+    const disputeAlerts = await getDisputedJobEntities(unreadTickets);
 
-    // Fetch relevant job IDs for unseen bookings and dispute alerts
-    const jobs = await JobModel.find(alertConditions)
-        .select('_id customer customerAlerts')
-        .lean();
 
-    // Split jobs based on the conditions
-    const unseenBookings: any = [];
-    const disputeAlerts = jobs.filter(job => job.contractorAlerts?.hasNewDisputeMessage === false);
-
+    // Fetch job bookings where the contractor hasn't viewed the booking yet
+    const unseenBookings: any = []
     return { disputeAlerts, unseenBookings };
 };
-
-
-
 
 
 const redAlerts = async (userId: ObjectId) => {
@@ -80,7 +121,7 @@ const redAlerts = async (userId: ObjectId) => {
 
     // Fetch job bookings where the contractor hasn't viewed the booking yet
     const unseenJobIds = await JobModel.find({
-        contractor: userId, 
+        contractor: userId,
         bookingViewedByContractor: { $eq: false }
     }).select('_id contractor bookingViewedByContractor').lean();
 

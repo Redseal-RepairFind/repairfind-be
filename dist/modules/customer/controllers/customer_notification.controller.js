@@ -193,10 +193,10 @@ var redAlerts = function (req, res, next) { return __awaiter(void 0, void 0, voi
             case 0:
                 _b.trys.push([0, 2, , 3]);
                 customerId = req.customer.id;
-                return [4 /*yield*/, notification_util_1.NotificationUtil.redAlerts(customerId)];
+                return [4 /*yield*/, notification_util_1.NotificationUtil.customerRedAlerts(customerId)];
             case 1:
                 _a = _b.sent(), disputeAlerts = _a.disputeAlerts, unseenBookings = _a.unseenBookings;
-                res.json({ success: true, message: 'Alerts retreived', data: { disputeAlerts: disputeAlerts, unseenBookings: unseenBookings } });
+                res.json({ success: true, message: 'Alerts retrieved', data: { disputeAlerts: disputeAlerts, unseenBookings: unseenBookings } });
                 return [3 /*break*/, 3];
             case 2:
                 err_1 = _b.sent();

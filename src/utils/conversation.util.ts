@@ -93,8 +93,8 @@ const updateOrCreateDisputeConversations = async (dispute: IJobDispute) => {
       receiver: dispute.arbitrator,
       message: dispute.description,
       messageType: MessageType.ALERT,
-      entity: dispute.id,
-      entityType: 'job_disputes'
+      entity: dispute.job,
+      entityType: 'jobs'
     });
     ConversationEvent.emit('NEW_MESSAGE', { message })
     await message.save()
@@ -126,8 +126,8 @@ const updateOrCreateDisputeConversations = async (dispute: IJobDispute) => {
       receiver: dispute.contractor,
       message: dispute.description,
       messageType: MessageType.ALERT,
-      entity: dispute.id,
-      entityType: 'job_disputes'
+      entity: dispute.job,
+      entityType: 'jobs'
     });
     ConversationEvent.emit('NEW_MESSAGE', { message })
     await message.save()

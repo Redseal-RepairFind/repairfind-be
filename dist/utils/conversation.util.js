@@ -125,8 +125,8 @@ var updateOrCreateDisputeConversations = function (dispute) { return __awaiter(v
                     receiver: dispute.arbitrator,
                     message: dispute.description,
                     messageType: messages_schema_1.MessageType.ALERT,
-                    entity: dispute.id,
-                    entityType: 'job_disputes'
+                    entity: dispute.job,
+                    entityType: 'jobs'
                 });
                 events_1.ConversationEvent.emit('NEW_MESSAGE', { message: message });
                 return [4 /*yield*/, message.save()];
@@ -161,8 +161,8 @@ var updateOrCreateDisputeConversations = function (dispute) { return __awaiter(v
                     receiver: dispute.contractor,
                     message: dispute.description,
                     messageType: messages_schema_1.MessageType.ALERT,
-                    entity: dispute.id,
-                    entityType: 'job_disputes'
+                    entity: dispute.job,
+                    entityType: 'jobs'
                 });
                 events_1.ConversationEvent.emit('NEW_MESSAGE', { message: message });
                 return [4 /*yield*/, message.save()];

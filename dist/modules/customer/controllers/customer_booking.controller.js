@@ -324,7 +324,6 @@ var getBookingDisputes = function (req, res, next) { return __awaiter(void 0, vo
                 _g.label = 6;
             case 6:
                 if (error) {
-                    console.log(error);
                     res.status(500).json({ success: false, message: error });
                 }
                 // Send response with job listings data
