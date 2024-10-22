@@ -69,7 +69,7 @@ var promotion_schema_1 = require("../../../database/common/promotion.schema");
 var coupon_schema_1 = require("../../../database/common/coupon.schema");
 var couponCodeGenerator_1 = require("../../../utils/couponCodeGenerator");
 var exploreContractors = function (req, res) { return __awaiter(void 0, void 0, void 0, function () {
-    var queryFilter, dateFilter, start, end, _a, data, filter, contractorsData, reviewing, suspended, approved, blacklisted, err_1;
+    var queryFilter, dateFilter, start, end, _a, data, filter, contractorsData, reviewing, suspended, approved, blacklisted, total, err_1;
     return __generator(this, function (_b) {
         switch (_b.label) {
             case 0:
@@ -103,10 +103,12 @@ var exploreContractors = function (req, res) { return __awaiter(void 0, void 0, 
                 suspended = contractorsData.filter(function (contractor) { return contractor.accountStatus === contractor_interface_1.CONTRACTOR_STATUS.SUSPENDED; }).length;
                 approved = contractorsData.filter(function (contractor) { return contractor.accountStatus === contractor_interface_1.CONTRACTOR_STATUS.APPROVED; }).length;
                 blacklisted = contractorsData.filter(function (contractor) { return contractor.accountStatus === contractor_interface_1.CONTRACTOR_STATUS.BLACKLISTED; }).length;
+                total = contractorsData.length;
                 // Send response
                 res.status(200).json({
                     success: true,
                     data: __assign(__assign({}, data), { stats: {
+                            total: total,
                             reviewing: reviewing,
                             suspended: suspended,
                             approved: approved,

@@ -58,6 +58,7 @@ export const exploreContractors = async (req: Request, res: Response) => {
     const suspended = contractorsData.filter((contractor: any) => contractor.accountStatus === CONTRACTOR_STATUS.SUSPENDED).length;
     const approved = contractorsData.filter((contractor: any) => contractor.accountStatus === CONTRACTOR_STATUS.APPROVED).length;
     const blacklisted = contractorsData.filter((contractor: any) => contractor.accountStatus === CONTRACTOR_STATUS.BLACKLISTED).length;
+    const total = contractorsData.length;
     
       
 
@@ -67,6 +68,7 @@ export const exploreContractors = async (req: Request, res: Response) => {
       data: {
         ...data,
         stats: {
+          total,
           reviewing,
           suspended,
           approved,
