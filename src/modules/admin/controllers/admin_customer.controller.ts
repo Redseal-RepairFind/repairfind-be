@@ -1,138 +1,15 @@
 import { validationResult } from "express-validator";
 import { NextFunction, Request, Response } from "express";
 import AdminRegModel from "../../../database/admin/models/admin.model";
-import CustomerRegModel from "../../../database/customer/models/customer.model";
+import CustomerModel from "../../../database/customer/models/customer.model";
 import { JobModel } from "../../../database/common/job.model";
 import { InvoiceModel } from "../../../database/common/invoices.shema";
 import { PROMOTION_STATUS, PromotionModel } from "../../../database/common/promotion.schema";
 import { CouponModel } from "../../../database/common/coupon.schema";
 import { generateCouponCode } from "../../../utils/couponCodeGenerator";
 import { InternalServerError } from "../../../utils/custom.errors";
-import CustomerModel from "../../../database/customer/models/customer.model";
 import { applyAPIFeature } from "../../../utils/api.feature";
 
-
-//get customer detail /////////////
-export const AdminGetCustomerDetailController = async (
-  req: any,
-  res: Response,
-) => {
-
-  try {
-    let {
-      page,
-      limit
-    } = req.query;
-
-    // Check for validation errors
-    const errors = validationResult(req);
-
-    if (!errors.isEmpty()) {
-      return res.status(400).json({ errors: errors.array() });
-    }
-
-
-
-    page = page || 1;
-    limit = limit || 50;
-
-    const skip = (page - 1) * limit;
-
-    const customersDetail = await CustomerRegModel.find()
-      .select('-password')
-      .sort({ createdAt: -1 })
-      .skip(skip)
-      .limit(limit);
-
-    const totalCustomer = await CustomerRegModel.countDocuments()
-
-    res.json({
-      currentPage: page,
-      totalCustomer,
-      totalPages: Math.ceil(totalCustomer / limit),
-      customers: customersDetail
-    });
-
-  } catch (err: any) {
-    // signup error
-    res.status(500).json({ message: err.message });
-  }
-
-}
-
-
-//get single customer detail /////////////
-export const AdminGetSingleCustomerDetailController = async (
-  req: any,
-  res: Response,
-) => {
-
-  try {
-    let {
-      customerId
-    } = req.params;
-
-    // Check for validation errors
-    const errors = validationResult(req);
-
-    if (!errors.isEmpty()) {
-      return res.status(400).json({ errors: errors.array() });
-    }
-
-    const admin = req.admin;
-    const adminId = admin.id
-
-    const customer = await CustomerRegModel.findOne({ _id: customerId })
-      .select('-password')
-
-    if (!customer) {
-      return res
-        .status(401)
-        .json({ message: "invalid customer ID" });
-    }
-
-    // let rating = null
-
-    // const customerRating = await CustomerRatingModel.findOne({customerId: customer._id})
-    // if (customerRating) {
-    //   rating = customerRating
-    // }
-
-    // const jobRequests = await JobModel.find({customerId: customer._id}).sort({ createdAt: -1 })
-
-    // let jobRequested = []
-
-    // for (let i = 0; i < jobRequests.length; i++) {
-    //   const jobRequest = jobRequests[i];
-
-    //   const contractor = await ContractorModel.findOne({_id: jobRequest.contractorId}).select('-password');
-
-    //   const obj = {
-    //     job: jobRequest,
-    //     contractor
-    //   }
-
-    //   jobRequested.push(obj)
-
-    // }
-
-    // const objTwo = {
-    //   customer,
-    //   rating,
-    //   jobHistory: jobRequested
-    // }
-
-
-    res.json({
-      customer: customer
-    });
-
-  } catch (err: any) {
-    // signup error
-    res.status(500).json({ message: err.message });
-  }
-
-}
 
 
 //get single customer job detail /////////////
@@ -164,7 +41,7 @@ export const AdminGetSingleCustomerJobDetailController = async (
     page = page || 1;
     limit = limit || 50;
 
-    const customer = await CustomerRegModel.findOne({ _id: customerId })
+    const customer = await CustomerModel.findOne({ _id: customerId })
       .select('-password')
 
     if (!customer) {
@@ -241,7 +118,7 @@ export const AdminChangeCustomerAccountStatusController = async (
         .json({ message: "Invalid admin ID" });
     }
 
-    const customer = await CustomerRegModel.findOne({ _id: customerId })
+    const customer = await CustomerModel.findOne({ _id: customerId })
 
     if (!customer) {
       return res
@@ -311,7 +188,7 @@ export const issueCoupon = async (
 };
 
 
-export const getCustomerStats = async (
+export const getCustomers = async (
   req: any, res: Response
 ) => {
   try {
@@ -337,11 +214,34 @@ export const getCustomerStats = async (
 }
 
 
+export const getSingleCustomer = async (req: Request, res: Response) => {
+  try {
+    const { customerId } = req.params;
+
+    const customer = await CustomerModel.findById(customerId);
+
+    if (!customer) {
+      return res
+        .status(404)
+        .json({ success: false, message: "invalid customer ID" });
+    }
+
+    return res.json({
+      success: true,
+      message: "Customer retrieved",
+      data: customer
+    });
+
+  } catch (err: any) {
+    return res.status(500).json({ success: false, message: err.message });
+  }
+}
+
+
 export const AdminCustomerController = {
-  AdminGetCustomerDetailController,
-  AdminGetSingleCustomerDetailController,
   AdminGetSingleCustomerJobDetailController,
   AdminChangeCustomerAccountStatusController,
   issueCoupon,
-  getCustomerStats
+  getCustomers,
+  getSingleCustomer
 }

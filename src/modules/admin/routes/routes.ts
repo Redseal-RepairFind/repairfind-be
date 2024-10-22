@@ -89,9 +89,8 @@ router.post("/contractors/:contractorId/issue-coupon", AdminContractorController
 
 
 //done
-router.get("/customers", checkAdminRole, AdminCustomerController.getCustomerStats);
-router.get("/customer/detail", checkAdminRole, AdminCustomerController.AdminGetCustomerDetailController); // admin get customer detail
-router.get("/customer/detail/:customerId", checkAdminRole, AdminCustomerController.AdminGetSingleCustomerDetailController); // admin get single customer detail
+router.get("/customers", checkAdminRole, AdminCustomerController.getCustomers);
+router.get("/customers/:customerId", checkAdminRole, AdminCustomerController.getSingleCustomer); // admin get single customer detail
 router.get("/customer/job/detail/:customerId", checkAdminRole, AdminCustomerController.AdminGetSingleCustomerJobDetailController); // admin get single customer  job detail
 router.post("/customer/account/status", Validations.CustomerChangeStatusParams, checkAdminRole, AdminCustomerController.AdminChangeCustomerAccountStatusController); // admin change customer account status
 router.post("/customers/:customerId/issue-coupon", AdminCustomerController.issueCoupon); //
@@ -107,10 +106,10 @@ router.get("/skills", checkAdminRole, AdminSkillController.GetSkills); // admin 
 
 // refactored aaron
 router.get("/jobs", checkAdminRole, AdminJobController.getJobs);
-router.get("/jobs/stats", checkAdminRole, AdminJobController.getJobStats);
 router.get("/jobs/:jobId", checkAdminRole, AdminJobController.getSingleJob);
 router.get("/app_detail", checkAdminRole, AdminGetAppDetailController);
 router.get("/jobdays", checkAdminRole, AdminJobController.getJobDays);
+router.get("/jobdays/:jobdayId", checkAdminRole, AdminJobController.getSingleJobDay);
 // router.get("/invoice/detail/:jobId", checkAdminRole, AdminJobController.AdminGetInvoiceSingleJobsrDetailController ); 
 
 
