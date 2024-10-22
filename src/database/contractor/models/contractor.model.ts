@@ -1,6 +1,6 @@
 import mongoose, { Schema, model, ObjectId, FilterQuery } from "mongoose";
 import { COMPANY_STATUS, CONTRACTOR_BADGE, CONTRACTOR_STATUS, CONTRACTOR_TYPES, GST_STATUS, IContractor, IContractorCertnDetails, IContractorCompanyDetails, IContractorGstDetails } from "../interface/contractor.interface";
-import { contractorStatus } from "../../../constants/contractorStatus";
+// import { contractorStatus } from "../../../constants/contractorStatus";
 import ContractorQuizModel from "./contractor_quiz.model";
 import { StripeCustomerSchema } from "../../common/stripe_customer.schema";
 import { StripeAccountSchema } from "../../common/stripe_account.schema";
@@ -130,8 +130,8 @@ const ContractorSchema = new Schema<IContractor>(
 
     status: {
       type: String,
-      enum: Object.values(contractorStatus),
-      default: contractorStatus.REVIEWING,
+      enum: Object.values(CONTRACTOR_STATUS),
+      default: CONTRACTOR_STATUS.APPROVED,
     },
 
     acceptTerms: {
@@ -251,10 +251,10 @@ const ContractorSchema = new Schema<IContractor>(
 );
 
 
-ContractorSchema.index(
-  { referralCode: 1 },
-  { unique: true, partialFilterExpression: { referralCode: { $ne: null } } }
-);
+// ContractorSchema.index(
+//   { referralCode: 1 },
+//   { unique: true, partialFilterExpression: { referralCode: { $ne: null } } }
+// );
 
 
 
@@ -293,8 +293,27 @@ ContractorSchema.virtual('stripeAccountStatus').get(function (this: IContractor)
 
 
 ContractorSchema.virtual('accountStatus').get(function (this: IContractor) {
-  return CONTRACTOR_STATUS.APPROVED
+  const hasProfile = !!this.profile;
+  const hasStripeIdentity = !!this.stripeIdentity && this.stripeIdentity.status === 'verified';
+  const hasCertnApproval = !!this.certnDetails && this.certnDetails.report_status === 'COMPLETE';
+
+  // Admin-level statuses that override everything else
+  const adminBadStatus = [CONTRACTOR_STATUS.SUSPENDED, CONTRACTOR_STATUS.BLACKLISTED, CONTRACTOR_STATUS.REVIEWING].includes(this.status);
+
+  // Return the admin status if the contractor is in one of the adminBadStatus categories
+  if (adminBadStatus) {
+    return this.status;
+  }
+
+  // Return APPROVED if profile, Stripe identity, and Certn approval are in good standing
+  if (hasProfile && hasStripeIdentity && hasCertnApproval) {
+    return CONTRACTOR_STATUS.APPROVED;
+  }
+
+  // Default to REVIEWING if the contractor does not meet the conditions for APPROVED
+  return CONTRACTOR_STATUS.REVIEWING;
 });
+
 
 
 ContractorSchema.virtual('certnStatus').get(function (this: IContractor) {
@@ -471,7 +490,6 @@ ContractorSchema.methods.getStats = async function (contractor: any = null) {
 
   const responseTime = totalResponseTime / count;
 
-  console.log('responseTime', responseTime)
   // Format the response time
   let formattedResponseTime = '';
 

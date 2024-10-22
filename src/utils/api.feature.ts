@@ -137,28 +137,32 @@ export class APIFeatures {
 
 
 
-export const applyAPIFeature = async (model: any, query: any) => {
+export const applyAPIFeature = async (model: any, query: any, methods?: any) => {
     try {
         const features = new APIFeatures(model, query);
+        const queryMethods = methods ?? []
         features.filter().search().sort().limitFields().paginate();
         const dataQuery = await features.query;
 
 
 
-        // Handle async virtuals and methods
-        // if (dataQuery && dataQuery.length > 0) {
-        //     dataQuery.map(async (doc: any) => {
-        //         const methods = Object.keys(doc.schema.methods);
-        //         methods.map(async (method) => {
-        //             if (typeof doc[method] === 'function') {
-        //                 const result = await doc[method]();
-        //                 const methodName = method.charAt(3).toLowerCase() + method.slice(4);
-        //                 doc[methodName] = result; // Assign the resolved result to the document
-        //             }
-        //         })
-        //     })
-        // }
-
+       // Handle async victuals and methods
+       if (dataQuery && dataQuery.length > 0) {
+        await Promise.all(
+            dataQuery.map(async (doc: any) => {
+                const methods = Object.keys(doc.schema.methods);
+                await Promise.all(
+                    methods.map(async (method) => {
+                        if (typeof doc[method] === 'function' && queryMethods.includes(method)) {
+                            const result = await doc[method]();
+                            const methodName = method.charAt(3).toLowerCase() + method.slice(4);
+                            doc[methodName] = result; // Assign the resolved result to the document
+                        }
+                    })
+                );
+            })
+        );
+    }
 
         const limit = features.queryString.limit;
         const currentPage = features.queryString.page;

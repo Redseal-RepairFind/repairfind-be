@@ -3,17 +3,17 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.customerStatus = exports.contractorStatus = void 0;
 var contractorStatus;
 (function (contractorStatus) {
-    contractorStatus["SUSPENDED"] = "suspend";
-    contractorStatus["REVIEWING"] = "in-review";
-    contractorStatus["DECLINED"] = "declined";
-    contractorStatus["ACTIVE"] = "active";
-    contractorStatus["CLOSED"] = "closed";
+    contractorStatus["SUSPENDED"] = "SUSPENDED";
+    contractorStatus["REVIEWING"] = "REVIEWING";
+    contractorStatus["DECLINED"] = "DECLINED";
+    contractorStatus["ACTIVE"] = "ACTIVE";
+    contractorStatus["CLOSED"] = "CLOSED";
 })(contractorStatus || (exports.contractorStatus = contractorStatus = {}));
 var customerStatus;
 (function (customerStatus) {
-    customerStatus["SUSPENDED"] = "suspend";
-    customerStatus["REVIEWING"] = "in-review";
+    customerStatus["SUSPENDED"] = "SUSPENDED";
+    customerStatus["REVIEWING"] = "REVIEWING";
     customerStatus["DECLINED"] = "declined";
-    customerStatus["ACTIVE"] = "active";
-    customerStatus["CLOSED"] = "closed";
+    customerStatus["ACTIVE"] = "ACTIVE";
+    customerStatus["CLOSED"] = "CLOSED";
 })(customerStatus || (exports.customerStatus = customerStatus = {}));

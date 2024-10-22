@@ -42,7 +42,7 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.ContractorModel = void 0;
 var mongoose_1 = require("mongoose");
 var contractor_interface_1 = require("../interface/contractor.interface");
-var contractorStatus_1 = require("../../../constants/contractorStatus");
+// import { contractorStatus } from "../../../constants/contractorStatus";
 var contractor_quiz_model_1 = __importDefault(require("./contractor_quiz.model"));
 var stripe_customer_schema_1 = require("../../common/stripe_customer.schema");
 var stripe_account_schema_1 = require("../../common/stripe_account.schema");
@@ -152,8 +152,8 @@ var ContractorSchema = new mongoose_1.Schema({
     },
     status: {
         type: String,
-        enum: Object.values(contractorStatus_1.contractorStatus),
-        default: contractorStatus_1.contractorStatus.REVIEWING,
+        enum: Object.values(contractor_interface_1.CONTRACTOR_STATUS),
+        default: contractor_interface_1.CONTRACTOR_STATUS.APPROVED,
     },
     acceptTerms: {
         type: Boolean
@@ -257,7 +257,10 @@ var ContractorSchema = new mongoose_1.Schema({
 }, {
     timestamps: true,
 });
-ContractorSchema.index({ referralCode: 1 }, { unique: true, partialFilterExpression: { referralCode: { $ne: null } } });
+// ContractorSchema.index(
+//   { referralCode: 1 },
+//   { unique: true, partialFilterExpression: { referralCode: { $ne: null } } }
+// );
 ContractorSchema.virtual('stripeIdentityStatus').get(function () {
     //@ts-ignore
     return this.stripeIdentity ? this.stripeIdentity.status : 'unverified';
@@ -288,7 +291,21 @@ ContractorSchema.virtual('stripeAccountStatus').get(function () {
     };
 });
 ContractorSchema.virtual('accountStatus').get(function () {
-    return contractor_interface_1.CONTRACTOR_STATUS.APPROVED;
+    var hasProfile = !!this.profile;
+    var hasStripeIdentity = !!this.stripeIdentity && this.stripeIdentity.status === 'verified';
+    var hasCertnApproval = !!this.certnDetails && this.certnDetails.report_status === 'COMPLETE';
+    // Admin-level statuses that override everything else
+    var adminBadStatus = [contractor_interface_1.CONTRACTOR_STATUS.SUSPENDED, contractor_interface_1.CONTRACTOR_STATUS.BLACKLISTED, contractor_interface_1.CONTRACTOR_STATUS.REVIEWING].includes(this.status);
+    // Return the admin status if the contractor is in one of the adminBadStatus categories
+    if (adminBadStatus) {
+        return this.status;
+    }
+    // Return APPROVED if profile, Stripe identity, and Certn approval are in good standing
+    if (hasProfile && hasStripeIdentity && hasCertnApproval) {
+        return contractor_interface_1.CONTRACTOR_STATUS.APPROVED;
+    }
+    // Default to REVIEWING if the contractor does not meet the conditions for APPROVED
+    return contractor_interface_1.CONTRACTOR_STATUS.REVIEWING;
 });
 ContractorSchema.virtual('certnStatus').get(function () {
     var certnDetails = this.certnDetails;
@@ -459,7 +476,6 @@ ContractorSchema.methods.getStats = function (contractor) {
                         count++;
                     });
                     responseTime = totalResponseTime / count;
-                    console.log('responseTime', responseTime);
                     formattedResponseTime = '';
                     if (!responseTime) {
                         formattedResponseTime = "Not available";

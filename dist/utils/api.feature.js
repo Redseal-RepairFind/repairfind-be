@@ -164,21 +164,55 @@ var APIFeatures = /** @class */ (function () {
     return APIFeatures;
 }());
 exports.APIFeatures = APIFeatures;
-var applyAPIFeature = function (model, query) { return __awaiter(void 0, void 0, void 0, function () {
-    var features, dataQuery, limit, currentPage, totalItems, lastPage, data, error_1;
+var applyAPIFeature = function (model, query, methods) { return __awaiter(void 0, void 0, void 0, function () {
+    var features, queryMethods_1, dataQuery, limit, currentPage, totalItems, lastPage, data, error_1;
     return __generator(this, function (_a) {
         switch (_a.label) {
             case 0:
-                _a.trys.push([0, 3, , 4]);
+                _a.trys.push([0, 5, , 6]);
                 features = new APIFeatures(model, query);
+                queryMethods_1 = methods !== null && methods !== void 0 ? methods : [];
                 features.filter().search().sort().limitFields().paginate();
                 return [4 /*yield*/, features.query];
             case 1:
                 dataQuery = _a.sent();
+                if (!(dataQuery && dataQuery.length > 0)) return [3 /*break*/, 3];
+                return [4 /*yield*/, Promise.all(dataQuery.map(function (doc) { return __awaiter(void 0, void 0, void 0, function () {
+                        var methods;
+                        return __generator(this, function (_a) {
+                            switch (_a.label) {
+                                case 0:
+                                    methods = Object.keys(doc.schema.methods);
+                                    return [4 /*yield*/, Promise.all(methods.map(function (method) { return __awaiter(void 0, void 0, void 0, function () {
+                                            var result, methodName;
+                                            return __generator(this, function (_a) {
+                                                switch (_a.label) {
+                                                    case 0:
+                                                        if (!(typeof doc[method] === 'function' && queryMethods_1.includes(method))) return [3 /*break*/, 2];
+                                                        return [4 /*yield*/, doc[method]()];
+                                                    case 1:
+                                                        result = _a.sent();
+                                                        methodName = method.charAt(3).toLowerCase() + method.slice(4);
+                                                        doc[methodName] = result; // Assign the resolved result to the document
+                                                        _a.label = 2;
+                                                    case 2: return [2 /*return*/];
+                                                }
+                                            });
+                                        }); }))];
+                                case 1:
+                                    _a.sent();
+                                    return [2 /*return*/];
+                            }
+                        });
+                    }); }))];
+            case 2:
+                _a.sent();
+                _a.label = 3;
+            case 3:
                 limit = features.queryString.limit;
                 currentPage = features.queryString.page;
                 return [4 /*yield*/, features.getTotalItems()];
-            case 2:
+            case 4:
                 totalItems = _a.sent();
                 lastPage = Math.ceil(totalItems / limit);
                 data = {
@@ -189,11 +223,11 @@ var applyAPIFeature = function (model, query) { return __awaiter(void 0, void 0,
                     data: dataQuery,
                 };
                 return [2 /*return*/, { data: data, error: null, filter: features.filters }];
-            case 3:
+            case 5:
                 error_1 = _a.sent();
                 console.log(error_1);
                 return [2 /*return*/, { data: null, error: error_1 }];
-            case 4: return [2 /*return*/];
+            case 6: return [2 /*return*/];
         }
     });
 }); };

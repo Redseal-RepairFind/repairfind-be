@@ -129,7 +129,7 @@ export interface IContractor extends Document {
   email: string;
   password: string;
   dateOfBirth?: string;
-  status: string;
+  status: CONTRACTOR_STATUS;
   phoneNumber: {
     code: string;
     number: string;
@@ -154,7 +154,7 @@ export interface IContractor extends Document {
   };
  
   stripeCustomer: IStripeCustomer
-  stripeIdentity: object,
+  stripeIdentity: any,
   stripeAccount: IStripeAccount,
   stripePaymentMethods: Array<object>,
   gstDetails: IContractorGstDetails

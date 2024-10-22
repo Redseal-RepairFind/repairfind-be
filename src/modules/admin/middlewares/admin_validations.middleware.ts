@@ -61,7 +61,7 @@ export const updateGstDetails = [
 export const updateAccount = [
     body("status")
     .isIn(["PENDING", "REVIEWING", "REJECTED", "SUSPENDED", "BLACKLISTED", "APPROVED", "DECLINED"])
-    .withMessage("gstStatus must be PENDING, REVIEWING, APPROVED, or DECLINED"),
+    .withMessage("Contractor status must be PENDING, REVIEWING, APPROVED, or DECLINED"),
 ];
 
 export const sendCustomEmail = [

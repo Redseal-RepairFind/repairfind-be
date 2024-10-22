@@ -46,15 +46,6 @@ var __generator = (this && this.__generator) || function (thisArg, body) {
         if (op[0] & 5) throw op[1]; return { value: op[0] ? op[1] : void 0, done: true };
     }
 };
-var __spreadArray = (this && this.__spreadArray) || function (to, from, pack) {
-    if (pack || arguments.length === 2) for (var i = 0, l = from.length, ar; i < l; i++) {
-        if (ar || !(i in from)) {
-            if (!ar) ar = Array.prototype.slice.call(from, 0, i);
-            ar[i] = from[i];
-        }
-    }
-    return to.concat(ar || Array.prototype.slice.call(from));
-};
 var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
@@ -72,263 +63,63 @@ var custom_errors_1 = require("../../../utils/custom.errors");
 var mongoose_1 = __importDefault(require("mongoose")); // Import Document type from mongoose
 var job_quotation_model_1 = require("../../../database/common/job_quotation.model");
 var job_dispute_model_1 = require("../../../database/common/job_dispute.model");
-var contractor_quize_pipeline_1 = require("../../../database/contractor/pipelines/contractor_quize.pipeline");
-var contractor_stripe_account_pipeline_1 = require("../../../database/contractor/pipelines/contractor_stripe_account.pipeline");
 var generic_email_1 = require("../../../templates/common/generic_email");
 var services_1 = require("../../../services");
 var promotion_schema_1 = require("../../../database/common/promotion.schema");
 var coupon_schema_1 = require("../../../database/common/coupon.schema");
 var couponCodeGenerator_1 = require("../../../utils/couponCodeGenerator");
 var exploreContractors = function (req, res) { return __awaiter(void 0, void 0, void 0, function () {
-    var errors, _a, searchName, listing, minDistance, maxDistance, radius, latitude, longitude, emergencyJobs, category, location_1, city, country, address, accountType, date, isOffDuty, availability, experienceYear, gstNumber, _b, page, _c, limit, sort, minResponseTime, maxResponseTime, sortByResponseTime, hasPassedQuiz, gstStatus, stripeAccountStatus, startDate, endDate, availableDaysArray, skip, toRadians, mergedPipelines, pipeline, dateFilter, start, end, end, _d, sortField, sortOrder, sortStage, result, contractors, metadata, verifiedCount, unverifiedCount, err_1;
-    var _e;
-    var _f, _g;
-    return __generator(this, function (_h) {
-        switch (_h.label) {
+    var queryFilter, dateFilter, start, end, _a, data, filter, contractorsData, reviewing, suspended, approved, blacklisted, err_1;
+    return __generator(this, function (_b) {
+        switch (_b.label) {
             case 0:
-                errors = (0, express_validator_1.validationResult)(req);
-                if (!errors.isEmpty()) {
-                    return [2 /*return*/, res.status(400).json({ errors: errors.array() })];
-                }
-                _h.label = 1;
-            case 1:
-                _h.trys.push([1, 3, , 4]);
-                _a = req.query, searchName = _a.searchName, listing = _a.listing, minDistance = _a.minDistance, maxDistance = _a.maxDistance, radius = _a.radius, latitude = _a.latitude, longitude = _a.longitude, emergencyJobs = _a.emergencyJobs, category = _a.category, location_1 = _a.location, city = _a.city, country = _a.country, address = _a.address, accountType = _a.accountType, date = _a.date, isOffDuty = _a.isOffDuty, availability = _a.availability, experienceYear = _a.experienceYear, gstNumber = _a.gstNumber, _b = _a.page, page = _b === void 0 ? 1 : _b, _c = _a.limit, limit = _c === void 0 ? 10 : _c, sort = _a.sort, minResponseTime = _a.minResponseTime, maxResponseTime = _a.maxResponseTime, sortByResponseTime = _a.sortByResponseTime, hasPassedQuiz = _a.hasPassedQuiz, gstStatus = _a.gstStatus, stripeAccountStatus = _a.stripeAccountStatus, startDate = _a.startDate, endDate = _a.endDate;
-                availableDaysArray = availability ? availability.split(',') : [];
-                skip = (parseInt(page) - 1) * parseInt(limit);
-                toRadians = function (degrees) { return degrees * (Math.PI / 180); };
-                mergedPipelines = __spreadArray(__spreadArray([], contractor_stripe_account_pipeline_1.ContractorStripeAccountPipeline, true), contractor_quize_pipeline_1.ContractorQuizPipeline, true);
-                pipeline = __spreadArray(__spreadArray([], mergedPipelines, true), [
-                    {
-                        $lookup: {
-                            from: "contractor_profiles",
-                            localField: "profile",
-                            foreignField: "_id",
-                            as: "profile"
-                        }
-                    },
-                    { $unwind: "$profile" },
-                    {
-                        $addFields: {
-                            name: {
-                                $cond: {
-                                    if: {
-                                        $or: [
-                                            { $eq: ['$accountType', contractor_interface_1.CONTRACTOR_TYPES.Individual] },
-                                            { $eq: ['$accountType', contractor_interface_1.CONTRACTOR_TYPES.Employee] }
-                                        ]
-                                    },
-                                    then: { $concat: ['$firstName', ' ', '$lastName'] },
-                                    else: '$companyName'
-                                }
-                            },
-                            rating: { $avg: '$reviews.averageRating' }, // Calculate average rating using $avg
-                            reviewCount: { $size: '$reviews' }, // Calculate average rating using $avg
-                        }
-                    },
-                    {
-                        $lookup: {
-                            from: "job_quotations",
-                            localField: "_id",
-                            foreignField: "contractor",
-                            as: "quotations"
-                        }
-                    },
-                    {
-                        $addFields: {
-                            avgResponseTime: {
-                                $avg: "$quotations.responseTime"
-                            }
-                        }
-                    },
-                    {
-                        $project: {
-                            stripeIdentity: 0,
-                            stripeCustomer: 0,
-                            stripeAccount: 0,
-                            stripePaymentMethods: 0,
-                            stripePaymentMethod: 0,
-                            passwordOtp: 0,
-                            password: 0,
-                            emailOtp: 0,
-                            dateOfBirth: 0,
-                            reviews: 0,
-                            onboarding: 0,
-                            "quotations": 0,
-                            "stats": 0,
-                            quizzes: 0,
-                            questions: 0,
-                            latestQuiz: 0
-                        }
-                    },
-                ], false);
-                // Date filter
-                if (startDate) {
+                _b.trys.push([0, 5, , 6]);
+                queryFilter = {};
+                // Date filter logic
+                if (req.query.startDate) {
                     dateFilter = {};
-                    start = new Date(startDate);
+                    start = new Date(req.query.startDate);
                     start.setUTCHours(0, 0, 0, 0);
                     dateFilter.$gte = start;
-                    if (endDate) {
-                        end = new Date(endDate);
-                        end.setUTCHours(23, 59, 59, 999);
-                        dateFilter.$lte = end;
-                    }
-                    if (!endDate) {
-                        end = new Date(startDate);
-                        end.setUTCHours(23, 59, 59, 999);
-                        dateFilter.$lte = end;
-                    }
-                    console.log("Date filter", dateFilter);
-                    pipeline.push({
-                        $match: {
-                            createdAt: dateFilter
-                        }
-                    });
+                    end = new Date(req.query.endDate ? req.query.endDate : req.query.startDate);
+                    end.setUTCHours(23, 59, 59, 999);
+                    dateFilter.$lte = end;
+                    // Apply the date filter to createdAt
+                    queryFilter.createdAt = dateFilter;
                 }
-                //example filter out who do not have stripe account
-                // pipeline.push({ $match: { "stripeAccountStatus.status": 'active' } })
-                //example filter out employees and contractors 
-                pipeline.push({ $match: { accountType: { $ne: contractor_interface_1.CONTRACTOR_TYPES.Employee } } });
-                // Add stages conditionally based on query parameters
-                if (searchName) {
-                    pipeline.push({ $match: { "name": { $regex: new RegExp(searchName, 'i') } } });
-                }
-                if (category) {
-                    pipeline.push({ $match: { "profile.skill": { $regex: new RegExp(category, 'i') } } });
-                }
-                if (country) {
-                    pipeline.push({ $match: { "profile.location.country": { $regex: new RegExp(country, 'i') } } });
-                }
-                if (city) {
-                    pipeline.push({ $match: { "profile.location.city": { $regex: new RegExp(city, 'i') } } });
-                }
-                if (address) {
-                    pipeline.push({ $match: { "profile.location.address": { $regex: new RegExp(address, 'i') } } });
-                }
-                if (gstStatus) {
-                    pipeline.push({ $match: { "gstDetails.status": gstStatus } });
-                }
-                if (accountType) {
-                    pipeline.push({ $match: { "accountType": accountType } });
-                }
-                if (hasPassedQuiz) {
-                    pipeline.push({ $match: { "quiz.passed": hasPassedQuiz === "true" || null } });
-                }
-                if (stripeAccountStatus) {
-                    pipeline.push({ $match: { "stripeAccountStatus.status": stripeAccountStatus } });
-                }
-                if (experienceYear) {
-                    pipeline.push({ $match: { "profile.experienceYear": parseInt(experienceYear) } });
-                }
-                if (emergencyJobs !== undefined) {
-                    pipeline.push({ $match: { "profile.emergencyJobs": emergencyJobs === "true" } });
-                }
-                if (isOffDuty !== undefined) {
-                    pipeline.push({ $match: { "profile.isOffDuty": isOffDuty === "true" || null } });
-                }
-                if (gstNumber) {
-                    pipeline.push({ $match: { "profile.gstNumber": gstNumber } });
-                }
-                if (availability) {
-                    pipeline.push({ $match: { "profile.availability": { $in: availableDaysArray } } });
-                }
-                if (radius) {
-                    pipeline.push({ $match: { "distance": { $lte: parseInt(radius) } } });
-                }
-                if (minDistance !== undefined) {
-                    pipeline.push({ $match: { "distance": { $gte: parseInt(minDistance) } } });
-                }
-                if (maxDistance !== undefined) {
-                    pipeline.push({ $match: { "distance": { $lte: parseInt(maxDistance) } } });
-                }
-                if (minResponseTime !== undefined) {
-                    minResponseTime = minResponseTime * 1000;
-                    pipeline.push({ $match: { "avgResponseTime": { $gte: parseInt(minResponseTime) } } });
-                }
-                if (maxResponseTime !== undefined) {
-                    maxResponseTime = maxResponseTime * 1000;
-                    pipeline.push({ $match: { "avgResponseTime": { $lte: parseInt(maxResponseTime) } } });
-                }
-                // if (sortByResponseTime !== undefined) {
-                //     const sortOrder = sortByResponseTime === "asc" ? 1 : -1;
-                //     pipeline.push({ $sort: { avgResponseTime: sortOrder } });
-                // }
-                if (sort) {
-                    _d = sort.startsWith('-') ? [sort.slice(1), -1] : [sort, 1], sortField = _d[0], sortOrder = _d[1];
-                    sortStage = {
-                        //@ts-ignore
-                        $sort: (_e = {}, _e[sortField] = sortOrder, _e)
-                    };
-                    pipeline.push(sortStage);
-                }
-                switch (listing) {
-                    case 'recommended':
-                        // Logic to fetch recommended contractors
-                        // pipeline.push(
-                        //     { $match: { rating: { $gte: 4.5 } } }, // Fetch contractors with rating >= 4.5
-                        //     { $sort: { rating: -1 } } // Sort by rating in descending order
-                        // );
-                        pipeline.push({ $sample: { size: 10 } } // Randomly sample 10 contractors
-                        );
-                        break;
-                    case 'top-rated':
-                        // Logic to fetch top-rated contractors
-                        // pipeline.push(
-                        //     { $match: { rating: { $exists: true } } }, // Filter out contractors with no ratings
-                        //     { $sort: { rating: -1 } } // Sort by rating in descending order
-                        // );
-                        pipeline.push({ $match: { averageRating: { $exists: true } } });
-                        break;
-                    case 'featured':
-                        // Logic to fetch featured contractors
-                        pipeline.push({ $match: { isFeatured: true } } // Filter contractors marked as featured
-                        );
-                        break;
-                    default:
-                        // Default logic if type is not specified or invalid
-                        // You can handle this case based on your requirements
-                        break;
-                }
-                // Add $facet stage for pagination
-                pipeline.push({
-                    $facet: {
-                        metadata: [
-                            { $count: "totalItems" },
-                            { $addFields: { page: page, limit: limit, currentPage: parseInt(page), lastPage: { $ceil: { $divide: ["$totalItems", parseInt(limit)] } }, listing: listing } }
-                        ],
-                        data: [{ $skip: skip }, { $limit: parseInt(limit) }],
-                        verifiedContractors: [
-                            { $match: { accountStatus: contractor_interface_1.CONTRACTOR_STATUS.APPROVED } },
-                            { $count: "count" }
-                        ],
-                        unverifiedContractors: [
-                            { $match: { accountStatus: { $ne: contractor_interface_1.CONTRACTOR_STATUS.APPROVED } } },
-                            { $count: "count" }
-                        ]
-                    }
-                });
-                return [4 /*yield*/, contractor_model_1.ContractorModel.aggregate(pipeline)];
-            case 2:
-                result = _h.sent();
-                contractors = result[0].data;
-                metadata = result[0].metadata[0];
-                verifiedCount = ((_f = result[0].verifiedContractors[0]) === null || _f === void 0 ? void 0 : _f.count) || 0;
-                unverifiedCount = ((_g = result[0].unverifiedContractors[0]) === null || _g === void 0 ? void 0 : _g.count) || 0;
+                return [4 /*yield*/, (0, api_feature_1.applyAPIFeature)(contractor_model_1.ContractorModel.find(queryFilter), req.query, ['getOnboarding'])];
+            case 1:
+                _a = _b.sent(), data = _a.data, filter = _a.filter;
+                contractorsData = [];
+                if (!filter) return [3 /*break*/, 2];
+                contractorsData = data === null || data === void 0 ? void 0 : data.data;
+                return [3 /*break*/, 4];
+            case 2: return [4 /*yield*/, contractor_model_1.ContractorModel.find({})];
+            case 3:
+                contractorsData = _b.sent(); // Fetch all contractors if no filter
+                _b.label = 4;
+            case 4:
+                reviewing = contractorsData.filter(function (contractor) { return contractor.accountStatus === contractor_interface_1.CONTRACTOR_STATUS.REVIEWING; }).length;
+                suspended = contractorsData.filter(function (contractor) { return contractor.accountStatus === contractor_interface_1.CONTRACTOR_STATUS.SUSPENDED; }).length;
+                approved = contractorsData.filter(function (contractor) { return contractor.accountStatus === contractor_interface_1.CONTRACTOR_STATUS.APPROVED; }).length;
+                blacklisted = contractorsData.filter(function (contractor) { return contractor.accountStatus === contractor_interface_1.CONTRACTOR_STATUS.BLACKLISTED; }).length;
                 // Send response
                 res.status(200).json({
                     success: true,
-                    data: __assign(__assign({}, metadata), { data: contractors, stats: {
-                            verifiedContractors: verifiedCount,
-                            unVerifiedContractors: unverifiedCount
+                    data: __assign(__assign({}, data), { stats: {
+                            reviewing: reviewing,
+                            suspended: suspended,
+                            approved: approved,
+                            blacklisted: blacklisted
                         } })
                 });
-                return [3 /*break*/, 4];
-            case 3:
-                err_1 = _h.sent();
+                return [3 /*break*/, 6];
+            case 5:
+                err_1 = _b.sent();
                 console.error("Error fetching contractors:", err_1);
                 res.status(400).json({ message: 'Something went wrong' });
-                return [3 /*break*/, 4];
-            case 4: return [2 /*return*/];
+                return [3 /*break*/, 6];
+            case 6: return [2 /*return*/];
         }
     });
 }); };

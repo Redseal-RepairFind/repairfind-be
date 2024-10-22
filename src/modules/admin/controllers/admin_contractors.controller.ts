@@ -22,327 +22,55 @@ import { generateCouponCode } from "../../../utils/couponCodeGenerator";
 
 
 
-type PipelineStage =
-  | MongoosePipelineStage
-  | { $lookup: { from: string; localField: string; foreignField: string; as: string, pipeline?: any } }
-  | { $unwind: string | { path: string; includeArrayIndex?: string; preserveNullAndEmptyArrays?: boolean } }
-  | { $match: any }
-  | { $addFields: any }
-  | { $project: any }
-  | { $sort: { [key: string]: 1 | -1 } }
-  | { $group: any };
-
-export const exploreContractors = async (
-  req: any,
-  res: Response,
-) => {
-  const errors = validationResult(req);
-  if (!errors.isEmpty()) {
-    return res.status(400).json({ errors: errors.array() });
-  }
-
-
+export const exploreContractors = async (req: Request, res: Response) => {
   try {
-    let {
-      searchName,
-      listing,
-      minDistance,
-      maxDistance,
-      radius,
-      latitude, //if latitude is not provided, use the stored location of the customer
-      longitude,
-      emergencyJobs,
-      category,
-      location,
-      city,
-      country,
-      address,
-      accountType,
-      date,
-      isOffDuty,
-      availability,
-      experienceYear,
-      gstNumber,
-      page = 1, // Default to page 1
-      limit = 10, // Default to 10 items per page
-      sort, // Sort field and order (-fieldName or fieldName)
-      minResponseTime,
-      maxResponseTime,
-      sortByResponseTime,
-      hasPassedQuiz,
-      gstStatus,
-      stripeAccountStatus,
-      startDate,
-      endDate
-    } = req.query;
 
+    const queryFilter: any = {};
 
-
-    const availableDaysArray = availability ? availability.split(',') : [];
-    const skip = (parseInt(page) - 1) * parseInt(limit);
-
-    const toRadians = (degrees: number) => degrees * (Math.PI / 180);
-    let mergedPipelines = [...ContractorStripeAccountPipeline, ...ContractorQuizPipeline]
-    const pipeline: PipelineStage[] = [
-      ...mergedPipelines,
-      {
-        $lookup: {
-          from: "contractor_profiles",
-          localField: "profile",
-          foreignField: "_id",
-          as: "profile"
-        }
-      },
-      { $unwind: "$profile" },
-      {
-        $addFields: {
-          name: {
-            $cond: {
-              if: {
-                $or: [
-                  { $eq: ['$accountType', CONTRACTOR_TYPES.Individual] },
-                  { $eq: ['$accountType', CONTRACTOR_TYPES.Employee] }
-                ]
-              },
-              then: { $concat: ['$firstName', ' ', '$lastName'] },
-              else: '$companyName'
-            }
-          },
-          rating: { $avg: '$reviews.averageRating' }, // Calculate average rating using $avg
-          reviewCount: { $size: '$reviews' }, // Calculate average rating using $avg
-
-        }
-      },
-      {
-        $lookup: {
-          from: "job_quotations",
-          localField: "_id",
-          foreignField: "contractor",
-          as: "quotations"
-        }
-      },
-      {
-        $addFields: {
-          avgResponseTime: {
-            $avg: "$quotations.responseTime"
-          }
-        }
-      },
-      {
-        $project: {
-          stripeIdentity: 0,
-          stripeCustomer: 0,
-          stripeAccount: 0,
-          stripePaymentMethods: 0,
-          stripePaymentMethod: 0,
-          passwordOtp: 0,
-          password: 0,
-          emailOtp: 0,
-          dateOfBirth: 0,
-          reviews: 0,
-          onboarding: 0,
-          "quotations": 0,
-          "stats": 0,
-          quizzes: 0,
-          questions: 0,
-          latestQuiz: 0
-
-        }
-      },
-
-    ];
-
-
-    // Date filter
-    if (startDate) {
+    // Date filter logic
+    if (req.query.startDate) {
       const dateFilter: any = {};
-
-      const start = new Date(startDate);
+      
+      // Set start date at the beginning of the day
+      const start = new Date(req.query.startDate as string);
       start.setUTCHours(0, 0, 0, 0);
       dateFilter.$gte = start;
-
-
-      if (endDate) {
-        const end = new Date(endDate);
-        end.setUTCHours(23, 59, 59, 999);
-        dateFilter.$lte = end;
-      }
-
-      if (!endDate) {
-        const end = new Date(startDate);
-        end.setUTCHours(23, 59, 59, 999);
-        dateFilter.$lte = end;
-      }
-      console.log("Date filter", dateFilter)
-      pipeline.push({
-        $match: {
-          createdAt: dateFilter
-        }
-      })
+    
+      // Set end date at the end of the day, or use start date if no endDate is provided
+      const end = new Date(req.query.endDate ? req.query.endDate as string : req.query.startDate as string);
+      end.setUTCHours(23, 59, 59, 999);
+      dateFilter.$lte = end;
+    
+      // Apply the date filter to createdAt
+      queryFilter.createdAt = dateFilter;
     }
 
-
-    //example filter out who do not have stripe account
-    // pipeline.push({ $match: { "stripeAccountStatus.status": 'active' } })
+    const { data, filter } = await applyAPIFeature(ContractorModel.find(queryFilter), req.query, ['getOnboarding']);
 
 
-    //example filter out employees and contractors 
-    pipeline.push({ $match: { accountType: { $ne: CONTRACTOR_TYPES.Employee } } })
-
-    // Add stages conditionally based on query parameters
-    if (searchName) {
-      pipeline.push({ $match: { "name": { $regex: new RegExp(searchName, 'i') } } });
+    let contractorsData = [];
+    if (filter) {
+      contractorsData = data?.data; 
+    } else {
+      contractorsData = await ContractorModel.find({});  // Fetch all contractors if no filter
     }
-
-
-    if (category) {
-      pipeline.push({ $match: { "profile.skill": { $regex: new RegExp(category, 'i') } } });
-    }
-    if (country) {
-      pipeline.push({ $match: { "profile.location.country": { $regex: new RegExp(country, 'i') } } });
-    }
-    if (city) {
-      pipeline.push({ $match: { "profile.location.city": { $regex: new RegExp(city, 'i') } } });
-    }
-    if (address) {
-      pipeline.push({ $match: { "profile.location.address": { $regex: new RegExp(address, 'i') } } });
-    }
-    if (gstStatus) {
-      pipeline.push({ $match: { "gstDetails.status": gstStatus } });
-    }
-    if (accountType) {
-      pipeline.push({ $match: { "accountType": accountType } });
-    }
-    if (hasPassedQuiz) {
-      pipeline.push({ $match: { "quiz.passed": hasPassedQuiz === "true" || null } });
-    }
-    if (stripeAccountStatus) {
-      pipeline.push({ $match: { "stripeAccountStatus.status": stripeAccountStatus } })
-    }
-    if (experienceYear) {
-      pipeline.push({ $match: { "profile.experienceYear": parseInt(experienceYear) } });
-    }
-    if (emergencyJobs !== undefined) {
-      pipeline.push({ $match: { "profile.emergencyJobs": emergencyJobs === "true" } });
-    }
-    if (isOffDuty !== undefined) {
-      pipeline.push({ $match: { "profile.isOffDuty": isOffDuty === "true" || null } });
-    }
-    if (gstNumber) {
-      pipeline.push({ $match: { "profile.gstNumber": gstNumber } });
-    }
-
-    if (availability) {
-      pipeline.push({ $match: { "profile.availability": { $in: availableDaysArray } } });
-    }
-    if (radius) {
-      pipeline.push({ $match: { "distance": { $lte: parseInt(radius) } } });
-    }
-
-    if (minDistance !== undefined) {
-      pipeline.push({ $match: { "distance": { $gte: parseInt(minDistance) } } });
-    }
-
-    if (maxDistance !== undefined) {
-      pipeline.push({ $match: { "distance": { $lte: parseInt(maxDistance) } } });
-    }
-
-
-    if (minResponseTime !== undefined) {
-      minResponseTime = minResponseTime * 1000
-      pipeline.push({ $match: { "avgResponseTime": { $gte: parseInt(minResponseTime) } } });
-    }
-
-    if (maxResponseTime !== undefined) {
-      maxResponseTime = maxResponseTime * 1000
-      pipeline.push({ $match: { "avgResponseTime": { $lte: parseInt(maxResponseTime) } } });
-    }
-
-    // if (sortByResponseTime !== undefined) {
-    //     const sortOrder = sortByResponseTime === "asc" ? 1 : -1;
-    //     pipeline.push({ $sort: { avgResponseTime: sortOrder } });
-    // }
-
-
-    if (sort) {
-      const [sortField, sortOrder] = sort.startsWith('-') ? [sort.slice(1), -1] : [sort, 1];
-      const sortStage: PipelineStage = {
-        //@ts-ignore
-        $sort: { [sortField]: sortOrder }
-      };
-      pipeline.push(sortStage);
-    }
-
-
-    switch (listing) {
-      case 'recommended':
-        // Logic to fetch recommended contractors
-        // pipeline.push(
-        //     { $match: { rating: { $gte: 4.5 } } }, // Fetch contractors with rating >= 4.5
-        //     { $sort: { rating: -1 } } // Sort by rating in descending order
-        // );
-        pipeline.push(
-          { $sample: { size: 10 } } // Randomly sample 10 contractors
-        );
-        break;
-      case 'top-rated':
-        // Logic to fetch top-rated contractors
-        // pipeline.push(
-        //     { $match: { rating: { $exists: true } } }, // Filter out contractors with no ratings
-        //     { $sort: { rating: -1 } } // Sort by rating in descending order
-        // );
-
-        pipeline.push({ $match: { averageRating: { $exists: true } } });
-
-        break;
-      case 'featured':
-        // Logic to fetch featured contractors
-        pipeline.push(
-          { $match: { isFeatured: true } } // Filter contractors marked as featured
-        );
-        break;
-      default:
-        // Default logic if type is not specified or invalid
-        // You can handle this case based on your requirements
-        break;
-    }
-
-
-    // Add $facet stage for pagination
-    pipeline.push({
-      $facet: {
-        metadata: [
-          { $count: "totalItems" },
-          { $addFields: { page, limit, currentPage: parseInt(page), lastPage: { $ceil: { $divide: ["$totalItems", parseInt(limit)] } }, listing } }
-        ],
-        data: [{ $skip: skip }, { $limit: parseInt(limit) }],
-        verifiedContractors: [
-          { $match: { accountStatus: CONTRACTOR_STATUS.APPROVED } },
-          { $count: "count" }
-        ],
-        unverifiedContractors: [
-          { $match: { accountStatus: { $ne: CONTRACTOR_STATUS.APPROVED } } },
-          { $count: "count" }
-        ]
-      }
-    });
-
-    // Execute pipeline
-    const result = await ContractorModel.aggregate(pipeline);
-    const contractors = result[0].data;
-    const metadata = result[0].metadata[0];
-    const verifiedCount = result[0].verifiedContractors[0]?.count || 0;
-    const unverifiedCount = result[0].unverifiedContractors[0]?.count || 0;
+    const reviewing = contractorsData.filter((contractor: any) => contractor.accountStatus === CONTRACTOR_STATUS.REVIEWING).length;
+    const suspended = contractorsData.filter((contractor: any) => contractor.accountStatus === CONTRACTOR_STATUS.SUSPENDED).length;
+    const approved = contractorsData.filter((contractor: any) => contractor.accountStatus === CONTRACTOR_STATUS.APPROVED).length;
+    const blacklisted = contractorsData.filter((contractor: any) => contractor.accountStatus === CONTRACTOR_STATUS.BLACKLISTED).length;
+    
+      
 
     // Send response
     res.status(200).json({
       success: true,
       data: {
-        ...metadata,
-        data: contractors,
+        ...data,
         stats: {
-          verifiedContractors: verifiedCount,
-          unVerifiedContractors: unverifiedCount
+          reviewing,
+          suspended,
+          approved,
+          blacklisted
         }
       }
     });
@@ -351,7 +79,9 @@ export const exploreContractors = async (
     console.error("Error fetching contractors:", err);
     res.status(400).json({ message: 'Something went wrong' });
   }
-}
+};
+
+
 
 
 
