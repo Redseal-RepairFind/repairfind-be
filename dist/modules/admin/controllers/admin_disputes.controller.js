@@ -86,43 +86,84 @@ var events_1 = require("../../../events");
 var admin_model_1 = __importDefault(require("../../../database/admin/models/admin.model"));
 var conversation_util_1 = require("../../../utils/conversation.util");
 var getJobDisputes = function (req, res) { return __awaiter(void 0, void 0, void 0, function () {
-    var errors, adminId, _a, data, filter, totalOpen, totalOngoing, totalResolved, err_1;
+    var errors, _a, data, filter, totalOpen, totalOngoing, totalResolved, totalUnassigned, resolutionStats, avgResolutionAge, formatTime, oldestDispute, err_1;
     return __generator(this, function (_b) {
         switch (_b.label) {
             case 0:
-                _b.trys.push([0, 5, , 6]);
+                _b.trys.push([0, 8, , 9]);
                 errors = (0, express_validator_1.validationResult)(req);
                 if (!errors.isEmpty()) {
                     return [2 /*return*/, res.status(400).json({ errors: errors.array() })];
                 }
-                adminId = req.admin.id;
                 return [4 /*yield*/, (0, api_feature_1.applyAPIFeature)(job_dispute_model_1.JobDisputeModel.find().populate({
                         path: 'disputer',
                         select: 'firstName lastName name profilePhoto _id'
                     }), req.query)];
             case 1:
                 _a = _b.sent(), data = _a.data, filter = _a.filter;
-                return [4 /*yield*/, job_dispute_model_1.JobDisputeModel.countDocuments(__assign(__assign({}, filter), { status: job_dispute_model_1.JOB_DISPUTE_STATUS.OPEN }))];
+                return [4 /*yield*/, job_dispute_model_1.JobDisputeModel.countDocuments(__assign(__assign({}, filter), { status: { $in: [job_dispute_model_1.JOB_DISPUTE_STATUS.OPEN, job_dispute_model_1.JOB_DISPUTE_STATUS.REVISIT] } }))];
             case 2:
                 totalOpen = _b.sent();
                 return [4 /*yield*/, job_dispute_model_1.JobDisputeModel.countDocuments(__assign(__assign({}, filter), { status: job_dispute_model_1.JOB_DISPUTE_STATUS.ONGOING }))];
             case 3:
                 totalOngoing = _b.sent();
-                return [4 /*yield*/, job_dispute_model_1.JobDisputeModel.countDocuments(__assign(__assign({}, filter), { status: job_dispute_model_1.JOB_DISPUTE_STATUS.RESOLVED }))];
+                return [4 /*yield*/, job_dispute_model_1.JobDisputeModel.countDocuments(__assign(__assign({}, filter), { status: { $in: [job_dispute_model_1.JOB_DISPUTE_STATUS.RESOLVED, job_dispute_model_1.JOB_DISPUTE_STATUS.CLOSED] } }))];
             case 4:
                 totalResolved = _b.sent();
+                return [4 /*yield*/, job_dispute_model_1.JobDisputeModel.countDocuments(__assign(__assign({}, filter), { arbitrator: { $exists: false } }))];
+            case 5:
+                totalUnassigned = _b.sent();
+                return [4 /*yield*/, job_dispute_model_1.JobDisputeModel.aggregate([
+                        { $match: __assign(__assign({}, filter), { status: { $in: [job_dispute_model_1.JOB_DISPUTE_STATUS.RESOLVED, job_dispute_model_1.JOB_DISPUTE_STATUS.CLOSED] } }) },
+                        {
+                            $group: {
+                                _id: null,
+                                avgResolutionAge: {
+                                    $avg: {
+                                        $subtract: ['$updatedAt', '$createdAt'],
+                                    },
+                                },
+                            },
+                        },
+                    ])];
+            case 6:
+                resolutionStats = _b.sent();
+                avgResolutionAge = resolutionStats.length > 0 ? resolutionStats[0].avgResolutionAge : null;
+                formatTime = function (milliseconds) {
+                    var seconds = milliseconds / 1000;
+                    var minutes = seconds / 60;
+                    var hours = minutes / 60;
+                    var days = hours / 24;
+                    if (minutes < 60) {
+                        return "".concat(Math.floor(minutes), " minute").concat(Math.floor(minutes) !== 1 ? 's' : '');
+                    }
+                    else if (hours < 24) {
+                        return "".concat(Math.floor(hours), " hour").concat(Math.floor(hours) !== 1 ? 's' : '');
+                    }
+                    else {
+                        return "".concat(Math.floor(days), " day").concat(Math.floor(days) !== 1 ? 's' : '');
+                    }
+                };
+                return [4 /*yield*/, job_dispute_model_1.JobDisputeModel.findOne(__assign(__assign({}, filter), { status: { $in: [job_dispute_model_1.JOB_DISPUTE_STATUS.OPEN, job_dispute_model_1.JOB_DISPUTE_STATUS.REVISIT] } }))
+                        .sort({ createdAt: 1 })
+                        .select('createdAt')];
+            case 7:
+                oldestDispute = _b.sent();
                 return [2 /*return*/, res.json({
                         success: true, message: "Job disputes retrieved", data: __assign(__assign({}, data), { stats: {
                                 totalOpen: totalOpen,
                                 totalOngoing: totalOngoing,
-                                totalResolved: totalResolved
+                                totalResolved: totalResolved,
+                                totalUnassigned: totalUnassigned,
+                                avgResolutionAge: avgResolutionAge ? formatTime(avgResolutionAge) : 'N/A',
+                                oldestDispute: oldestDispute
                             } }),
                     })];
-            case 5:
+            case 8:
                 err_1 = _b.sent();
                 res.status(500).json({ message: err_1.message });
-                return [3 /*break*/, 6];
-            case 6: return [2 /*return*/];
+                return [3 /*break*/, 9];
+            case 9: return [2 /*return*/];
         }
     });
 }); };

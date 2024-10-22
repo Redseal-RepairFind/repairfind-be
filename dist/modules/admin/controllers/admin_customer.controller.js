@@ -339,9 +339,9 @@ var getCustomerStats = function (req, res) { return __awaiter(void 0, void 0, vo
                 return [4 /*yield*/, (0, api_feature_1.applyAPIFeature)(customer_model_2.default.find(), req.query)];
             case 1:
                 _a = _b.sent(), data = _a.data, filter = _a.filter;
-                return [4 /*yield*/, customer_model_2.default.countDocuments(__assign({}, filter))];
+                return [4 /*yield*/, job_model_1.JobModel.distinct('customer', __assign(__assign({}, filter), { customer: { $ne: null } }))];
             case 2:
-                customersWithBooking = _b.sent();
+                customersWithBooking = (_b.sent()).length;
                 return [2 /*return*/, res.json({
                         success: true,
                         message: "Customer stats retrieved",
