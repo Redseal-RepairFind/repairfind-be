@@ -318,8 +318,8 @@ export const getCustomerStats = async (
 
     const { data, filter } = await applyAPIFeature(CustomerModel.find(), req.query);
 
-    // Get customers with bookings
-    const customersWithBooking = await CustomerModel.countDocuments({ ...filter });
+    // Get customers count with job bookings
+    const customersWithBooking = (await JobModel.distinct('customer', { ...filter, customer: { $ne: null } })).length;
 
     return res.json({
       success: true,
