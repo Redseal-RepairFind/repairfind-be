@@ -296,12 +296,39 @@ export const getJobDays = async (
 
 }
 
+export const getSingleJobDay = async (
+  req: any,
+  res: Response,
+) => {
+
+  try {
+    const { jobdayId } = req.params;
+
+    const jobday = await JobDayModel.findById(jobdayId).populate(['customer', 'contractor', 'job']);
+
+    if (!jobday) {
+      return res
+        .status(404)
+        .json({ success: false, message: "invalid Jobday ID" });
+    }
+
+
+    return res.json({
+      success: true, message: "Job day retrieved successfully",
+      data: jobday
+    });
+
+  } catch (err: any) {
+    res.status(500).json({ message: err.message });
+  }
+}
 
 export const AdminJobController = {
   getJobs,
   getSingleJob,
   getJobStats,
   getJobDays,
+  getSingleJobDay
 }
 
 
