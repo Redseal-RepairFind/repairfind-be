@@ -818,13 +818,16 @@ export const getJobListings = async (req: any, res: Response, next: NextFunction
     return res.status(400).json({ success: false, errors: errors.array() });
   }
 
-  const contractorId = req?.contractor?.id
+  let contractorId = req?.contractor?.id
+
 
   // Assume isGuest
   if (!contractorId) {
     const { data, error } = await applyAPIFeature(JobModel.find({ status: JOB_STATUS.PENDING, type: JobType.LISTING }), req.query)
     return res.status(200).json({ success: true, message: 'Jobs retrieved successfully', data: data });
   }
+
+  contractorId = new mongoose.Types.ObjectId(contractorId); // Ensure contractorId is an ObjectId
   const profile = await ContractorProfileModel.findOne({ contractor: contractorId });
 
   if (!profile) {
@@ -901,7 +904,22 @@ export const getJobListings = async (req: any, res: Response, next: NextFunction
               0
             ]
           },
-          isSaved: { $gt: [{ $size: "$savedJobs" }, 0] },
+          // isSaved: { $gt: [{ $size: "$savedJobs" }, 0] },
+          isSaved: {
+            $gt: [
+              {
+                $size: {
+                  $filter: {
+                    input: "$savedJobs",
+                    as: "savedJob",
+                    cond: { $eq: ["$$savedJob.contractor", contractorId] } // Match contractorId
+                  }
+                }
+              },
+              0
+            ]
+          },
+
           // expiresIn: {
           //   $dateDiff: {
           //     unit: "day", // Change to "hour", "minute", etc. if needed
@@ -940,7 +958,8 @@ export const getJobListings = async (req: any, res: Response, next: NextFunction
           },
 
         }
-      },
+      }
+
     ];
 
 
@@ -999,7 +1018,15 @@ export const getJobListings = async (req: any, res: Response, next: NextFunction
 
     if (onlySavedJobs) {
       pipeline.push({ $match: { "savedJobs": { $ne: [] } } });
+      pipeline.push({ $match: { "savedJobs.contractor": contractorId } });
     }
+
+    pipeline.push( {
+      $project: {
+        enquires: 0,        // Exclude enquiries field
+        savedJobs: 0, 
+      }
+    })
 
     // Add sorting stage if specified
     if (sort) {

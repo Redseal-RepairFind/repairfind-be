@@ -38,8 +38,8 @@ export const exploreContractors = async (
     const customerId = req?.customer?.id
 
     if (!customerId) {
-        const query = {limit: 10, address: req.query.address, category: req.query.category}
-        const { data, error } = await applyAPIFeature(ContractorModel.find({accountType: CONTRACTOR_TYPES.Individual, profile: {$ne: null}}).populate('profile'), query)
+        const query = { limit: 10, address: req.query.address, category: req.query.category }
+        const { data, error } = await applyAPIFeature(ContractorModel.find({ accountType: CONTRACTOR_TYPES.Individual, profile: { $ne: null } }).populate('profile'), query)
         return res.status(200).json({ success: true, message: 'Contractors retrieved successfully', data: data });
     }
 
@@ -207,8 +207,8 @@ export const exploreContractors = async (
                 }
             },
 
-              // filter out contractors with no stripe verified status
-              { $match: { "stripeIdentity.status": 'verified' } },
+            // filter out contractors with no stripe verified status
+            { $match: { "stripeIdentity.status": 'verified' } },
 
 
             {
