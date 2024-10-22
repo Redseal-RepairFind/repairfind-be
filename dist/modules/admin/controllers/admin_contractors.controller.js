@@ -87,14 +87,14 @@ var exploreContractors = function (req, res) { return __awaiter(void 0, void 0, 
                     // Apply the date filter to createdAt
                     queryFilter.createdAt = dateFilter;
                 }
-                return [4 /*yield*/, (0, api_feature_1.applyAPIFeature)(contractor_model_1.ContractorModel.find(queryFilter), req.query, ['getOnboarding'])];
+                return [4 /*yield*/, (0, api_feature_1.applyAPIFeature)(contractor_model_1.ContractorModel.find(queryFilter).populate('profile'), req.query, ['getOnboarding'])];
             case 1:
                 _a = _b.sent(), data = _a.data, filter = _a.filter;
                 contractorsData = [];
-                if (!filter) return [3 /*break*/, 2];
+                if (!(req.query.startDate || req.query.endDate)) return [3 /*break*/, 2];
                 contractorsData = data === null || data === void 0 ? void 0 : data.data;
                 return [3 /*break*/, 4];
-            case 2: return [4 /*yield*/, contractor_model_1.ContractorModel.find({})];
+            case 2: return [4 /*yield*/, contractor_model_1.ContractorModel.find()];
             case 3:
                 contractorsData = _b.sent(); // Fetch all contractors if no filter
                 _b.label = 4;

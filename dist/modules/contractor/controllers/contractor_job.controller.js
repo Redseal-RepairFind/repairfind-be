@@ -949,7 +949,9 @@ var getJobListings = function (req, res, next) { return __awaiter(void 0, void 0
             case 1:
                 _a = _o.sent(), data = _a.data, error = _a.error;
                 return [2 /*return*/, res.status(200).json({ success: true, message: 'Jobs retrieved successfully', data: data })];
-            case 2: return [4 /*yield*/, contractor_profile_model_1.ContractorProfileModel.findOne({ contractor: contractorId })];
+            case 2:
+                contractorId = new mongoose_1.default.Types.ObjectId(contractorId); // Ensure contractorId is an ObjectId
+                return [4 /*yield*/, contractor_profile_model_1.ContractorProfileModel.findOne({ contractor: contractorId })];
             case 3:
                 profile = _o.sent();
                 if (!profile) {
@@ -1004,7 +1006,21 @@ var getJobListings = function (req, res, next) { return __awaiter(void 0, void 0
                                     0
                                 ]
                             },
-                            isSaved: { $gt: [{ $size: "$savedJobs" }, 0] },
+                            // isSaved: { $gt: [{ $size: "$savedJobs" }, 0] },
+                            isSaved: {
+                                $gt: [
+                                    {
+                                        $size: {
+                                            $filter: {
+                                                input: "$savedJobs",
+                                                as: "savedJob",
+                                                cond: { $eq: ["$$savedJob.contractor", contractorId] } // Match contractorId
+                                            }
+                                        }
+                                    },
+                                    0
+                                ]
+                            },
                             // expiresIn: {
                             //   $dateDiff: {
                             //     unit: "day", // Change to "hour", "minute", etc. if needed
@@ -1042,7 +1058,7 @@ var getJobListings = function (req, res, next) { return __awaiter(void 0, void 0
                                 ]
                             },
                         }
-                    },
+                    }
                 ];
                 return [4 /*yield*/, contractor_model_1.ContractorModel.findById(contractorId)];
             case 5:
@@ -1090,7 +1106,14 @@ var getJobListings = function (req, res, next) { return __awaiter(void 0, void 0
                 }
                 if (onlySavedJobs) {
                     pipeline.push({ $match: { "savedJobs": { $ne: [] } } });
+                    pipeline.push({ $match: { "savedJobs.contractor": contractorId } });
                 }
+                pipeline.push({
+                    $project: {
+                        enquires: 0, // Exclude enquiries field
+                        savedJobs: 0,
+                    }
+                });
                 // Add sorting stage if specified
                 if (sort) {
                     _k = sort.startsWith('-') ? [sort.slice(1), -1] : [sort, 1], sortField = _k[0], sortOrder = _k[1];

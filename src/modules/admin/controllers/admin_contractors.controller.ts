@@ -45,14 +45,14 @@ export const exploreContractors = async (req: Request, res: Response) => {
       queryFilter.createdAt = dateFilter;
     }
 
-    const { data, filter } = await applyAPIFeature(ContractorModel.find(queryFilter), req.query, ['getOnboarding']);
+    const { data, filter } = await applyAPIFeature(ContractorModel.find(queryFilter).populate('profile'), req.query, ['getOnboarding']);
 
 
     let contractorsData = [];
-    if (filter) {
+    if (req.query.startDate || req.query.endDate) {
       contractorsData = data?.data; 
     } else {
-      contractorsData = await ContractorModel.find({});  // Fetch all contractors if no filter
+      contractorsData = await ContractorModel.find();  // Fetch all contractors if no filter
     }
     const reviewing = contractorsData.filter((contractor: any) => contractor.accountStatus === CONTRACTOR_STATUS.REVIEWING).length;
     const suspended = contractorsData.filter((contractor: any) => contractor.accountStatus === CONTRACTOR_STATUS.SUSPENDED).length;
