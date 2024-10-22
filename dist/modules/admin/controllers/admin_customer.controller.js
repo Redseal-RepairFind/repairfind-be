@@ -50,7 +50,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.AdminCustomerController = exports.getCustomerStats = exports.issueCoupon = exports.AdminChangeCustomerAccountStatusController = exports.AdminGetSingleCustomerJobDetailController = exports.AdminGetSingleCustomerDetailController = exports.AdminGetCustomerDetailController = void 0;
+exports.AdminCustomerController = exports.getSingleCustomer = exports.getCustomers = exports.issueCoupon = exports.AdminChangeCustomerAccountStatusController = exports.AdminGetSingleCustomerJobDetailController = void 0;
 var express_validator_1 = require("express-validator");
 var admin_model_1 = __importDefault(require("../../../database/admin/models/admin.model"));
 var customer_model_1 = __importDefault(require("../../../database/customer/models/customer.model"));
@@ -60,111 +60,10 @@ var promotion_schema_1 = require("../../../database/common/promotion.schema");
 var coupon_schema_1 = require("../../../database/common/coupon.schema");
 var couponCodeGenerator_1 = require("../../../utils/couponCodeGenerator");
 var custom_errors_1 = require("../../../utils/custom.errors");
-var customer_model_2 = __importDefault(require("../../../database/customer/models/customer.model"));
 var api_feature_1 = require("../../../utils/api.feature");
-//get customer detail /////////////
-var AdminGetCustomerDetailController = function (req, res) { return __awaiter(void 0, void 0, void 0, function () {
-    var _a, page, limit, errors, skip, customersDetail, totalCustomer, err_1;
-    return __generator(this, function (_b) {
-        switch (_b.label) {
-            case 0:
-                _b.trys.push([0, 3, , 4]);
-                _a = req.query, page = _a.page, limit = _a.limit;
-                errors = (0, express_validator_1.validationResult)(req);
-                if (!errors.isEmpty()) {
-                    return [2 /*return*/, res.status(400).json({ errors: errors.array() })];
-                }
-                page = page || 1;
-                limit = limit || 50;
-                skip = (page - 1) * limit;
-                return [4 /*yield*/, customer_model_1.default.find()
-                        .select('-password')
-                        .sort({ createdAt: -1 })
-                        .skip(skip)
-                        .limit(limit)];
-            case 1:
-                customersDetail = _b.sent();
-                return [4 /*yield*/, customer_model_1.default.countDocuments()];
-            case 2:
-                totalCustomer = _b.sent();
-                res.json({
-                    currentPage: page,
-                    totalCustomer: totalCustomer,
-                    totalPages: Math.ceil(totalCustomer / limit),
-                    customers: customersDetail
-                });
-                return [3 /*break*/, 4];
-            case 3:
-                err_1 = _b.sent();
-                // signup error
-                res.status(500).json({ message: err_1.message });
-                return [3 /*break*/, 4];
-            case 4: return [2 /*return*/];
-        }
-    });
-}); };
-exports.AdminGetCustomerDetailController = AdminGetCustomerDetailController;
-//get single customer detail /////////////
-var AdminGetSingleCustomerDetailController = function (req, res) { return __awaiter(void 0, void 0, void 0, function () {
-    var customerId, errors, admin, adminId, customer, err_2;
-    return __generator(this, function (_a) {
-        switch (_a.label) {
-            case 0:
-                _a.trys.push([0, 2, , 3]);
-                customerId = req.params.customerId;
-                errors = (0, express_validator_1.validationResult)(req);
-                if (!errors.isEmpty()) {
-                    return [2 /*return*/, res.status(400).json({ errors: errors.array() })];
-                }
-                admin = req.admin;
-                adminId = admin.id;
-                return [4 /*yield*/, customer_model_1.default.findOne({ _id: customerId })
-                        .select('-password')];
-            case 1:
-                customer = _a.sent();
-                if (!customer) {
-                    return [2 /*return*/, res
-                            .status(401)
-                            .json({ message: "invalid customer ID" })];
-                }
-                // let rating = null
-                // const customerRating = await CustomerRatingModel.findOne({customerId: customer._id})
-                // if (customerRating) {
-                //   rating = customerRating
-                // }
-                // const jobRequests = await JobModel.find({customerId: customer._id}).sort({ createdAt: -1 })
-                // let jobRequested = []
-                // for (let i = 0; i < jobRequests.length; i++) {
-                //   const jobRequest = jobRequests[i];
-                //   const contractor = await ContractorModel.findOne({_id: jobRequest.contractorId}).select('-password');
-                //   const obj = {
-                //     job: jobRequest,
-                //     contractor
-                //   }
-                //   jobRequested.push(obj)
-                // }
-                // const objTwo = {
-                //   customer,
-                //   rating,
-                //   jobHistory: jobRequested
-                // }
-                res.json({
-                    customer: customer
-                });
-                return [3 /*break*/, 3];
-            case 2:
-                err_2 = _a.sent();
-                // signup error
-                res.status(500).json({ message: err_2.message });
-                return [3 /*break*/, 3];
-            case 3: return [2 /*return*/];
-        }
-    });
-}); };
-exports.AdminGetSingleCustomerDetailController = AdminGetSingleCustomerDetailController;
 //get single customer job detail /////////////
 var AdminGetSingleCustomerJobDetailController = function (req, res) { return __awaiter(void 0, void 0, void 0, function () {
-    var customerId, _a, page, limit, errors, admin, adminId, customer, skip, jobsDetails, totalJob, jobs, i, jobsDetail, invoice, obj, err_3;
+    var customerId, _a, page, limit, errors, admin, adminId, customer, skip, jobsDetails, totalJob, jobs, i, jobsDetail, invoice, obj, err_1;
     return __generator(this, function (_b) {
         switch (_b.label) {
             case 0:
@@ -228,9 +127,9 @@ var AdminGetSingleCustomerJobDetailController = function (req, res) { return __a
                 });
                 return [3 /*break*/, 9];
             case 8:
-                err_3 = _b.sent();
+                err_1 = _b.sent();
                 // signup error
-                res.status(500).json({ message: err_3.message });
+                res.status(500).json({ message: err_1.message });
                 return [3 /*break*/, 9];
             case 9: return [2 /*return*/];
         }
@@ -239,7 +138,7 @@ var AdminGetSingleCustomerJobDetailController = function (req, res) { return __a
 exports.AdminGetSingleCustomerJobDetailController = AdminGetSingleCustomerJobDetailController;
 //admin change customer account status  /////////////
 var AdminChangeCustomerAccountStatusController = function (req, res) { return __awaiter(void 0, void 0, void 0, function () {
-    var _a, status_1, customerId, errors, adminId, admin, customer, err_4;
+    var _a, status_1, customerId, errors, adminId, admin, customer, err_2;
     return __generator(this, function (_b) {
         switch (_b.label) {
             case 0:
@@ -275,9 +174,9 @@ var AdminChangeCustomerAccountStatusController = function (req, res) { return __
                 });
                 return [3 /*break*/, 5];
             case 4:
-                err_4 = _b.sent();
+                err_2 = _b.sent();
                 // signup error
-                res.status(500).json({ message: err_4.message });
+                res.status(500).json({ message: err_2.message });
                 return [3 /*break*/, 5];
             case 5: return [2 /*return*/];
         }
@@ -330,13 +229,13 @@ var issueCoupon = function (req, res, next) { return __awaiter(void 0, void 0, v
     });
 }); };
 exports.issueCoupon = issueCoupon;
-var getCustomerStats = function (req, res) { return __awaiter(void 0, void 0, void 0, function () {
-    var _a, data, filter, customersWithBooking, err_5;
+var getCustomers = function (req, res) { return __awaiter(void 0, void 0, void 0, function () {
+    var _a, data, filter, customersWithBooking, err_3;
     return __generator(this, function (_b) {
         switch (_b.label) {
             case 0:
                 _b.trys.push([0, 3, , 4]);
-                return [4 /*yield*/, (0, api_feature_1.applyAPIFeature)(customer_model_2.default.find(), req.query)];
+                return [4 /*yield*/, (0, api_feature_1.applyAPIFeature)(customer_model_1.default.find(), req.query)];
             case 1:
                 _a = _b.sent(), data = _a.data, filter = _a.filter;
                 return [4 /*yield*/, job_model_1.JobModel.distinct('customer', __assign(__assign({}, filter), { customer: { $ne: null } }))];
@@ -350,18 +249,45 @@ var getCustomerStats = function (req, res) { return __awaiter(void 0, void 0, vo
                             } }),
                     })];
             case 3:
-                err_5 = _b.sent();
-                return [2 /*return*/, res.status(500).json({ success: false, message: err_5.message })];
+                err_3 = _b.sent();
+                return [2 /*return*/, res.status(500).json({ success: false, message: err_3.message })];
             case 4: return [2 /*return*/];
         }
     });
 }); };
-exports.getCustomerStats = getCustomerStats;
+exports.getCustomers = getCustomers;
+var getSingleCustomer = function (req, res) { return __awaiter(void 0, void 0, void 0, function () {
+    var customerId, customer, err_4;
+    return __generator(this, function (_a) {
+        switch (_a.label) {
+            case 0:
+                _a.trys.push([0, 2, , 3]);
+                customerId = req.params.customerId;
+                return [4 /*yield*/, customer_model_1.default.findById(customerId)];
+            case 1:
+                customer = _a.sent();
+                if (!customer) {
+                    return [2 /*return*/, res
+                            .status(404)
+                            .json({ success: false, message: "invalid customer ID" })];
+                }
+                return [2 /*return*/, res.json({
+                        success: true,
+                        message: "Customer retrieved",
+                        data: customer
+                    })];
+            case 2:
+                err_4 = _a.sent();
+                return [2 /*return*/, res.status(500).json({ success: false, message: err_4.message })];
+            case 3: return [2 /*return*/];
+        }
+    });
+}); };
+exports.getSingleCustomer = getSingleCustomer;
 exports.AdminCustomerController = {
-    AdminGetCustomerDetailController: exports.AdminGetCustomerDetailController,
-    AdminGetSingleCustomerDetailController: exports.AdminGetSingleCustomerDetailController,
     AdminGetSingleCustomerJobDetailController: exports.AdminGetSingleCustomerJobDetailController,
     AdminChangeCustomerAccountStatusController: exports.AdminChangeCustomerAccountStatusController,
     issueCoupon: exports.issueCoupon,
-    getCustomerStats: exports.getCustomerStats
+    getCustomers: exports.getCustomers,
+    getSingleCustomer: exports.getSingleCustomer
 };

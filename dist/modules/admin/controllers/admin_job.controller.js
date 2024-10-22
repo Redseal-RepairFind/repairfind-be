@@ -47,7 +47,7 @@ var __generator = (this && this.__generator) || function (thisArg, body) {
     }
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.AdminJobController = exports.getJobDays = exports.getJobStats = exports.getSingleJob = exports.getJobs = void 0;
+exports.AdminJobController = exports.getSingleJobDay = exports.getJobDays = exports.getJobStats = exports.getSingleJob = exports.getJobs = void 0;
 var express_validator_1 = require("express-validator");
 var job_model_1 = require("../../../database/common/job.model");
 var api_feature_1 = require("../../../utils/api.feature");
@@ -354,9 +354,38 @@ var getJobDays = function (req, res) { return __awaiter(void 0, void 0, void 0, 
     });
 }); };
 exports.getJobDays = getJobDays;
+var getSingleJobDay = function (req, res) { return __awaiter(void 0, void 0, void 0, function () {
+    var jobdayId, jobday, err_5;
+    return __generator(this, function (_a) {
+        switch (_a.label) {
+            case 0:
+                _a.trys.push([0, 2, , 3]);
+                jobdayId = req.params.jobdayId;
+                return [4 /*yield*/, job_day_model_1.JobDayModel.findById(jobdayId).populate(['customer', 'contractor', 'job'])];
+            case 1:
+                jobday = _a.sent();
+                if (!jobday) {
+                    return [2 /*return*/, res
+                            .status(404)
+                            .json({ success: false, message: "invalid Jobday ID" })];
+                }
+                return [2 /*return*/, res.json({
+                        success: true, message: "Job day retrieved successfully",
+                        data: jobday
+                    })];
+            case 2:
+                err_5 = _a.sent();
+                res.status(500).json({ message: err_5.message });
+                return [3 /*break*/, 3];
+            case 3: return [2 /*return*/];
+        }
+    });
+}); };
+exports.getSingleJobDay = getSingleJobDay;
 exports.AdminJobController = {
     getJobs: exports.getJobs,
     getSingleJob: exports.getSingleJob,
     getJobStats: exports.getJobStats,
     getJobDays: exports.getJobDays,
+    getSingleJobDay: exports.getSingleJobDay
 };
