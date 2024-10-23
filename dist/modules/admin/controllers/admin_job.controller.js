@@ -55,80 +55,75 @@ var contractor_model_1 = require("../../../database/contractor/models/contractor
 var contractor_interface_1 = require("../../../database/contractor/interface/contractor.interface");
 var job_day_model_1 = require("../../../database/common/job_day.model");
 var getJobs = function (req, res) { return __awaiter(void 0, void 0, void 0, function () {
-    var errors, _a, data, filter, allJobs_1, calculatePercentage, totalCanceled, totalCompleted, totalPending, totalBooked, totalDisputed, totalNotStarted, totalOngoing, totalExpired, totalAccepted, totalSubmitted, totalJobListing, totalJobRequest, totalQuotationsForListings, totalQuotationsForRequests, mostRequestedCategory, topRatedContractor, err_1;
-    return __generator(this, function (_b) {
-        switch (_b.label) {
+    var errors, _a, data, filter, allJobs_1, calculatePercentage, totalDisputed, totalOngoing, totalCanceled, totalCompleted, totalPending, totalBooked, totalExpired, totalAccepted, totalJobListing, totalJobRequest, totalQuotationsForListings, totalQuotationsForRequests, mostRequestedCategory, topRatedContractor, err_1;
+    var _b, _c;
+    return __generator(this, function (_d) {
+        switch (_d.label) {
             case 0:
-                _b.trys.push([0, 19, , 20]);
+                _d.trys.push([0, 17, , 18]);
                 errors = (0, express_validator_1.validationResult)(req);
                 if (!errors.isEmpty()) {
                     return [2 /*return*/, res.status(400).json({ errors: errors.array() })];
                 }
                 return [4 /*yield*/, (0, api_feature_1.applyAPIFeature)(job_model_1.JobModel.find().populate(['customer', 'contractor', 'contract']), req.query)];
             case 1:
-                _a = _b.sent(), data = _a.data, filter = _a.filter;
+                _a = _d.sent(), data = _a.data, filter = _a.filter;
                 return [4 /*yield*/, job_model_1.JobModel.countDocuments(filter)];
             case 2:
-                allJobs_1 = _b.sent();
+                allJobs_1 = _d.sent();
                 calculatePercentage = function (count) {
                     return allJobs_1 > 0 ? ((count / allJobs_1) * 100).toFixed(2) : '0.00';
                 };
-                return [4 /*yield*/, job_model_1.JobModel.countDocuments(__assign(__assign({}, filter), { status: job_model_1.JOB_STATUS.CANCELED }))];
-            case 3:
-                totalCanceled = _b.sent();
-                return [4 /*yield*/, job_model_1.JobModel.countDocuments(__assign(__assign({}, filter), { status: { $in: [job_model_1.JOB_STATUS.COMPLETED, job_model_1.JOB_STATUS.COMPLETED_SITE_VISIT] } }))];
-            case 4:
-                totalCompleted = _b.sent();
-                return [4 /*yield*/, job_model_1.JobModel.countDocuments(__assign(__assign({}, filter), { status: job_model_1.JOB_STATUS.PENDING }))];
-            case 5:
-                totalPending = _b.sent();
-                return [4 /*yield*/, job_model_1.JobModel.countDocuments(__assign(__assign({}, filter), { status: job_model_1.JOB_STATUS.BOOKED }))];
-            case 6:
-                totalBooked = _b.sent();
                 return [4 /*yield*/, job_model_1.JobModel.countDocuments(__assign(__assign({}, filter), { status: job_model_1.JOB_STATUS.DISPUTED }))];
-            case 7:
-                totalDisputed = _b.sent();
-                return [4 /*yield*/, job_model_1.JobModel.countDocuments(__assign(__assign({}, filter), { status: job_model_1.JOB_STATUS.NOT_STARTED }))];
-            case 8:
-                totalNotStarted = _b.sent();
+            case 3:
+                totalDisputed = _d.sent();
                 return [4 /*yield*/, job_model_1.JobModel.countDocuments(__assign(__assign({}, filter), { status: { $in: [job_model_1.JOB_STATUS.ONGOING, job_model_1.JOB_STATUS.ONGOING_SITE_VISIT] } }))];
-            case 9:
-                totalOngoing = _b.sent();
+            case 4:
+                totalOngoing = _d.sent();
+                return [4 /*yield*/, job_model_1.JobModel.countDocuments(__assign(__assign({}, filter), { status: job_model_1.JOB_STATUS.CANCELED }))];
+            case 5:
+                totalCanceled = _d.sent();
+                return [4 /*yield*/, job_model_1.JobModel.countDocuments(__assign(__assign({}, filter), { status: { $in: [job_model_1.JOB_STATUS.COMPLETED, job_model_1.JOB_STATUS.COMPLETED_SITE_VISIT] } }))];
+            case 6:
+                totalCompleted = _d.sent();
+                return [4 /*yield*/, job_model_1.JobModel.countDocuments(__assign(__assign({}, filter), { status: job_model_1.JOB_STATUS.PENDING }))];
+            case 7:
+                totalPending = _d.sent();
+                return [4 /*yield*/, job_model_1.JobModel.countDocuments(__assign(__assign({}, filter), { status: { $in: [job_model_1.JOB_STATUS.BOOKED, job_model_1.JOB_STATUS.COMPLETED, job_model_1.JOB_STATUS.COMPLETED_SITE_VISIT, job_model_1.JOB_STATUS.ONGOING, job_model_1.JOB_STATUS.ONGOING_SITE_VISIT, job_model_1.JOB_STATUS.CANCELED, job_model_1.JOB_STATUS.DISPUTED, job_model_1.JOB_STATUS.NOT_STARTED] } }))];
+            case 8:
+                totalBooked = _d.sent();
                 return [4 /*yield*/, job_model_1.JobModel.countDocuments(__assign(__assign({}, filter), { status: { $in: [job_model_1.JOB_STATUS.EXPIRED, job_model_1.JOB_STATUS.DECLINED] } }))];
+            case 9:
+                totalExpired = _d.sent();
+                return [4 /*yield*/, job_model_1.JobModel.countDocuments(__assign(__assign({}, filter), { status: { $in: [job_model_1.JOB_STATUS.ACCEPTED, job_model_1.JOB_STATUS.SUBMITTED] } }))];
             case 10:
-                totalExpired = _b.sent();
-                return [4 /*yield*/, job_model_1.JobModel.countDocuments(__assign(__assign({}, filter), { status: job_model_1.JOB_STATUS.ACCEPTED }))];
-            case 11:
-                totalAccepted = _b.sent();
-                return [4 /*yield*/, job_model_1.JobModel.countDocuments(__assign(__assign({}, filter), { status: job_model_1.JOB_STATUS.SUBMITTED }))];
-            case 12:
-                totalSubmitted = _b.sent();
+                totalAccepted = _d.sent();
                 return [4 /*yield*/, job_model_1.JobModel.countDocuments(__assign(__assign({}, filter), { type: job_model_1.JobType.LISTING }))];
-            case 13:
-                totalJobListing = _b.sent();
+            case 11:
+                totalJobListing = _d.sent();
                 return [4 /*yield*/, job_model_1.JobModel.countDocuments(__assign(__assign({}, filter), { type: job_model_1.JobType.REQUEST }))];
-            case 14:
-                totalJobRequest = _b.sent();
+            case 12:
+                totalJobRequest = _d.sent();
                 return [4 /*yield*/, job_model_1.JobModel.aggregate([
                         { $match: __assign(__assign({}, filter), { type: job_model_1.JobType.LISTING }) },
                         { $group: { _id: null, totalQuotations: { $sum: { $size: "$quotations" } } } }
                     ])];
-            case 15:
-                totalQuotationsForListings = _b.sent();
+            case 13:
+                totalQuotationsForListings = _d.sent();
                 return [4 /*yield*/, job_model_1.JobModel.aggregate([
                         { $match: __assign(__assign({}, filter), { type: job_model_1.JobType.REQUEST }) },
                         { $group: { _id: null, totalQuotations: { $sum: { $size: "$quotations" } } } }
                     ])];
-            case 16:
-                totalQuotationsForRequests = _b.sent();
+            case 14:
+                totalQuotationsForRequests = _d.sent();
                 return [4 /*yield*/, job_model_1.JobModel.aggregate([
                         { $match: __assign({}, filter) },
                         { $group: { _id: "$category", count: { $sum: 1 } } },
                         { $sort: { count: -1 } },
                         { $limit: 1 },
                     ])];
-            case 17:
-                mostRequestedCategory = _b.sent();
+            case 15:
+                mostRequestedCategory = _d.sent();
                 return [4 /*yield*/, contractor_model_1.ContractorModel.aggregate([
                         { $match: { reviews: { $exists: true, $ne: [] } } },
                         {
@@ -153,8 +148,8 @@ var getJobs = function (req, res) { return __awaiter(void 0, void 0, void 0, fun
                         { $sort: { reviewCount: -1 } },
                         { $limit: 1 }
                     ])];
-            case 18:
-                topRatedContractor = _b.sent();
+            case 16:
+                topRatedContractor = _d.sent();
                 return [2 /*return*/, res.json({
                         success: true, message: "Jobs retrieved successfully",
                         data: __assign(__assign({}, data), { stats: {
@@ -179,10 +174,6 @@ var getJobs = function (req, res) { return __awaiter(void 0, void 0, void 0, fun
                                     total: totalDisputed,
                                     percentage: calculatePercentage(totalDisputed)
                                 },
-                                totalNotStarted: {
-                                    total: totalNotStarted,
-                                    percentage: calculatePercentage(totalNotStarted)
-                                },
                                 totalOngoing: {
                                     total: totalOngoing,
                                     percentage: calculatePercentage(totalOngoing)
@@ -195,24 +186,20 @@ var getJobs = function (req, res) { return __awaiter(void 0, void 0, void 0, fun
                                     total: totalAccepted,
                                     percentage: calculatePercentage(totalAccepted)
                                 },
-                                totalSubmitted: {
-                                    total: totalSubmitted,
-                                    percentage: calculatePercentage(totalSubmitted)
-                                },
                                 mostRequestedCategory: mostRequestedCategory[0],
                                 topRatedContractor: topRatedContractor[0],
                                 totalJobListing: totalJobListing,
                                 totalJobRequest: totalJobRequest,
-                                totalQuotationsForListings: totalQuotationsForListings[0].totalQuotations || 0,
-                                totalQuotationsForRequests: totalQuotationsForRequests[0].totalQuotations || 0,
+                                totalQuotationsForListings: ((_b = totalQuotationsForListings[0]) === null || _b === void 0 ? void 0 : _b.totalQuotations) || 0,
+                                totalQuotationsForRequests: ((_c = totalQuotationsForRequests[0]) === null || _c === void 0 ? void 0 : _c.totalQuotations) || 0,
                             } }),
                     })];
-            case 19:
-                err_1 = _b.sent();
+            case 17:
+                err_1 = _d.sent();
                 // signup error
                 res.status(500).json({ message: err_1.message });
-                return [3 /*break*/, 20];
-            case 20: return [2 /*return*/];
+                return [3 /*break*/, 18];
+            case 18: return [2 /*return*/];
         }
     });
 }); };
