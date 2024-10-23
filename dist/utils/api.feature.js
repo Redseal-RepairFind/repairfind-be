@@ -60,7 +60,7 @@ var APIFeatures = /** @class */ (function () {
     }
     APIFeatures.prototype.filter = function () {
         var queryObj = __assign({}, this.queryString);
-        var excludedFields = ['page', 'sort', 'limit', 'fields', 'startDate', 'endDate'];
+        var excludedFields = ['page', 'sort', 'limit', 'fields', 'startDate', 'endDate', 'search', 'searchFields'];
         excludedFields.forEach(function (el) { return delete queryObj[el]; });
         // 1B) Advanced filtering
         var queryStr = JSON.stringify(queryObj);
