@@ -30,12 +30,11 @@ export const getJobs = async (
     }
 
     const totalDisputed = await JobModel.countDocuments({ ...filter, status: JOB_STATUS.DISPUTED });
-    const totalNotStarted = await JobModel.countDocuments({ ...filter, status: JOB_STATUS.NOT_STARTED });
     const totalOngoing = await JobModel.countDocuments({ ...filter, status: { $in: [JOB_STATUS.ONGOING, JOB_STATUS.ONGOING_SITE_VISIT] } });
     const totalCanceled = await JobModel.countDocuments({ ...filter, status: JOB_STATUS.CANCELED });
     const totalCompleted = await JobModel.countDocuments({ ...filter, status: { $in: [JOB_STATUS.COMPLETED, JOB_STATUS.COMPLETED_SITE_VISIT] } });
     const totalPending = await JobModel.countDocuments({ ...filter, status: JOB_STATUS.PENDING });
-    const totalBooked = await JobModel.countDocuments({ ...filter, status: { $in: [JOB_STATUS.BOOKED, JOB_STATUS.COMPLETED, JOB_STATUS.COMPLETED_SITE_VISIT, JOB_STATUS.ONGOING, JOB_STATUS.ONGOING_SITE_VISIT, JOB_STATUS.CANCELED, JOB_STATUS.DISPUTED] } });
+    const totalBooked = await JobModel.countDocuments({ ...filter, status: { $in: [JOB_STATUS.BOOKED, JOB_STATUS.COMPLETED, JOB_STATUS.COMPLETED_SITE_VISIT, JOB_STATUS.ONGOING, JOB_STATUS.ONGOING_SITE_VISIT, JOB_STATUS.CANCELED, JOB_STATUS.DISPUTED, JOB_STATUS.NOT_STARTED] } });
     const totalExpired = await JobModel.countDocuments({ ...filter, status: { $in: [JOB_STATUS.EXPIRED, JOB_STATUS.DECLINED] } });
     const totalAccepted = await JobModel.countDocuments({ ...filter, status: { $in: [JOB_STATUS.ACCEPTED, JOB_STATUS.SUBMITTED] } });
     const totalJobListing = await JobModel.countDocuments({ ...filter, type: JobType.LISTING });
@@ -116,10 +115,6 @@ export const getJobs = async (
           totalDisputed: {
             total: totalDisputed,
             percentage: calculatePercentage(totalDisputed)
-          },
-          totalNotStarted: {
-            total: totalNotStarted,
-            percentage: calculatePercentage(totalNotStarted)
           },
           totalOngoing: {
             total: totalOngoing,
