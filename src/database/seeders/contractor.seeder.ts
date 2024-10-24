@@ -34,6 +34,7 @@ const contractors = [
         startTime: "0500",
         endTime: "0900"
       }],
+      isOffDuty: true,
       backgrounCheckConsent: true,
       emergencyJobs: true,
       experienceYear: 5,
