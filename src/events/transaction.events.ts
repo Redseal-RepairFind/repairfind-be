@@ -40,12 +40,12 @@ TransactionEvent.on('ESCROW_TRANSFER_SUCCESSFUL', async function (transaction) {
                 coupons.map(async (coupon) => {
                     //create refund transaction for each payment
                     await TransactionModel.create({
-                        type: TRANSACTION_TYPE.ESCROW,
+                        type: TRANSACTION_TYPE.REFERRAL_BONUS_PAYMENT,
                         amount: coupon.value,
                         toUser: coupon.user,
                         toUserType: coupon.userType,
-                        description: `Referal Bonus Payment for: ${coupon?.code}`,
-                        status: TRANSACTION_STATUS.PENDING,
+                        description: `Referral Bonus Payment for: ${coupon?.code}`,
+                        status: TRANSACTION_STATUS.APPROVED,
                         remark: 'bonus_payout',
                         invoice: {
                             items: [],

@@ -85,7 +85,6 @@ PromotionEvent.on('REFERRAL_COUPON_ACTIVATED', async function (payload: { coupon
 
         // Decrease promotion limit
         if (coupon && user) {
-            //Do not sen out email, wait until coupon becomes active
             await sendReferralCouponActivatedEmail(coupon, user, userType);
         }
 

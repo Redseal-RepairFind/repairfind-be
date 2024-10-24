@@ -151,10 +151,8 @@ exports.PromotionEvent.on('REFERRAL_COUPON_ACTIVATED', function (payload) {
                     user = _a;
                     userType = coupon.userType;
                     if (!(coupon && user)) return [3 /*break*/, 6];
-                    //Do not sen out email, wait until coupon becomes active
                     return [4 /*yield*/, sendReferralCouponActivatedEmail(coupon, user, userType)];
                 case 5:
-                    //Do not sen out email, wait until coupon becomes active
                     _b.sent();
                     _b.label = 6;
                 case 6: return [3 /*break*/, 8];

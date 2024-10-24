@@ -140,12 +140,12 @@ exports.TransactionEvent.on('ESCROW_TRANSFER_SUCCESSFUL', function (transaction)
                                 case 0: 
                                 //create refund transaction for each payment
                                 return [4 /*yield*/, transaction_model_1.default.create({
-                                        type: transaction_model_1.TRANSACTION_TYPE.ESCROW,
+                                        type: transaction_model_1.TRANSACTION_TYPE.REFERRAL_BONUS_PAYMENT,
                                         amount: coupon.value,
                                         toUser: coupon.user,
                                         toUserType: coupon.userType,
-                                        description: "Referal Bonus Payment for: ".concat(coupon === null || coupon === void 0 ? void 0 : coupon.code),
-                                        status: transaction_model_1.TRANSACTION_STATUS.PENDING,
+                                        description: "Referral Bonus Payment for: ".concat(coupon === null || coupon === void 0 ? void 0 : coupon.code),
+                                        status: transaction_model_1.TRANSACTION_STATUS.APPROVED,
                                         remark: 'bonus_payout',
                                         invoice: {
                                             items: [],
